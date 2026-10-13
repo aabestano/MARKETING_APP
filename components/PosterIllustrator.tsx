@@ -157,7 +157,13 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   const brandTheme = useMemo(() => themeFromTokens(tokens), [tokens]);
   const swatches = useMemo(() => brandSwatches(tokens), [tokens]);
   const logoChoices = useMemo(
-    () => bookAssets.filter((a) => isLogo(a) && ((a.kind === "image" && !!a.dataUrl) || (a.kind === "cdn-url" && !!a.url))).map((a) => ({ id: a.id, name: a.name })),
+    () =>
+      bookAssets
+        .filter((a) => {
+          const renderable = (a.kind === "image" && !!a.dataUrl) || (a.kind === "cdn-url" && !!a.url);
+          return renderable && a.role !== "Illustration";
+        })
+        .map((a) => ({ id: a.id, name: a.name })),
     [bookAssets],
   );
   const hasKey = !!settings.geminiApiKey || !!status?.gemini;

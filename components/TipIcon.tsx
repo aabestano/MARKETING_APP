@@ -35,8 +35,8 @@ export function TipIcon({ name }: { name: TipIcon }) {
       )}
       {name === "pill" && (
         <>
-          <path {...stroke} d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z" />
-          <path {...stroke} d="m8.5 8.5 7 7" />
+          <rect x="2" y="8" width="20" height="8" rx="4" fill="currentColor" />
+          <rect x="11.2" y="8" width="1.6" height="8" fill="#ffffff" />
         </>
       )}
     </svg>
