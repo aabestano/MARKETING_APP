@@ -34,8 +34,8 @@ export function AssetViewer({ asset, onClose }: { asset: BrandAsset; onClose: ()
       .then((data) => {
         if (alive) setHtml(data.html);
       })
-      .catch((err) => {
-        if (alive) setPreviewError(err instanceof Error ? err.message : "This template could not be previewed.");
+      .catch(() => {
+        if (alive) setPreviewError("This template could not be previewed.");
       })
       .finally(() => {
         if (alive) setCompiling(false);
