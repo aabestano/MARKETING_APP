@@ -18,6 +18,9 @@ test("token resolution priority: brand book > directives > defaults", () => {
   assert.equal(t.accent, "#FF8800");
   assert.equal(t.fontFamily, "Georgia, serif");
   assert.equal(t.secondary, DEFAULT_TOKENS.secondary);
+  assert.equal(resolveBrandTokens({ tokens: { textColor: "#1B1B1C" } }).textColor, "#1B1B1C");
+  assert.equal(resolveBrandTokens({ tokens: { textColor: "" } }).textColor, DEFAULT_TOKENS.textColor);
+  assert.equal(resolveBrandTokens({}).accent, "#10B981");
   assert.deepEqual(parseTokenHints("{{BRAND_SECONDARY_COLOR}} = #0b5cab").secondary, "#0b5cab");
 });
 

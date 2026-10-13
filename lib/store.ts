@@ -234,7 +234,15 @@ export const useStore = create<AppState>()(
 
       updateBrandTokens: (bookId, tokens) =>
         set((s) => ({
-          brandBooks: s.brandBooks.map((b) => (b.id === bookId ? { ...b, tokens: { ...b.tokens, ...tokens } } : b)),
+          brandBooks: s.brandBooks.map((b) => {
+            if (b.id !== bookId) return b;
+            const next: BrandTokens = { ...b.tokens, ...tokens };
+            (Object.keys(next) as (keyof BrandTokens)[]).forEach((key) => {
+              const value = next[key];
+              if (typeof value !== "string" || !value.trim()) delete next[key];
+            });
+            return { ...b, tokens: next };
+          }),
         })),
 
       addReferenceImage: (image) => {

@@ -1,9 +1,7 @@
+import { resolveFontStack } from "./fonts";
 import type { BrandAsset, BrandTokens } from "./types";
 
 export type ResolvedTokens = Required<BrandTokens> & {
-  textColor: string;
-  mutedColor: string;
-  borderColor: string;
   buttonTextColor: string;
 };
 
@@ -19,6 +17,24 @@ export const DEFAULT_TOKENS: ResolvedTokens = {
   borderColor: "#E2E8F0",
   buttonTextColor: "#FFFFFF",
 };
+
+export const MAXICARE_BL_NAME = "Maxicare BL";
+
+/** Opt-in colors for the Maxicare BL book. Poppins falls back to a similar system font until a file is uploaded. */
+export const MAXICARE_BL_TOKENS: BrandTokens = {
+  primary: "#0150C8",
+  accent: "#E0610C",
+  textColor: "#1B1B1C",
+  canvasBg: "#F1F5F9",
+  containerBg: "#F8FAFC",
+  borderColor: "#E2E8F0",
+  mutedColor: "#64748B",
+  fontFamily: resolveFontStack("Poppins", []).stack,
+};
+
+export function isMaxicareBl(name: string): boolean {
+  return name.trim().toLowerCase() === MAXICARE_BL_NAME.toLowerCase();
+}
 
 /** Token name (without braces) -> ResolvedTokens key. */
 export const TOKEN_KEYS: Record<string, keyof ResolvedTokens> = {
