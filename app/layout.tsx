@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { APP_NAME } from "@/lib/app-name";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Brand Engine · Ideas to designs",
+  title: `${APP_NAME} · Ideas to designs`,
   description: "Plan campaigns, write the content once, and produce on-brand emails and print-ready posters.",
 };
 

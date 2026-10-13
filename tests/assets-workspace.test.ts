@@ -59,7 +59,7 @@ test("import tags legacy assets without purposes as Email Design", () => {
 
 test("import rejects foreign or malformed files", () => {
   assert.throws(() => parseWorkspaceExport("not json"), /valid JSON/);
-  assert.throws(() => parseWorkspaceExport(JSON.stringify({ hello: 1 })), /isn't a Brand Engine/);
+  assert.throws(() => parseWorkspaceExport(JSON.stringify({ hello: 1 })), /isn't an IDEAte/);
   assert.throws(() => parseWorkspaceExport(JSON.stringify({ app: "brand-engine", version: 99, data: {} })), /newer version/);
 });
 

@@ -40,7 +40,7 @@ export function ImportIdeateModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal
-      title="Import from the old IDEAte app"
+      title="Import from older IDEAte versions"
       description="Brings over your Idea Base and calendar pipeline. Nothing is overwritten; items with the same ID are skipped."
       onClose={onClose}
       footer={
@@ -57,7 +57,7 @@ export function ImportIdeateModal({ onClose }: { onClose: () => void }) {
         </ol>
         <pre className="select-all overflow-x-auto rounded-md border border-slate-800 bg-slate-900 p-3 font-mono text-xs text-slate-200">{SNIPPET}</pre>
         <ol start={3} className="list-decimal space-y-1.5 pl-5 text-slate-400">
-          <li>Paste it below, or choose a saved .json / .txt file.</li>
+          <li>Paste it below, or choose a saved .json or .txt file.</li>
         </ol>
         <textarea
           className="input h-40 font-mono text-xs"

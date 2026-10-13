@@ -26,7 +26,7 @@ const BLUEPRINTS: { id: string; label: string; hint: string; text: string }[] = 
   {
     id: "flow",
     label: "Step-by-step flowchart",
-    hint: "A process with an optional yes/no decision",
+    hint: "A process with an optional yes or no decision",
     text: `How to refill your maintenance medicines
 Three quick steps to get your next refill delivered.
 
@@ -64,7 +64,7 @@ Illustration idea: a calendar with a medicine bottle and a savings tag`,
   },
   {
     id: "checklist",
-    label: "Checklist / tips",
+    label: "Checklist and tips",
     hint: "A list of tips with a reminder callout",
     text: `5 habits that keep you on track
 Small routines make a big difference.
@@ -428,10 +428,10 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 </select>
                 <p className="mt-1.5 text-xs text-slate-500">
                   {book
-                    ? `${illustrations.length} illustration${illustrations.length === 1 ? "" : "s"}, ${families.length} font famil${families.length === 1 ? "y" : "ies"} and ${bookAssets.filter((a) => isLogo(a)).length} logo${bookAssets.filter((a) => isLogo(a)).length === 1 ? "" : "s"} tagged Poster Illustration.`
+                    ? `${illustrations.length} illustration${illustrations.length === 1 ? "" : "s"}, ${families.length} font famil${families.length === 1 ? "y" : "ies"}, and ${bookAssets.filter((a) => isLogo(a)).length} logo${bookAssets.filter((a) => isLogo(a)).length === 1 ? "" : "s"} tagged Poster Illustration.`
                     : books.length
-                      ? "Select a brand book to use its colors, fonts, logo and illustrations."
-                      : "Create a brand book in Library → Brand Books to use your colors, fonts and illustrations."}
+                      ? "Select a brand book to use its colors, fonts, logo, and illustrations."
+                      : "Create a brand book in Library → Brand Books to use your colors, fonts, and illustrations."}
                 </p>
                 {book && illustrations.length === 0 && (
                   <p className="mt-1 text-xs text-amber-300/90">

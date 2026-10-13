@@ -141,7 +141,7 @@ export function IdeaStudio() {
             <button className="card flex flex-col items-start gap-2 p-4 text-left transition hover:border-blue-500/60" onClick={() => setStudio({ campaign: blankCampaign(), pipelineId: null })}>
               <FileText className="h-5 w-5 text-blue-400" />
               <span className="text-sm font-semibold text-slate-100">Start from the template</span>
-              <span className="text-xs text-slate-400">The ForwardMG / Best Life campaign, ready to edit.</span>
+              <span className="text-xs text-slate-400">The ForwardMG and Best Life campaign, ready to edit.</span>
             </button>
             <div className="card space-y-2 p-4 md:col-span-2">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100"><CalendarDays className="h-4 w-4 text-emerald-400" /> From a calendar item</h2>
@@ -482,14 +482,14 @@ export function IdeaStudio() {
               <Text label="Headline" value={p.headline} onChange={(v) => setPoster({ headline: v })} />
               <Text label="Subheading" value={p.subheading} onChange={(v) => setPoster({ subheading: v })} />
             </Group>
-            <Group title="Steps / flowchart">
+            <Group title="Steps and flowchart">
               <Text label="Steps title" value={p.stepsTitle} onChange={(v) => setPoster({ stepsTitle: v })} />
               <Area
                 label="Steps"
                 rows={7}
                 value={p.stepsText}
                 onChange={(v) => setPoster({ stepsText: v })}
-                hint="One step per line. Add detail with “Label :: detail”. A yes/no decision is “Label ?? yes outcome || no outcome”."
+                hint="One step per line. Add detail with “Label :: detail”. A yes or no decision is “Label ?? yes outcome || no outcome”."
               />
             </Group>
             <Group title="Key points and callout">

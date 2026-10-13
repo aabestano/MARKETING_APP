@@ -129,7 +129,7 @@ export function SaveBlastModal({
               setTab("repository");
             }}
           >
-            Save &amp; open repository
+            Save and open repository
           </button>
         </>
       }

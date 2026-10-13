@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   const warnings: string[] = [];
 
   if (!apiKey) {
-    warnings.push("No Gemini API key configured: laid out from the brief with the built-in offline layout. Add a key in API & Mail Settings for AI design.");
+    warnings.push("No Gemini API key configured: laid out from the brief with the built-in offline layout. Add a key in API and Mail Settings for AI design.");
     if (revision) {
       warnings.push("Revisions need a Gemini API key; the poster was left unchanged.");
       return NextResponse.json({ spec: sanitizePosterSpec(revision.spec, ctx), warnings, source: "fallback" });

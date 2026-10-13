@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const fluxKey = body.fluxApiKey?.trim() || process.env.FAL_KEY;
     if (!fluxKey) {
       return NextResponse.json(
-        { error: "Drawing with FLUX needs a fal.ai API key. Add one in API & Mail Settings, or upload an illustration to the Poster Illustration folder." },
+        { error: "Drawing with FLUX needs a fal.ai API key. Add one in API and Mail Settings, or upload an illustration to the Poster Illustration folder." },
         { status: 400 },
       );
     }
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const apiKey = resolveGeminiKey(body.apiKey);
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Generating illustrations needs a Gemini API key. Add one in API & Mail Settings, or upload an illustration to the Poster Illustration folder." },
+      { error: "Generating illustrations needs a Gemini API key. Add one in API and Mail Settings, or upload an illustration to the Poster Illustration folder." },
       { status: 400 },
     );
   }

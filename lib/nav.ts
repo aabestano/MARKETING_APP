@@ -16,7 +16,7 @@ export const SECTIONS: NavSection[] = [
   {
     id: "plan",
     label: "Plan",
-    hint: "Calendar & saved designs",
+    hint: "Calendar and saved designs",
     tabs: [
       { id: "calendar", label: "Calendar" },
       { id: "repository", label: "Design Repository" },
@@ -25,7 +25,7 @@ export const SECTIONS: NavSection[] = [
   {
     id: "create",
     label: "Create",
-    hint: "Ideas, studio & designs",
+    hint: "Ideas, studio, and designs",
     tabs: [
       { id: "idea-generator", label: "Idea Generator" },
       { id: "idea-studio", label: "Idea Studio" },
@@ -35,7 +35,7 @@ export const SECTIONS: NavSection[] = [
   {
     id: "library",
     label: "Library",
-    hint: "Idea Base & Brand Books",
+    hint: "Idea Base and Brand Books",
     tabs: [
       { id: "idea-base", label: "Idea Base" },
       { id: "brands", label: "Brand Books" },

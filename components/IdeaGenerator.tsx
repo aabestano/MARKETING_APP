@@ -105,7 +105,7 @@ export function IdeaGenerator({ status, onOpenSettings }: { status: ServerStatus
             )}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             <div>
               <label className="label" htmlFor="gen-cohort">Target cohort</label>
               <select id="gen-cohort" className="input" value={cohort} onChange={(e) => setCohort(e.target.value)}>

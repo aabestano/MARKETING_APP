@@ -17,12 +17,12 @@ export async function POST(req: Request) {
   }
   const m = /^data:([^;,]+);base64,(.+)$/.exec(body.fileData ?? "");
   if (!m) return NextResponse.json({ error: "No readable file was sent." }, { status: 400 });
-  if (!ALLOWED.test(m[1])) return NextResponse.json({ error: `AI analysis supports PDF, PNG/JPG and TXT/HTML files, not ${m[1]}.` }, { status: 400 });
+  if (!ALLOWED.test(m[1])) return NextResponse.json({ error: `AI analysis supports PDF, PNG, JPG, TXT, and HTML files, not ${m[1]}.` }, { status: 400 });
   if (m[2].length * 0.75 > 3.2 * 1024 * 1024) {
     return NextResponse.json({ error: "That file is too large to analyze. Keep it under about 2.5 MB." }, { status: 413 });
   }
   const apiKey = resolveGeminiKey(body.apiKey);
-  if (!apiKey) return NextResponse.json({ error: "AI analysis needs a Gemini API key. Add one in API & Mail Settings." }, { status: 400 });
+  if (!apiKey) return NextResponse.json({ error: "AI analysis needs a Gemini API key. Add one in API and Mail Settings." }, { status: 400 });
 
   try {
     const ai = new GoogleGenAI({ apiKey });

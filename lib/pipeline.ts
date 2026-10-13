@@ -1,3 +1,4 @@
+import { APP_NAME } from "./app-name";
 import type { IdeaCard, PipelineItem } from "./idea-types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -65,7 +66,7 @@ export function pipelineToCsv(items: PipelineItem[]): string {
 const icsEscape = (v: string) => v.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
 export function pipelineToIcs(items: PipelineItem[]): string {
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Brand Engine//Best Life Pipeline//EN"];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${APP_NAME}//Best Life Pipeline//EN`];
   for (const i of items) {
     const d = i.scheduledDate.replace(/-/g, "");
     lines.push(
@@ -160,7 +161,7 @@ export const SAMPLE_RESOURCES = (now = Date.now()) => [
   {
     id: "res_seed_doh_01",
     inputType: "scratch" as const,
-    name: "Q3 Chronic Care & Copay Waiver Campaign",
+    name: "Q3 Chronic Care and Copay Waiver Campaign",
     sourceType: "Scratch Idea",
     targetMonth: "September",
     cohort: "All Members",
@@ -168,12 +169,12 @@ export const SAMPLE_RESOURCES = (now = Date.now()) => [
     active: true,
     dateAdded: new Date(now - 86400000 * 5).toISOString(),
     extractedNotes:
-      "• Target members with chronic hypertension & diabetes refills.\n• Highlight $0 copay card renewal for 2026.\n• Critical hook: Lapsed members over 45 days can re-order in under 60 seconds with frictionless one-tap SMS.",
+      "• Target members with chronic hypertension and diabetes refills.\n• Highlight $0 copay card renewal for 2026.\n• Critical hook: Lapsed members over 45 days can re-order in under 60 seconds with frictionless one-tap SMS.",
   },
   {
     id: "res_seed_flu_02",
     inputType: "scratch" as const,
-    name: "Autumn Immunization & Refill Sync Brief",
+    name: "Autumn Immunization and Refill Sync Brief",
     sourceType: "Scratch Idea",
     targetMonth: "October",
     cohort: "Lapsed (45+ Days)",

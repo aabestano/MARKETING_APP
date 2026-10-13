@@ -4,6 +4,7 @@ import { Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
 import { modelLabel, type SectionId } from "@/lib/types";
+import { APP_NAME } from "@/lib/app-name";
 import { SECTIONS, sectionOf } from "@/lib/nav";
 import type { ServerStatus } from "./AppShell";
 
@@ -30,7 +31,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
           <Mail className="h-4 w-4 text-white" />
         </div>
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="text-sm font-semibold text-slate-100">Brand Engine</div>
+          <div className="text-sm font-semibold text-slate-100">{APP_NAME}</div>
           <div className="text-[11px] text-slate-500">
             <span className="text-emerald-400">·</span> Ideas to designs
           </div>
@@ -86,7 +87,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
           className="w-full rounded-md border border-slate-800 bg-slate-900 p-3 text-left transition hover:border-slate-700 hover:bg-slate-800/70"
         >
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-            <Settings2 className="h-4 w-4 text-slate-400" /> API &amp; Mail Settings
+            <Settings2 className="h-4 w-4 text-slate-400" /> API and Mail Settings
           </div>
           <dl className="space-y-1.5 text-[11px]">
             <div className="flex items-center justify-between gap-2">

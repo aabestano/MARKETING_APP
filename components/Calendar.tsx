@@ -90,7 +90,7 @@ export function Calendar() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="btn-ghost" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4" /> Import from IDEAte
+              <Upload className="h-4 w-4" /> Import from older IDEAte versions
             </button>
             <button className="btn-ghost" disabled={!pipeline.length} onClick={() => downloadFile("campaign-calendar.csv", pipelineToCsv(pipeline), "text/csv")}>
               <Download className="h-4 w-4" /> CSV
@@ -159,7 +159,7 @@ export function Calendar() {
             action={
               <div className="flex gap-2">
                 <button className="btn-primary" onClick={() => setTab("idea-generator")}>Open Idea Generator</button>
-                <button className="btn-ghost" onClick={() => setImportOpen(true)}>Import from IDEAte</button>
+                <button className="btn-ghost" onClick={() => setImportOpen(true)}>Import from older IDEAte versions</button>
               </div>
             }
           />

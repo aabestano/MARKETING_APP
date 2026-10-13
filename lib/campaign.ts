@@ -252,11 +252,11 @@ export function buildStandaloneHtmlPrompt(c: Campaign): string {
 
 ---
 
-### 1. BRAND & DESIGN STYLING RULES (Injected by System)
+### 1. BRAND AND DESIGN STYLING RULES (Injected by System)
 Use the following styling tokens for all elements. Do NOT invent arbitrary colors or styles outside these specifications.
 - Primary Brand Color: {{BRAND_PRIMARY_COLOR}}
 - Secondary Brand Color: {{BRAND_SECONDARY_COLOR}}
-- Accent/CTA Color: {{BRAND_ACCENT_COLOR}}
+- Accent and CTA Color: {{BRAND_ACCENT_COLOR}}
 - Background Color (Canvas): {{BRAND_CANVAS_BG}}
 - Container Background: {{BRAND_CONTAINER_BG}}
 - Card Background: {{BRAND_CARD_BG}}
@@ -268,7 +268,7 @@ Use the following styling tokens for all elements. Do NOT invent arbitrary color
 
 ---
 
-### 2. TECHNICAL & RESPONSIVE CONSTRAINTS
+### 2. TECHNICAL AND RESPONSIVE CONSTRAINTS
 - Use nested <table> structures with border="0", cellpadding="0", and cellspacing="0".
 - All text styles must be inlined using the style="..." attribute while maintaining standard email resets in the <head>.
 - Main Email Container width: 600px max, centered, responsive (width="100%" on screens under 600px).
@@ -279,19 +279,19 @@ Use the following styling tokens for all elements. Do NOT invent arbitrary color
 
 ---
 
-### 3. EXACT SECTION HIERARCHY & CONTENT PLACEMENT
+### 3. EXACT SECTION HIERARCHY AND CONTENT PLACEMENT
 Construct the email in this exact top-to-bottom sequence. If an optional section is marked 'None', cleanly omit it:
 1. PREHEADER BAR (Top Alert Banner)
 2. HEADER LOGO BLOCK (${spec})
-3. HERO BANNER (Full-width header block with Headline & Announcement)
+3. HERO BANNER (Full-width header block with Headline and Announcement)
 4. PATIENT-FACING INTRO HOOK (Personalized Greeting + Warm, benefit-led message)
 5. MEDICINE PRICE COMPARISON TABLE MATRIX (Optional Price difference table + Legal disclaimer)
 6. MEMBER SAVINGS BENEFIT CARDS (1, 2, or 3 cards with accent borders)
 7. "DID YOU KNOW?" CALLOUT BOX (Optional highlighted tip box)
 8. STEP-BY-STEP ORDERING GUIDE (3-Step ForwardMG process + Promo Tip Box)
 9. PRIMARY CALL TO ACTION (Main order button + urgency subtext)
-10. DOCTOR TELECONSULT CALLOUT / SECONDARY CTA (Optional prescription assistance box)
-11. TERMS & CONDITIONS, SUPPORT & COMPLIANCE FOOTER
+10. DOCTOR TELECONSULT CALLOUT AND SECONDARY CTA (Optional prescription assistance box)
+11. TERMS AND CONDITIONS, SUPPORT, AND COMPLIANCE FOOTER
 
 ---
 
@@ -327,7 +327,7 @@ ${steps}
 - 10. Secondary CTA:
 ${secondary}
 
-- 11. Terms, Support & Footer:
+- 11. Terms, Support, and Footer:
   - Terms:
 ${e.terms}
   - Support Contact: ${c.supportLine}

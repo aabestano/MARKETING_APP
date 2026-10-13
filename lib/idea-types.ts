@@ -16,24 +16,24 @@ export const MONTHS = [
 ] as const;
 export const SOURCE_TYPES = ["DOH Calendar", "Copay Brief", "Clinical Guide", "Visual Reference", "Other Document"] as const;
 export const TONES = [
-  { value: "Empathetic & Supportive", label: "Empathetic & Supportive (Caregiver / Partner tone)" },
-  { value: "Urgent & Savings-Driven", label: "Urgent & Savings-Driven (Copay zero & benefits alert)" },
-  { value: "Informative & Navigational", label: "Informative & Navigational (Frictionless refill guides)" },
-  { value: "Modular/Custom", label: "Modular / Custom (Multi-angle hooks)" },
+  { value: "Empathetic & Supportive", label: "Empathetic and Supportive (Caregiver and Partner tone)" },
+  { value: "Urgent & Savings-Driven", label: "Urgent and Savings-Driven (Copay zero and benefits alert)" },
+  { value: "Informative & Navigational", label: "Informative and Navigational (Frictionless refill guides)" },
+  { value: "Modular/Custom", label: "Modular and custom (Multi-angle hooks)" },
 ] as const;
 
 export const FOCUS_TYPES = [
-  { value: "Promotional", hint: "Copay/Discount targeting 6k pool", tone: "emerald" },
-  { value: "Non-Promotional", hint: "Education/Tips targeting 12k pool", tone: "indigo" },
+  { value: "Promotional", hint: "Copay and discount targeting 6k pool", tone: "emerald" },
+  { value: "Non-Promotional", hint: "Education and tips targeting 12k pool", tone: "indigo" },
   { value: "Non-promotional (Resource)", hint: "Leverages active Idea Base items", tone: "amber" },
 ] as const;
 
 export type GenMode = "Hybrid" | "Idea Base Match" | "Pure Random";
 
 export const GEN_MODES: { value: GenMode; label: string; hint: string }[] = [
-  { value: "Hybrid", label: "Hybrid (Base + AI)", hint: "Synthesizes active Idea Base notes with creative models" },
+  { value: "Hybrid", label: "Hybrid (Idea Base + AI)", hint: "Synthesizes active Idea Base notes with creative models" },
   { value: "Idea Base Match", label: "Idea Base Match", hint: "Strict adherence to uploaded analyzed documents" },
-  { value: "Pure Random", label: "Pure Creative Random", hint: "Zero-base brainstorm tailored to cohort parameters" },
+  { value: "Pure Random", label: "Pure AI", hint: "Zero-base brainstorm tailored to cohort parameters" },
 ];
 
 /** Largest file the Idea Base will store in the browser. AI analysis has a smaller limit (see resource-files.ts). */

@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   };
 
   const apiKey = resolveGeminiKey(body.apiKey);
-  if (!apiKey) return offline("No Gemini API key configured: showing built-in adherence templates. Add a key in API & Mail Settings for fresh AI ideas.");
+  if (!apiKey) return offline("No Gemini API key configured: showing built-in adherence templates. Add a key in API and Mail Settings for fresh AI ideas.");
 
   if (mode === "Idea Base Match" && !resources.length) {
     return NextResponse.json(

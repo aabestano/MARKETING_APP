@@ -278,7 +278,7 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
               id="blueprint"
               rows={12}
               className="input font-mono text-[13px] leading-relaxed"
-              placeholder="# Subject / headline&#10;&#10;## Section&#10;- Bullet…&#10;&#10;[CTA label](https://…)"
+              placeholder="# Subject or headline&#10;&#10;## Section&#10;- Bullet…&#10;&#10;[CTA label](https://…)"
               value={workspace.blueprint}
               onChange={(e) => update({ blueprint: e.target.value })}
             />
@@ -297,7 +297,7 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
                 ? `${bookAssets.length} asset${bookAssets.length === 1 ? "" : "s"} injected · ${cdnCount} CDN URL${cdnCount === 1 ? "" : "s"} available as image sources.`
                 : books.length
                   ? "Select a brand book to inject asset rules and CDN URLs."
-                  : "Create a brand book in Library → Brand Books to inject logos, banners and rules."}
+                  : "Create a brand book in Library → Brand Books to inject logos, banners, and rules."}
             </p>
           </div>
 
@@ -307,7 +307,7 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
               id="directives"
               rows={5}
               className="input text-[13px]"
-              placeholder={"Layout, color and merge tag rules, e.g.\n- Primary color #0b5cab, CTA button emerald\n- Greet with *|FNAME|*, footer must include *|UNSUB|*"}
+              placeholder={"Layout, color, and merge tag rules, e.g.\n- Primary color #0b5cab, CTA button emerald\n- Greet with *|FNAME|*, footer must include *|UNSUB|*"}
               value={workspace.directives}
               onChange={(e) => update({ directives: e.target.value })}
             />
@@ -405,7 +405,7 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
             <EmptyState
               icon={<Mail className="h-5 w-5" />}
               title="No blast yet"
-              body="Paste a blueprint, choose a brand book, and hit Generate Blast. The preview, MJML and HTML appear here."
+              body="Paste a blueprint, choose a brand book, and hit Generate Blast. The preview, MJML, and HTML appear here."
             />
           ) : workspace.viewMode === "preview" ? (
             <div className="relative flex min-h-0 flex-1 flex-col">

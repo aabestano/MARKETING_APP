@@ -21,8 +21,8 @@ export function buildIdeaSystemInstruction(args: {
     args.mode === "Idea Base Match"
       ? "\nMODE: Idea Base Match. Every idea MUST be built strictly from one of the AVAILABLE NOTES and set sourceId to that note's ID."
       : args.mode === "Pure Random"
-        ? "\nMODE: Pure Creative Random. Brainstorm from scratch; leave sourceId empty."
-        : "\nMODE: Hybrid. Blend AVAILABLE NOTES with fresh creative angles; set sourceId when an idea draws on a note.";
+        ? "\nMODE: Pure AI. Brainstorm from scratch; leave sourceId empty."
+        : "\nMODE: Hybrid (Idea Base + AI). Blend AVAILABLE NOTES with fresh creative angles; set sourceId when an idea draws on a note.";
   return `You are the Principal Marketing & Health Adherence Strategist for 'The Best Life Program' by Maxicare & MedGrocer (forwardmg.ph).
 Generate an array of exactly ${args.focusTypes.length} campaign initiative objects matching the required schema.
 
@@ -119,14 +119,14 @@ export function buildOfflineFallbackCards(cohort: string, focusTypes: string[], 
     return {
       cardType: "Non-promotional (Resource)",
       sourceId: firstResourceId ?? null,
-      title: "Autumn Immunization & Flu Season Refill Drive",
+      title: "Autumn Immunization and Flu Season Refill Drive",
       topicSummary: "Seasonal care package leveraging DOH awareness calendar for flu vaccination and chronic care replenishment.",
       patientAnnouncement: "🍂 Autumn Health Alert: Co-schedule seasonal immunity and chronic refills with Free Delivery!",
       patientIntro:
         "With flu season and cooler weather rolling in, staying ahead of seasonal bugs starts with keeping your medicine cabinet stocked.\n\nSkip the pharmacy lines—your Maxicare Best Life benefit lets you order your seasonal essentials and daily maintenance meds right to your door with exclusive savings:",
       cohort,
       offerStrategy: "Combines seasonal immunization hooks with ongoing maintenance prescription continuity.",
-      subjectLines: ["Autumn Health Check: Keep your immunity protected", "Stay healthy this season: Refill & vaccine checklist"],
+      subjectLines: ["Autumn Health Check: Keep your immunity protected", "Stay healthy this season: Refill and vaccine checklist"],
       coreOutline: ["Seasonal vulnerability overview.", "Home delivery of regular refills plus subsidized vitamins.", "Pharmacist verification in 1 working day."],
       cta: "Order Your Medicines on ForwardMG",
       smsCopy: "Best Life Autumn Alert: Keep your medicine cabinet fully stocked before flu season hits! Refill on forwardmg.ph: [Link]",
