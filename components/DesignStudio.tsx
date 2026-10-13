@@ -43,7 +43,7 @@ export function DesignStudio({ status, onOpenSettings }: { status: ServerStatus 
             For calendar item “{linkedItem.ideaData.title}” ({linkedItem.scheduledDate}). What you save here is attached to it.
           </span>
           <button
-            className="ml-auto inline-flex shrink-0 items-center gap-1 text-blue-300 hover:text-white"
+            className="ml-auto inline-flex shrink-0 items-center gap-1 text-blue-300 hover:text-slate-100"
             onClick={() => (mode === "email" ? updateWorkspace({ pipelineId: null }) : updatePoster({ pipelineId: null }))}
           >
             <X className="h-3 w-3" /> Detach
