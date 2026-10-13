@@ -179,8 +179,8 @@ export function IdeaFullContentModal({
           </SummaryItem>
         </div>
 
-        <div className="relative px-1 pt-3">
-          <div role="tablist" aria-label="Full idea content" className="relative z-20 flex items-end">
+        <div className="relative px-1 pt-2">
+          <div role="tablist" aria-label="Full idea content" className="relative z-20 flex items-end px-3">
             {TABS.map((item, index) => {
               const selected = tab === item.id;
               return (
@@ -198,11 +198,11 @@ export function IdeaFullContentModal({
                   onClick={() => setTab(item.id)}
                   onKeyDown={onTabKey}
                   className={clsx(
-                    "relative min-w-0 max-w-[16rem] rounded-t-lg border px-3 py-2 text-sm font-semibold sm:px-4",
-                    index > 0 && "-ml-4",
+                    "min-w-0 max-w-[16rem] rounded-t-xl border px-3 py-2 text-sm font-semibold sm:px-4",
+                    index > 0 && "-ml-5",
                     selected
-                      ? "z-30 -mt-2 border-slate-700 border-b-slate-950 bg-slate-950 text-slate-100"
-                      : "z-10 border-slate-800 bg-slate-900 text-slate-400",
+                      ? "relative z-30 -mb-px border-slate-700 border-b-slate-950 bg-slate-950 text-slate-100 shadow-sm"
+                      : "relative z-10 -translate-y-2 border-slate-700 bg-slate-800 text-slate-300",
                   )}
                 >
                   <span className="block truncate">{item.label}</span>
@@ -214,7 +214,7 @@ export function IdeaFullContentModal({
             role="tabpanel"
             id={`idea-full-panel-${tab}`}
             aria-labelledby={`idea-full-${tab}`}
-            className="relative z-20 -mt-px rounded-lg border border-slate-700 bg-slate-950 p-4"
+            className="relative z-20 rounded-xl border border-slate-700 bg-slate-950 p-4 shadow-sm"
           >
             {tab === "email" ? <EmailSample campaign={campaign} /> : <PosterSample campaign={campaign} />}
           </div>
