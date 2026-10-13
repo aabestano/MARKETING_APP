@@ -1,4 +1,4 @@
-import type { GenMode, IdeaCard, IdeaResource } from "./idea-types";
+import { currentCohort, type GenMode, type IdeaCard, type IdeaResource } from "./idea-types";
 
 export interface Exclusions {
   titles: string[];
@@ -27,6 +27,7 @@ export function buildIdeaSystemInstruction(args: {
 Generate an array of exactly ${args.focusTypes.length} campaign initiative objects matching the required schema.
 
 TARGET COHORT: ${args.cohort}
+COHORT MEANINGS: Unconverted means no first order. Ordered within the past 90 days includes someone whose last order was exactly 90 days ago. Ordered more than 90 days ago means the last order was more than 90 days ago. All Members means every member. Use the target cohort name exactly.
 DESIRED TONE: ${args.tone}
 FOCUS TYPES: ${args.focusTypes.join(", ")} (one idea per focus type, in this order; cardType must equal the focus type)${modeRule}
 ${args.exclusions.titles.length ? "NEGATIVE CONSTRAINTS (DO NOT DUPLICATE): " + args.exclusions.titles.join(" | ") : ""}${notes}
@@ -68,7 +69,7 @@ export function sanitizeIdeaCards(raw: unknown, defaults: { cohort: string; focu
       topicSummary: s(r.topicSummary, 600),
       patientAnnouncement: s(r.patientAnnouncement, 240),
       patientIntro: s(r.patientIntro, 700),
-      cohort: s(r.cohort, 80) || defaults.cohort,
+      cohort: currentCohort(s(r.cohort, 80) || defaults.cohort),
       offerStrategy: s(r.offerStrategy, 400),
       subjectLines: strs(r.subjectLines, 4, 160),
       coreOutline: strs(r.coreOutline, 8, 240),

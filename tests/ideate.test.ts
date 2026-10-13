@@ -67,10 +67,10 @@ test("iCal has one all-day event per item and escapes text", () => {
 });
 
 test("offline cards match requested focus types", () => {
-  const cards = buildOfflineFallbackCards("Lapsed (45+ Days)", ["Promotional", "Non-promotional (Resource)"], "res9");
+  const cards = buildOfflineFallbackCards("Ordered more than 90 days ago", ["Promotional", "Non-promotional (Resource)"], "res9");
   assert.deepEqual(cards.map((c) => c.cardType), ["Promotional", "Non-promotional (Resource)"]);
   assert.equal(cards[1].sourceId, "res9");
-  assert.ok(cards.every((c) => c.cohort === "Lapsed (45+ Days)"));
+  assert.ok(cards.every((c) => c.cohort === "Ordered more than 90 days ago"));
 });
 
 test("sanitizing model ideas enforces SMS length, valid source ids and drops untitled cards", () => {
@@ -96,6 +96,7 @@ test("generation prompt carries mode, exclusions and notes", () => {
     resources: [{ id: "r1", name: "Note", extractedNotes: "bullets" }],
   });
   assert.match(p, /Idea Base Match/);
+  assert.match(p, /more than 90 days ago/);
   assert.match(p, /DO NOT DUPLICATE\): Dup Title/);
   assert.match(p, /\[ID: r1\] Note: bullets/);
   assert.match(p, /exactly 1 campaign/);

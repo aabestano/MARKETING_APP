@@ -1,4 +1,5 @@
 import { APP_NAME } from "./app-name";
+import { currentCohort, currentSource } from "./idea-types";
 import type { IdeaCard, PipelineItem } from "./idea-types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -112,21 +113,29 @@ export function parseIdeateExport(text: string): { ideaBase: import("./idea-type
   const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
   const ideaBase = (Array.isArray(raw.ideaBase) ? raw.ideaBase : [])
     .filter((r): r is Record<string, unknown> => isObj(r) && typeof r.id === "string" && typeof r.name === "string")
-    .map((r) => ({
+    .map((r) => {
+      const sourceType = currentSource(str(r.sourceType, "Scratch Idea"));
+      const rawSource = str(r.sourceType);
+      const cohort = currentCohort(str(r.cohort, "All Members"));
+      const rawCohort = str(r.cohort);
+      return {
       id: r.id as string,
       inputType: (r.inputType === "file" ? "file" : "scratch") as "file" | "scratch",
       name: r.name as string,
       fileName: str(r.fileName) || undefined,
       fileExt: str(r.fileExt) || undefined,
       fileData: str(r.fileData) || undefined,
-      sourceType: str(r.sourceType, "Scratch Idea"),
+      sourceType,
+      legacySourceType: rawSource && sourceType !== rawSource ? rawSource : undefined,
       targetMonth: str(r.targetMonth, "Any"),
-      cohort: str(r.cohort, "All Members"),
+      cohort,
+      legacyCohort: rawCohort && cohort !== rawCohort ? rawCohort : undefined,
       tags: Array.isArray(r.tags) ? r.tags.filter((t): t is string => typeof t === "string") : [],
       active: r.active !== false,
       dateAdded: str(r.dateAdded, new Date().toISOString()),
       extractedNotes: str(r.extractedNotes),
-    }));
+      };
+    });
   const pipeline = (Array.isArray(raw.pipeline) ? raw.pipeline : [])
     .filter(
       (p): p is Record<string, unknown> =>
@@ -134,6 +143,8 @@ export function parseIdeateExport(text: string): { ideaBase: import("./idea-type
     )
     .map((p) => {
       const d = p.ideaData as Record<string, unknown>;
+      const cohort = currentCohort(str(d.cohort, "All Members"));
+      const rawCohort = str(d.cohort);
       return {
         id: p.id as string,
         scheduledDate: p.scheduledDate as string,
@@ -145,7 +156,8 @@ export function parseIdeateExport(text: string): { ideaBase: import("./idea-type
           topicSummary: str(d.topicSummary),
           patientAnnouncement: str(d.patientAnnouncement),
           patientIntro: str(d.patientIntro),
-          cohort: str(d.cohort, "All Members"),
+          cohort,
+          legacyCohort: rawCohort && cohort !== rawCohort ? rawCohort : undefined,
           offerStrategy: str(d.offerStrategy),
           subjectLines: Array.isArray(d.subjectLines) ? d.subjectLines.filter((x): x is string => typeof x === "string") : [],
           coreOutline: Array.isArray(d.coreOutline) ? d.coreOutline.filter((x): x is string => typeof x === "string") : [],
@@ -169,7 +181,7 @@ export const SAMPLE_RESOURCES = (now = Date.now()) => [
     active: true,
     dateAdded: new Date(now - 86400000 * 5).toISOString(),
     extractedNotes:
-      "• Target members with chronic hypertension and diabetes refills.\n• Highlight $0 copay card renewal for 2026.\n• Critical hook: Lapsed members over 45 days can re-order in under 60 seconds with frictionless one-tap SMS.",
+      "• Target members with chronic hypertension and diabetes refills.\n• Highlight $0 copay card renewal for 2026.\n• Critical hook: members who last ordered more than 90 days ago can re-order in under 60 seconds with frictionless one-tap SMS.",
   },
   {
     id: "res_seed_flu_02",
@@ -177,7 +189,7 @@ export const SAMPLE_RESOURCES = (now = Date.now()) => [
     name: "Autumn Immunization and Refill Sync Brief",
     sourceType: "Scratch Idea",
     targetMonth: "October",
-    cohort: "Lapsed (45+ Days)",
+    cohort: "Ordered more than 90 days ago",
     tags: ["vaccines", "autumn", "sync"],
     active: true,
     dateAdded: new Date(now - 86400000 * 2).toISOString(),

@@ -1,4 +1,13 @@
-export const COHORTS = ["All Members", "Unactivated (0 Orders)", "Active / Adherent", "Lapsed (45+ Days)"] as const;
+export const COHORTS = ["All Members", "Unconverted", "Ordered within the past 90 days", "Ordered more than 90 days ago"] as const;
+
+/** Old labels still found in saved workspaces and the previous IDEAte app. "All Members" is unchanged. */
+export const COHORT_FROM_LEGACY: Record<string, (typeof COHORTS)[number]> = {
+  "Unactivated (0 Orders)": "Unconverted",
+  Unactivated: "Unconverted",
+  "Active / Adherent": "Ordered within the past 90 days",
+  "Lapsed (45+ Days)": "Ordered more than 90 days ago",
+  Lapsed: "Ordered more than 90 days ago",
+};
 export const MONTHS = [
   "Any",
   "January",
@@ -14,7 +23,22 @@ export const MONTHS = [
   "November",
   "December",
 ] as const;
-export const SOURCE_TYPES = ["DOH Calendar", "Copay Brief", "Clinical Guide", "Visual Reference", "Other Document"] as const;
+export const SOURCE_TYPES = ["Health Advisories", "Program Brief", "Visual Reference", "Other Document"] as const;
+
+/** "Clinical Guide" and "DOH Calendar" both become "Health Advisories". The previous value is kept on the item. */
+export const SOURCE_FROM_LEGACY: Record<string, (typeof SOURCE_TYPES)[number] | "Scratch Idea"> = {
+  "DOH Calendar": "Health Advisories",
+  "Copay Brief": "Program Brief",
+  "Clinical Guide": "Health Advisories",
+};
+
+export function currentCohort(value: string): string {
+  return COHORT_FROM_LEGACY[value] ?? value;
+}
+
+export function currentSource(value: string): string {
+  return SOURCE_FROM_LEGACY[value] ?? value;
+}
 export const TONES = [
   { value: "Empathetic & Supportive", label: "Empathetic and Supportive (Caregiver and Partner tone)" },
   { value: "Urgent & Savings-Driven", label: "Urgent and Savings-Driven (Copay zero and benefits alert)" },
@@ -48,8 +72,12 @@ export interface IdeaResource {
   /** data URL for uploaded files */
   fileData?: string;
   sourceType: string;
+  /** Set only when a rename changed sourceType, so the previous name can be restored. */
+  legacySourceType?: string;
   targetMonth: string;
   cohort: string;
+  /** Set only when a rename changed cohort, so the previous name can be restored. */
+  legacyCohort?: string;
   tags: string[];
   active: boolean;
   dateAdded: string;
@@ -64,6 +92,8 @@ export interface IdeaCard {
   patientAnnouncement: string;
   patientIntro: string;
   cohort: string;
+  /** Set only when a rename changed cohort, so the previous name can be restored. */
+  legacyCohort?: string;
   offerStrategy: string;
   subjectLines: string[];
   coreOutline: string[];
@@ -148,6 +178,8 @@ export interface Campaign {
   title: string;
   cardType: string;
   cohort: string;
+  /** Set only when a rename changed cohort, so the previous name can be restored. */
+  legacyCohort?: string;
   brandMode: BrandMode;
   brandConnector: string;
   brand1: string;

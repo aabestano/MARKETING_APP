@@ -189,8 +189,8 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
                       </label>
                     </div>
                     <div className="flex flex-wrap gap-1.5 text-[10px] font-medium">
-                      <span className="rounded border border-slate-700 px-1.5 py-px text-slate-300">{r.sourceType}</span>
-                      <span className="rounded border border-slate-700 px-1.5 py-px text-slate-400">{r.cohort}</span>
+                      <span className="max-w-full rounded border border-slate-700 px-1.5 py-px text-slate-300">{r.sourceType}</span>
+                      <span className="max-w-full rounded border border-slate-700 px-1.5 py-px text-slate-400">{r.cohort}</span>
                       {r.targetMonth !== "Any" && <span className="rounded border border-slate-700 px-1.5 py-px text-slate-400">{r.targetMonth}</span>}
                       {needsAnalysis(r) ? (
                         <span className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-px text-amber-300">

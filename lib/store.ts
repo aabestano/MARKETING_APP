@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { STORAGE_ERROR_EVENT, createIdbStorage } from "./idb";
 import { normalizePurposes } from "./assets";
+import { applyLabelMigration } from "./label-migration";
 import { applyImport, type ImportMode, type WorkspaceData } from "./workspace-io";
 import { DEFAULT_SIZE } from "./poster-sizes";
 import { syncLifecycle } from "./pipeline";
@@ -318,7 +319,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: "brand-engine-app2-v1",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => createIdbStorage()),
       migrate: (persisted) => {
         const state = (persisted ?? {}) as { assets?: BrandAsset[]; activeTab?: string };
@@ -326,7 +327,7 @@ export const useStore = create<AppState>()(
         if (Array.isArray(state.assets)) {
           state.assets = state.assets.map((a) => ({ ...a, purposes: normalizePurposes(a.purposes) }));
         }
-        return state as unknown as AppState;
+        return applyLabelMigration(state) as unknown as AppState;
       },
       skipHydration: true,
       partialize: (s) => ({
