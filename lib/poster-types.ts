@@ -1,3 +1,5 @@
+import type { HeroSize, PosterLayout } from "./poster-blocks";
+
 export interface PosterTheme {
   background: string;
   surface: string;
@@ -24,6 +26,8 @@ export type PosterSection =
 export interface PosterSpec {
   version: 1;
   theme: PosterTheme;
+  /** Block order and which blocks sit in the banner. Omitted specs use the default header band. */
+  layout?: PosterLayout;
   /** requested font family; resolved against uploaded fonts with a closest-match fallback */
   fontFamily?: string;
   header: { brandName?: string; tagline?: string; logoAssetId?: string };
@@ -56,6 +60,8 @@ export interface PosterWorkspace {
   prompt: string;
   spec: PosterSpec | null;
   size: PosterSize;
+  /** Share of the poster height given to the picture. Defaults to medium. */
+  heroSize?: HeroSize;
   illustrationMode: IllustrationMode;
   source: "gemini" | "fallback" | "manual" | null;
   warnings: string[];

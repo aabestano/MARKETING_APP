@@ -1,8 +1,8 @@
 "use client";
 
 import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { FINE_PRINT_SCALE, HERO_RATIO, MIN_FIT, isSectionKey, layoutOf, sectionIndex, type HeroSize, type PosterBlockKey } from "@/lib/poster-blocks";
 import { mmToPx, trimPx } from "@/lib/poster-sizes";
-import { orientationOf } from "@/lib/poster-prompt";
 import type { PosterSection, PosterSize, PosterSpec, PosterStep, PosterTheme } from "@/lib/poster-types";
 
 export interface PosterCanvasProps {
@@ -13,6 +13,8 @@ export interface PosterCanvasProps {
   illustrationSrc?: string;
   illustrationPending?: boolean;
   qrSrc?: string;
+  heroSize?: HeroSize;
+  onOverflow?: (overflowing: boolean) => void;
 }
 
 function luminance(hex: string): number {
@@ -29,10 +31,8 @@ function luminance(hex: string): number {
 
 export const readableOn = (bg: string) => (luminance(bg) > 0.42 ? "#0f172a" : "#ffffff");
 
-const MIN_FIT = 0.4;
-
 export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(function PosterCanvas(
-  { spec, size, fontStack, logoSrc, illustrationSrc, illustrationPending, qrSrc },
+  { spec, size, fontStack, logoSrc, illustrationSrc, illustrationPending, qrSrc, heroSize = "m", onOverflow },
   ref,
 ) {
   const { w: trimW, h: trimH } = trimPx(size);
@@ -40,10 +40,12 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   const W = trimW + 2 * bleed;
   const H = trimH + 2 * bleed;
   const u = Math.sqrt(trimW * trimH) / 100;
-  const landscape = orientationOf(trimW, trimH) === "landscape";
   const t = spec.theme;
+  const heroPx = Math.round(trimH * HERO_RATIO[heroSize]);
 
   const bodyRef = useRef<HTMLDivElement>(null);
+  const onOverflowRef = useRef(onOverflow);
+  onOverflowRef.current = onOverflow;
   const [fit, setFit] = useState(1);
   const [fontTick, setFontTick] = useState(0);
   const sigRef = useRef("");
@@ -57,8 +59,8 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   }, [fontStack]);
 
   const sig = useMemo(
-    () => JSON.stringify([spec, W, H, fontStack, !!illustrationSrc, !!illustrationPending, !!logoSrc, !!qrSrc, fontTick]),
-    [spec, W, H, fontStack, illustrationSrc, illustrationPending, logoSrc, qrSrc, fontTick],
+    () => JSON.stringify([spec, W, H, heroPx, fontStack, !!illustrationSrc, !!illustrationPending, !!logoSrc, !!qrSrc, fontTick]),
+    [spec, W, H, heroPx, fontStack, illustrationSrc, illustrationPending, logoSrc, qrSrc, fontTick],
   );
 
   useLayoutEffect(() => {
@@ -71,7 +73,9 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
         return;
       }
     }
-    if (body.scrollHeight > body.clientHeight + 1 && fit > MIN_FIT) setFit((f) => Math.max(MIN_FIT, f * 0.93));
+    const overflowing = body.scrollHeight > body.clientHeight + 1;
+    if (overflowing && fit > MIN_FIT) setFit((f) => Math.max(MIN_FIT, f * 0.93));
+    onOverflowRef.current?.(fit <= MIN_FIT + 0.001 && overflowing);
   }, [sig, fit]);
 
   const fs = (n: number) => `${(n * u * fit).toFixed(2)}px`;
@@ -92,156 +96,232 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
     lineHeight: 1.3,
   };
 
-  const hasLead = !!(logoSrc || spec.header.brandName || spec.header.tagline);
-  const showIllustration = !!illustrationSrc || !!illustrationPending;
+  const layout = layoutOf(spec);
+  const fine = (n: number) => n * FINE_PRINT_SCALE;
 
-  const sections = (
-    <div style={{ display: "flex", flexDirection: "column", gap: gap(1.9), minWidth: 0, flex: landscape ? 1 : "0 0 auto" }}>
-      {spec.sections.map((s, i) => (
-        <SectionView key={i} section={s} theme={t} fs={fs} gap={gap} />
-      ))}
+  const visible = (key: PosterBlockKey) => {
+    if (key === "brand") return !!(logoSrc || spec.header.brandName || spec.header.tagline);
+    if (key === "headline") return !!spec.headline.trim();
+    if (key === "subheading") return !!spec.subheading?.trim();
+    if (key === "illustration") return !!illustrationSrc || !!illustrationPending;
+    if (key === "cta") return !!spec.cta;
+    if (key === "footer") return !!(spec.footer?.text || spec.footer?.disclaimer);
+    if (!isSectionKey(key)) return false;
+    return !!spec.sections[sectionIndex(key)];
+  };
+
+  const shell = (key: string, isFirst: boolean, isLast: boolean, node: ReactNode, extra?: CSSProperties): ReactNode => (
+    <div
+      key={key}
+      data-poster-block={key}
+      style={{
+        flex: "0 0 auto",
+        minWidth: 0,
+        padding: `${isFirst ? bleed + 1.4 * u : 0}px ${padX}px ${isLast ? bleed + 1.6 * u : 0}px`,
+        ...extra,
+      }}
+    >
+      {node}
     </div>
   );
 
-  const illustration = showIllustration ? (
-    <div
-      style={{
-        position: "relative",
-        flex: landscape ? "0 0 40%" : "1 1 0",
-        minHeight: landscape ? 0 : 11 * u,
-        minWidth: 0,
-        borderRadius: 1.4 * u,
-        overflow: "hidden",
-      }}
-    >
-      {illustrationSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={illustrationSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
-      ) : (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: `${Math.max(1, u * 0.2)}px dashed ${t.primary}55`,
-            borderRadius: 1.4 * u,
-            color: t.muted,
-            fontSize: fs(1.3),
-          }}
-        >
-          Drawing illustration…
-        </div>
-      )}
-    </div>
-  ) : null;
+  const bannerCopy = (key: PosterBlockKey): { primary?: string; secondary?: string } | null => {
+    if (key === "brand") {
+      if (!spec.header.brandName && !spec.header.tagline) return null;
+      return { primary: spec.header.brandName, secondary: spec.header.tagline };
+    }
+    if (key === "headline") return spec.headline.trim() ? { primary: spec.headline } : null;
+    if (key === "subheading") return spec.subheading?.trim() ? { primary: spec.subheading } : null;
+    if (!isSectionKey(key)) return null;
+    const section = spec.sections[sectionIndex(key)];
+    if (!section || section.type !== "callout") return null;
+    if (!section.title && !section.body.trim()) return null;
+    return { primary: section.title, secondary: section.body };
+  };
 
-  const cta = spec.cta ? (
-    <div style={{ display: "flex", alignItems: "center", gap: gap(2), flex: "0 0 auto" }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: gap(0.7), minWidth: 0, flex: 1 }}>
-        <div
-          style={{
-            alignSelf: "flex-start",
-            background: t.accent,
-            color: readableOn(t.accent),
-            fontWeight: 800,
-            fontSize: fs(2),
-            padding: `${(1 * u * fit).toFixed(2)}px ${(2.4 * u * fit).toFixed(2)}px`,
-            borderRadius: 1.2 * u,
-          }}
-        >
-          {spec.cta.label}
-        </div>
-        {spec.cta.url && (
-          <div style={{ fontSize: fs(1.35), color: t.muted, wordBreak: "break-all" }}>{spec.cta.url.replace(/^https?:\/\//, "")}</div>
-        )}
-      </div>
-      {spec.cta.showQr && qrSrc && (
-        <div style={{ background: "#fff", padding: 0.8 * u, borderRadius: 0.8 * u, flex: "0 0 auto", lineHeight: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrSrc} alt="QR code" style={{ width: 8.5 * u * Math.max(fit, 0.7), height: 8.5 * u * Math.max(fit, 0.7) }} />
-        </div>
-      )}
-    </div>
-  ) : null;
+  const slotStyle = (slot: number): CSSProperties => {
+    if (slot === 0) return { fontWeight: 800, fontSize: fs(2.1), letterSpacing: "0.02em", lineHeight: 1.2 };
+    if (slot === 1) return { fontWeight: 800, fontSize: fs(4.6), lineHeight: 1.06, letterSpacing: "-0.01em" };
+    if (slot === 2) return { fontWeight: 500, fontSize: fs(1.9), lineHeight: 1.28 };
+    return { fontWeight: 400, fontSize: fs(fine(1.35)), lineHeight: 1.3, opacity: 0.94 };
+  };
 
-  return (
-    <div ref={ref} data-poster-root style={root}>
-      <div
-        style={{
-          background: t.primary,
-          color: t.onPrimary,
-          padding: `${bleed + 2.4 * u}px ${padX}px ${2.6 * u}px`,
-          display: "flex",
-          flexDirection: "column",
-          gap: gap(1.2),
-          flex: "0 0 auto",
-        }}
-      >
-        {hasLead && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 * u }}>
-            {logoSrc ? (
-              <div style={{ background: "#fff", borderRadius: 0.9 * u, padding: `${0.7 * u}px ${1.2 * u}px`, display: "flex", lineHeight: 0 }}>
+  const bannerSlot = (key: PosterBlockKey, slot: number): ReactNode => {
+    if (key === "brand" && slot === 0 && (logoSrc || spec.header.brandName || spec.header.tagline)) {
+      return (
+        <div key={`${key}-${slot}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 * u }}>
+          <div style={{ display: "flex", alignItems: "center", gap: gap(1.2), minWidth: 0 }}>
+            {logoSrc && (
+              <div style={{ background: "#fff", borderRadius: 0.9 * u, padding: `${0.7 * u}px ${1.2 * u}px`, display: "flex", lineHeight: 0, flex: "0 0 auto" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={logoSrc} alt={spec.header.brandName ?? "Logo"} style={{ height: 4.2 * u, width: "auto", maxWidth: 28 * u, objectFit: "contain" }} crossOrigin="anonymous" />
               </div>
-            ) : (
-              <div style={{ fontWeight: 800, fontSize: fs(2.1), letterSpacing: "0.02em" }}>{spec.header.brandName}</div>
             )}
-            {spec.header.tagline && <div style={{ fontSize: fs(1.3), opacity: 0.9, textAlign: "right" }}>{spec.header.tagline}</div>}
+            {spec.header.brandName && <div style={{ fontWeight: 800, fontSize: fs(2.1), letterSpacing: "0.02em" }}>{spec.header.brandName}</div>}
+          </div>
+          {spec.header.tagline && <div style={{ fontSize: fs(fine(1.3)), opacity: 0.9, textAlign: "right" }}>{spec.header.tagline}</div>}
+        </div>
+      );
+    }
+    const copy = bannerCopy(key);
+    if (!copy) return null;
+    return (
+      <div key={`${key}-${slot}`} style={slotStyle(slot)}>
+        {copy.primary && <div style={{ whiteSpace: "pre-line" }}>{copy.primary}</div>}
+        {copy.secondary && (
+          <div style={{ whiteSpace: "pre-line", marginTop: copy.primary ? gap(0.35) : 0, fontWeight: 400, fontSize: slot === 0 ? fs(fine(1.3)) : undefined, opacity: 0.94 }}>
+            {copy.secondary}
           </div>
         )}
-        <h1 style={{ margin: 0, fontWeight: 800, fontSize: fs(4.6), lineHeight: 1.06, letterSpacing: "-0.01em" }}>{spec.headline}</h1>
-        {spec.subheading && <p style={{ margin: 0, fontSize: fs(1.9), lineHeight: 1.28, opacity: 0.94 }}>{spec.subheading}</p>}
       </div>
+    );
+  };
 
+  const outside = (key: PosterBlockKey, isFirst: boolean, isLast: boolean): ReactNode => {
+    if (key === "brand") {
+      return shell(
+        key,
+        isFirst,
+        isLast,
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 * u }}>
+          <div style={{ display: "flex", alignItems: "center", gap: gap(1.2), minWidth: 0 }}>
+            {logoSrc && (
+              <div style={{ background: "#fff", borderRadius: 0.9 * u, padding: `${0.5 * u}px ${1 * u}px`, display: "flex", lineHeight: 0, flex: "0 0 auto" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoSrc} alt={spec.header.brandName ?? "Logo"} style={{ height: 4.2 * u, width: "auto", maxWidth: 28 * u, objectFit: "contain" }} crossOrigin="anonymous" />
+              </div>
+            )}
+            {spec.header.brandName && <div style={{ fontWeight: 800, fontSize: fs(2.1) }}>{spec.header.brandName}</div>}
+          </div>
+          {spec.header.tagline && <div style={{ fontSize: fs(fine(1.3)), color: t.muted, textAlign: "right" }}>{spec.header.tagline}</div>}
+        </div>,
+      );
+    }
+    if (key === "headline") {
+      return shell(key, isFirst, isLast, <h1 style={{ margin: 0, fontWeight: 800, fontSize: fs(4.6), lineHeight: 1.06, letterSpacing: "-0.01em", color: t.text }}>{spec.headline}</h1>);
+    }
+    if (key === "subheading") {
+      return shell(key, isFirst, isLast, <p style={{ margin: 0, fontSize: fs(1.9), lineHeight: 1.28, color: t.text }}>{spec.subheading}</p>);
+    }
+    if (key === "illustration") {
+      return shell(
+        key,
+        isFirst,
+        isLast,
+        <div style={{ position: "relative", height: heroPx, borderRadius: 1.4 * u, overflow: "hidden" }}>
+          {illustrationSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={illustrationSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: `${Math.max(1, u * 0.2)}px dashed ${t.primary}55`,
+                borderRadius: 1.4 * u,
+                color: t.muted,
+                fontSize: fs(1.3),
+              }}
+            >
+              Drawing illustration…
+            </div>
+          )}
+        </div>,
+      );
+    }
+    if (key === "cta" && spec.cta) {
+      return shell(
+        key,
+        isFirst,
+        isLast,
+        <div style={{ display: "flex", alignItems: "center", gap: gap(2) }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: gap(0.7), minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                alignSelf: "flex-start",
+                background: t.accent,
+                color: readableOn(t.accent),
+                fontWeight: 800,
+                fontSize: fs(2),
+                padding: `${(1 * u * fit).toFixed(2)}px ${(2.4 * u * fit).toFixed(2)}px`,
+                borderRadius: 1.2 * u,
+              }}
+            >
+              {spec.cta.label}
+            </div>
+            {spec.cta.url && <div style={{ fontSize: fs(fine(1.35)), color: t.muted, wordBreak: "break-all" }}>{spec.cta.url.replace(/^https?:\/\//, "")}</div>}
+          </div>
+          {spec.cta.showQr && qrSrc && (
+            <div style={{ background: "#fff", padding: 0.8 * u, borderRadius: 0.8 * u, flex: "0 0 auto", lineHeight: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrSrc} alt="QR code" style={{ width: 8.5 * u * Math.max(fit, 0.7), height: 8.5 * u * Math.max(fit, 0.7) }} />
+            </div>
+          )}
+        </div>,
+      );
+    }
+    if (key === "footer") {
+      return shell(
+        key,
+        isFirst,
+        isLast,
+        <div style={{ display: "flex", flexDirection: "column", gap: gap(0.5), paddingTop: gap(0.7) }}>
+          {spec.footer?.text && <div style={{ fontSize: fs(fine(1.3)), fontWeight: 600, whiteSpace: "pre-line" }}>{spec.footer.text}</div>}
+          {spec.footer?.disclaimer && <div style={{ fontSize: fs(fine(0.98)), color: t.muted, lineHeight: 1.35, whiteSpace: "pre-line" }}>{spec.footer.disclaimer}</div>}
+        </div>,
+        { borderTop: `${Math.max(1, u * 0.12)}px solid ${t.muted}33` },
+      );
+    }
+    if (isSectionKey(key)) {
+      const section = spec.sections[sectionIndex(key)];
+      if (!section) return null;
+      return shell(key, isFirst, isLast, <SectionView section={section} theme={t} fs={fs} gap={gap} />);
+    }
+    return null;
+  };
+
+  const flow = layout.order.filter((item) => item === "banner" || visible(item));
+
+  return (
+    <div ref={ref} data-poster-root style={root}>
       <div
         ref={bodyRef}
         style={{
           flex: "1 1 0",
           minHeight: 0,
           overflow: "hidden",
-          padding: `${2.4 * u}px ${padX}px ${1.2 * u}px`,
           display: "flex",
-          flexDirection: landscape ? "row" : "column",
-          gap: gap(2.2),
-          justifyContent: showIllustration || landscape ? undefined : "space-between",
+          flexDirection: "column",
+          gap: gap(1.8),
         }}
       >
-        {landscape ? (
-          <>
-            {illustration}
-            <div style={{ display: "flex", flexDirection: "column", gap: gap(2), flex: 1, minWidth: 0, justifyContent: "space-between" }}>
-              {sections}
-              {cta}
+        {flow.map((item, index) => {
+          const isFirst = index === 0;
+          const isLast = index === flow.length - 1;
+          if (item !== "banner") return outside(item, isFirst, isLast);
+          return (
+            <div
+              key="banner"
+              data-poster-block="banner"
+              style={{
+                flex: "0 0 auto",
+                minHeight: 6 * u,
+                background: t.primary,
+                color: t.onPrimary,
+                padding: `${isFirst ? bleed + 2.4 * u : 2.2 * u}px ${padX}px ${isLast ? bleed + 2.2 * u : 2.4 * u}px`,
+                display: "flex",
+                flexDirection: "column",
+                gap: gap(1.1),
+              }}
+            >
+              {layout.banner.map((key, slot) => bannerSlot(key, slot))}
             </div>
-          </>
-        ) : (
-          <>
-            {illustration}
-            {sections}
-            {cta}
-          </>
-        )}
+          );
+        })}
       </div>
-
-      {(spec.footer?.text || spec.footer?.disclaimer) && (
-        <div
-          style={{
-            flex: "0 0 auto",
-            padding: `${1.2 * u}px ${padX}px ${bleed + 1.8 * u}px`,
-            borderTop: `${Math.max(1, u * 0.12)}px solid ${t.muted}33`,
-            display: "flex",
-            flexDirection: "column",
-            gap: gap(0.5),
-          }}
-        >
-          {spec.footer?.text && <div style={{ fontSize: fs(1.3), fontWeight: 600, whiteSpace: "pre-line" }}>{spec.footer.text}</div>}
-          {spec.footer?.disclaimer && <div style={{ fontSize: fs(0.98), color: t.muted, lineHeight: 1.35, whiteSpace: "pre-line" }}>{spec.footer.disclaimer}</div>}
-        </div>
-      )}
-      {!(spec.footer?.text || spec.footer?.disclaimer) && <div style={{ flex: "0 0 auto", height: bleed + 1.8 * u }} />}
     </div>
   );
 });
@@ -387,7 +467,7 @@ function FlowStep({ step, index, last, theme, fs, gap }: { step: PosterStep; ind
 
 function Branch({ label, text, color, fs, gap }: { label: string; text: string; color: string; fs: Fs; gap: Fs }) {
   return (
-    <span style={{ fontSize: fs(1.15), border: `${fs(0.15)} solid ${color}`, color: readableOn("#ffffff"), borderRadius: 999, padding: `${fs(0.2)} ${gap(0.9)}` }}>
+    <span style={{ fontSize: fs(1.15 * FINE_PRINT_SCALE), border: `${fs(0.15)} solid ${color}`, color: readableOn("#ffffff"), borderRadius: 999, padding: `${fs(0.2)} ${gap(0.9)}` }}>
       <b style={{ color }}>{label}:</b> {text}
     </span>
   );

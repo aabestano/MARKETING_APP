@@ -147,7 +147,7 @@ export const useStore = create<AppState>()(
       setTab: (activeTab) => set({ activeTab }),
       setDesignMode: (designMode) => set({ designMode }),
       updatePoster: (patch) => set((s) => ({ poster: { ...s.poster, ...patch } })),
-      resetPoster: () => set((s) => ({ poster: { ...EMPTY_POSTER, size: s.poster.size, illustrationMode: s.poster.illustrationMode } })),
+      resetPoster: () => set((s) => ({ poster: { ...EMPTY_POSTER, size: s.poster.size, heroSize: s.poster.heroSize, illustrationMode: s.poster.illustrationMode } })),
       savePoster: (poster) => {
         const now = Date.now();
         const full: SavedPoster = { ...poster, id: uid(), createdAt: now, updatedAt: now };
