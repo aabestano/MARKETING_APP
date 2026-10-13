@@ -10,6 +10,7 @@ import { openSavedBlast, openSavedPoster } from "@/lib/design-nav";
 import type { IdeaCard, PipelineItem } from "@/lib/idea-types";
 import type { SavedBlast } from "@/lib/types";
 import type { SavedPoster } from "@/lib/poster-types";
+import { displayAppName } from "@/lib/app-name";
 import { PAST_STATUS, buildMonthGrid, localDateStr, pipelineToCsv, pipelineToIcs } from "@/lib/pipeline";
 import { EmptyState, Modal, useToast } from "./ui";
 import { CardBadge, IdeaInspectModal } from "./IdeaInspect";
@@ -41,6 +42,7 @@ const NEW_IDEA: IdeaCard = {
 
 export function Calendar() {
   const pipeline = useStore((s) => s.pipeline);
+  const appName = useStore((s) => displayAppName(s.settings.displayName));
   const update = useStore((s) => s.updatePipelineItem);
   const remove = useStore((s) => s.removePipelineItem);
   const schedule = useStore((s) => s.schedule);
@@ -95,7 +97,7 @@ export function Calendar() {
             <button className="btn-ghost" disabled={!pipeline.length} onClick={() => downloadFile("campaign-calendar.csv", pipelineToCsv(pipeline), "text/csv")}>
               <Download className="h-4 w-4" /> CSV
             </button>
-            <button className="btn-ghost" disabled={!pipeline.length} onClick={() => downloadFile("campaign-calendar.ics", pipelineToIcs(pipeline), "text/calendar")}>
+            <button className="btn-ghost" disabled={!pipeline.length} onClick={() => downloadFile("campaign-calendar.ics", pipelineToIcs(pipeline, appName), "text/calendar")}>
               <Download className="h-4 w-4" /> iCal
             </button>
           </div>

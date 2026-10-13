@@ -4,8 +4,8 @@ import { Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
 import { modelLabel, type SectionId } from "@/lib/types";
-import { APP_NAME } from "@/lib/app-name";
-import { SECTIONS, sectionOf } from "@/lib/nav";
+import { displayAppName } from "@/lib/app-name";
+import { SECTIONS, orderedTabs, sectionOf } from "@/lib/nav";
 import type { ServerStatus } from "./AppShell";
 
 const SECTION_ICONS: Record<SectionId, typeof Boxes> = { plan: CalendarDays, create: Sparkles, library: Library };
@@ -20,6 +20,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
   const theme = useStore((s) => s.theme);
   const toggleTheme = useStore((s) => s.toggleTheme);
 
+  const appName = displayAppName(settings.displayName);
   const geminiReady = !!settings.geminiApiKey || !!status?.gemini;
   const mailerReady = !!settings.mailerApiKey || !!status?.mailers[settings.mailerProvider];
   const model = settings.geminiModel || status?.geminiModel || "gemini-2.5-flash";
@@ -31,7 +32,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
           <Mail className="h-4 w-4 text-white" />
         </div>
         <div className="min-w-0 flex-1 leading-tight">
-          <div className="text-sm font-semibold text-slate-100">{APP_NAME}</div>
+          <div className="truncate text-sm font-semibold text-slate-100" title={appName}>{appName}</div>
           <div className="text-[11px] text-slate-500">
             <span className="text-emerald-400">·</span> Ideas to designs
           </div>
@@ -56,7 +57,11 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
           return (
             <button
               key={section.id}
-              onClick={() => !active && setTab(section.tabs[0].id)}
+              onClick={() => {
+                if (active) return;
+                const first = orderedTabs(section.id, settings.tabOrder)[0];
+                if (first) setTab(first.id);
+              }}
               aria-current={active ? "page" : undefined}
               className={clsx(
                 "group flex min-w-fit items-center gap-3 rounded-md border px-3 py-2.5 text-left transition",

@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, type
 import { FINE_PRINT_SCALE, HERO_RATIO, MIN_FIT, isBlockHidden, isSectionKey, layoutOf, sectionIndex, type HeroSize, type PosterBlockKey } from "@/lib/poster-blocks";
 import { mmToPx, trimPx } from "@/lib/poster-sizes";
 import type { PosterSection, PosterSize, PosterSpec, PosterStep, PosterTheme } from "@/lib/poster-types";
+import { posterLayerName } from "@/lib/poster-svg";
 import { TipIcon } from "./TipIcon";
 
 export interface PosterCanvasProps {
@@ -117,6 +118,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
     <div
       key={key}
       data-poster-block={key}
+      data-layer={posterLayerName(spec, key)}
       style={{
         flex: "0 0 auto",
         minWidth: 0,
@@ -193,12 +195,16 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   const bannerSlot = (key: PosterBlockKey, slot: number): ReactNode => {
     if (isBlockHidden(spec, key)) return null;
     if (key === "brand" && (logoSrc || secondLogoSrc || spec.header.brandName || spec.header.tagline || spec.header.pill)) {
-      return <div key={`${key}-${slot}`}>{brandLockup(true)}</div>;
+      return (
+        <div key={`${key}-${slot}`} data-poster-block={key} data-layer={posterLayerName(spec, key)}>
+          {brandLockup(true)}
+        </div>
+      );
     }
     const copy = bannerCopy(key);
     if (!copy) return null;
     return (
-      <div key={`${key}-${slot}`} style={slotStyle(slot)}>
+      <div key={`${key}-${slot}`} data-poster-block={key} data-layer={posterLayerName(spec, key)} style={slotStyle(slot)}>
         {copy.primary && <div style={{ whiteSpace: "pre-line" }}>{copy.primary}</div>}
         {copy.secondary && (
           <div style={{ whiteSpace: "pre-line", marginTop: copy.primary ? gap(0.35) : 0, fontWeight: 400, fontSize: slot === 0 ? fs(fine(1.3)) : undefined, opacity: 0.94 }}>
@@ -256,6 +262,8 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
         <div style={{ display: "flex", alignItems: "center", gap: gap(2) }}>
           <div style={{ display: "flex", flexDirection: "column", gap: gap(0.7), minWidth: 0, flex: 1 }}>
             <div
+              data-poster-block="button"
+              data-layer="Button"
               style={{
                 alignSelf: "flex-start",
                 background: t.accent,
@@ -275,7 +283,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
             )}
           </div>
           {spec.cta.showQr && qrSrc && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap(0.45), flex: "0 0 auto", maxWidth: 16 * u }}>
+            <div data-poster-block="qr" data-layer="QR code" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: gap(0.45), flex: "0 0 auto", maxWidth: 16 * u }}>
               <div style={{ background: "#fff", padding: 0.8 * u, borderRadius: 0.8 * u, lineHeight: 0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={qrSrc} alt="QR code" style={{ width: 8.5 * u * Math.max(fit, 0.7), height: 8.5 * u * Math.max(fit, 0.7) }} />
@@ -333,6 +341,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
             <div
               key="banner"
               data-poster-block="banner"
+              data-layer={posterLayerName(spec, "banner")}
               style={{
                 flex: "0 0 auto",
                 minHeight: 6 * u,
