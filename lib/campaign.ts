@@ -118,6 +118,7 @@ function posterFromEmail(headline: string, subheading: string, email: EmailConte
       .filter(Boolean)
       .join(" "),
     illustrationHint: "",
+    customDirective: "N/A",
   };
 }
 

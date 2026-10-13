@@ -1,10 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import clsx from "clsx";
 import {
   bannerEligible,
   insertSection,
+  isBlockHidden,
   isSectionKey,
   layoutOf,
   moveInBanner,
@@ -98,7 +100,19 @@ export function PosterEditor({
   illustrationEditor?: ReactNode;
 }) {
   const layout = layoutOf(spec);
+  const [adding, setAdding] = useState(false);
   const withLayout = (next: PosterLayout, sections = spec.sections) => ({ ...spec, sections, layout: next });
+  const setHidden = (key: PosterBlockKey, hide: boolean) => {
+    if (isSectionKey(key)) {
+      const index = sectionIndex(key);
+      const sections = spec.sections.map((section, i) => (i === index ? { ...section, hidden: hide || undefined } : section));
+      onChange({ ...spec, sections });
+      return;
+    }
+    const current = spec.hiddenBlocks ?? [];
+    const hiddenBlocks = hide ? Array.from(new Set([...current, key])) : current.filter((item) => item !== key);
+    onChange({ ...spec, hiddenBlocks: hiddenBlocks.length ? hiddenBlocks : undefined });
+  };
 
   const setSection = (i: number, section: PosterSection) => {
     const sections = spec.sections.map((s, idx) => (idx === i ? section : s));
@@ -257,11 +271,22 @@ export function PosterEditor({
   const blockCard = (key: PosterBlockKey, move: { index: number; count: number; onMove: (dir: -1 | 1) => void }, slot?: number) => {
     const name = blockName(key) ?? "Block";
     const sectionAt = isSectionKey(key) ? sectionIndex(key) : -1;
+    const shown = !isBlockHidden(spec, key);
     return (
-      <div key={`${revision}-${key}`} className="card space-y-2.5 p-3">
+      <div key={`${revision}-${key}`} className={clsx("card space-y-2.5 p-3", !shown && "opacity-70")}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{name}</span>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5 text-xs text-slate-300">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-blue-500"
+                aria-label={`Show ${name} on the poster`}
+                checked={shown}
+                onChange={(e) => setHidden(key, !e.target.checked)}
+              />
+              Show on the poster
+            </label>
             <MoveButtons name={name} upDisabled={move.index === 0} downDisabled={move.index === move.count - 1} onUp={() => move.onMove(-1)} onDown={() => move.onMove(1)} />
             {sectionAt >= 0 && (
               <button type="button" className="rounded p-1 text-slate-400 hover:bg-red-950/60 hover:text-red-300" aria-label={`Remove ${name}`} onClick={() => remove(sectionAt)}>
@@ -271,7 +296,11 @@ export function PosterEditor({
           </div>
         </div>
         {bannerToggle(key, slot)}
-        {blockFields(key)}
+        {shown ? (
+          blockFields(key)
+        ) : (
+          <p className="text-xs text-slate-500">This section is left out of the poster and downloads. Turn it on to include it again.</p>
+        )}
       </div>
     );
   };
@@ -281,14 +310,28 @@ export function PosterEditor({
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-200">Blocks</h3>
-          <div className="flex flex-wrap gap-1.5">
+          <button type="button" className="btn-ghost px-2 py-1 text-xs" aria-expanded={adding} onClick={() => setAdding((open) => !open)} disabled={spec.sections.length >= 6}>
+            <Plus className="h-3 w-3" /> Add section
+          </button>
+        </div>
+        {adding && (
+          <div className="flex flex-wrap gap-1.5" role="menu" aria-label="Section types">
             {(Object.keys(SECTION_LABEL) as PosterSection["type"][]).map((t) => (
-              <button key={t} type="button" className="btn-ghost px-2 py-1 text-xs" onClick={() => add(t)} disabled={spec.sections.length >= 6}>
-                <Plus className="h-3 w-3" /> {SECTION_LABEL[t]}
+              <button
+                key={t}
+                type="button"
+                role="menuitem"
+                className="btn-ghost px-2 py-1 text-xs"
+                onClick={() => {
+                  add(t);
+                  setAdding(false);
+                }}
+              >
+                {SECTION_LABEL[t]}
               </button>
             ))}
           </div>
-        </div>
+        )}
         {spec.sections.length === 0 && <p className="text-xs text-slate-500">No sections yet. Add steps, key points, a callout, or stats.</p>}
 
         {layout.order.map((item, index) => {

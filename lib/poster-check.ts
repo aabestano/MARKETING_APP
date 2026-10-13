@@ -18,15 +18,23 @@ export function posterPlainText(spec: PosterSpec): string {
   const push = (value?: string) => {
     if (value?.trim()) parts.push(value);
   };
-  push(spec.header.brandName);
-  push(spec.header.tagline);
-  push(spec.headline);
-  push(spec.subheading);
-  push(spec.cta?.label);
-  push(spec.cta?.url);
-  push(spec.footer?.text);
-  push(spec.footer?.disclaimer);
+  const hidden = new Set(spec.hiddenBlocks ?? []);
+  if (!hidden.has("brand")) {
+    push(spec.header.brandName);
+    push(spec.header.tagline);
+  }
+  if (!hidden.has("headline")) push(spec.headline);
+  if (!hidden.has("subheading")) push(spec.subheading);
+  if (!hidden.has("cta")) {
+    push(spec.cta?.label);
+    push(spec.cta?.url);
+  }
+  if (!hidden.has("footer")) {
+    push(spec.footer?.text);
+    push(spec.footer?.disclaimer);
+  }
   for (const section of spec.sections) {
+    if (section.hidden) continue;
     push(section.title);
     if (section.type === "steps") {
       for (const step of section.items) {

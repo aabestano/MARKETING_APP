@@ -1,4 +1,4 @@
-import type { PosterSection, PosterSpec } from "./poster-types";
+import type { PosterFixedBlock, PosterSection, PosterSpec } from "./poster-types";
 
 /** Text may shrink to this fraction of its design size, and no further. */
 export const MIN_FIT = 0.85;
@@ -11,7 +11,7 @@ export type HeroSize = keyof typeof HERO_RATIO;
 
 export const SLOT_ROLE = ["Brand row", "Headline", "Text", "Subtext"] as const;
 
-export type FixedBlock = "brand" | "headline" | "subheading" | "illustration" | "cta" | "footer";
+export type FixedBlock = PosterFixedBlock;
 export type SectionBlock = `section:${number}`;
 export type PosterBlockKey = FixedBlock | SectionBlock;
 export type FlowItem = PosterBlockKey | "banner";
@@ -92,6 +92,27 @@ export function normalizeLayout(layout: PosterLayout | undefined, sections: Pick
 
 export function layoutOf(spec: Pick<PosterSpec, "layout" | "sections">): PosterLayout {
   return normalizeLayout(spec.layout, spec.sections);
+}
+
+/** Hidden blocks stay in the spec and the editor, and are left out of the preview and exports. */
+export function isBlockHidden(spec: Pick<PosterSpec, "sections" | "hiddenBlocks">, key: PosterBlockKey): boolean {
+  if (isSectionKey(key)) return !!spec.sections[sectionIndex(key)]?.hidden;
+  return !!spec.hiddenBlocks?.includes(key);
+}
+
+/** Keep the user's order and show/hide choices after an AI revision returns a new spec. */
+export function preservePosterEdits(prev: PosterSpec, next: PosterSpec): PosterSpec {
+  const sections = next.sections.map((section, index) => {
+    const before = prev.sections[index];
+    if (!before?.hidden || before.type !== section.type) return section;
+    return { ...section, hidden: true };
+  });
+  return {
+    ...next,
+    sections,
+    hiddenBlocks: prev.hiddenBlocks,
+    layout: normalizeLayout(prev.layout ?? next.layout, sections),
+  };
 }
 
 export function moveItem<T>(items: T[], index: number, dir: -1 | 1): T[] {

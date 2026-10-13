@@ -14,7 +14,6 @@ import {
   Save,
   Send,
   Sparkles,
-  Wand2,
   ExternalLink,
 } from "lucide-react";
 import { assetInFolder } from "@/lib/assets";
@@ -25,7 +24,7 @@ import type { BlastResponse, SectionRevision, ViewMode } from "@/lib/types";
 import { EmptyState, Segmented, Spinner, useToast } from "./ui";
 import { EmailPreview } from "./EmailPreview";
 import { SaveBlastModal, SendTestModal } from "./BlastModals";
-import { ReviseSectionsModal } from "./ReviseSectionsModal";
+import { EmailBlockEditor, EmailPromptEditor } from "./EmailSectionEditors";
 import { ReferenceScreenshots } from "./ReferenceScreenshots";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
 import type { ServerStatus } from "./AppShell";
@@ -104,7 +103,9 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
   const [busy, setBusy] = useState(false);
   const [compiling, setCompiling] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [modal, setModal] = useState<null | "revise" | "send" | "save">(null);
+  const [modal, setModal] = useState<null | "send" | "save">(null);
+  const [panel, setPanel] = useState<"brief" | "ai" | "manual">("brief");
+  const [manualKey, setManualKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const compileSeq = useRef(0);
@@ -221,14 +222,12 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
         lastCompiled.current = data.mjml;
         update({ mjml: data.mjml, html: data.html, warnings: data.warnings, source: "manual" });
         setError(null);
-        setModal(null);
-        toast("Block changes applied and recompiled.", "success");
         return null;
       } catch (err) {
         return err instanceof Error ? err.message : "Compilation failed.";
       }
     },
-    [book?.tokens, update, toast],
+    [book?.tokens, update],
   );
 
   useEffect(() => {
@@ -256,12 +255,35 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
   return (
     <div className="grid h-full grid-cols-1 lg:grid-cols-[40%_60%]">
       <section className="flex min-h-0 flex-col border-b border-slate-800 lg:border-b-0 lg:border-r">
-        <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
+        <div className="shrink-0 space-y-3 border-b border-slate-800 px-4 py-3 md:px-6">
           <header>
             <h1 className="text-xl font-semibold text-slate-100">Email Designer</h1>
             <p className="mt-1 text-sm text-slate-400">Turn a content blueprint (from Idea Studio or pasted) into branded, Mailchimp-ready MJML.</p>
           </header>
-
+          <Segmented
+            wrap
+            label="Email sections"
+            value={panel}
+            onChange={(next) => {
+              if (next === "manual" && panel !== "manual") setManualKey((n) => n + 1);
+              setPanel(next);
+            }}
+            options={[
+              { value: "brief", label: "Brief" },
+              { value: "ai", label: "Edit Sections with AI" },
+              { value: "manual", label: "Manually Edit Sections" },
+            ]}
+          />
+        </div>
+        <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
+          {panel === "ai" && (
+            <EmailPromptEditor mjml={workspace.mjml} busy={busy} error={error} onSubmit={(revisions) => void generate(revisions)} />
+          )}
+          {panel === "manual" && (
+            <EmailBlockEditor key={manualKey} mjml={workspace.mjml} tokens={tokens} bannerSrc={bannerSrc} onApply={applyBlocks} />
+          )}
+          {panel === "brief" && (
+          <>
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <label className="label !mb-0" htmlFor="blueprint">Content blueprint (Markdown)</label>
@@ -328,17 +350,21 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
               </p>
             </div>
           )}
+          </>
+          )}
         </div>
 
-        <div className="border-t border-slate-800 bg-slate-950 p-4">
-          {error && (
-            <p role="alert" className="alert-error mb-3">{error}</p>
-          )}
-          <button className="btn-primary w-full py-2.5" disabled={busy || !workspace.blueprint.trim()} onClick={() => void generate()}>
-            {busy ? <Spinner /> : <Sparkles className="h-4 w-4" />}
-            {busy ? "Generating MJML…" : hasOutput ? "Regenerate Blast" : "Generate Blast"}
-          </button>
-        </div>
+        {panel === "brief" && (
+          <div className="border-t border-slate-800 bg-slate-950 p-4">
+            {error && (
+              <p role="alert" className="alert-error mb-3">{error}</p>
+            )}
+            <button className="btn-primary w-full py-2.5" disabled={busy || !workspace.blueprint.trim()} onClick={() => void generate()}>
+              {busy ? <Spinner /> : <Sparkles className="h-4 w-4" />}
+              {busy ? "Generating MJML…" : hasOutput ? "Regenerate Blast" : "Generate Blast"}
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="flex min-h-[640px] min-w-0 flex-col lg:min-h-0">
@@ -370,9 +396,6 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
           <button className="btn-success" disabled={!hasOutput} onClick={copyForMailchimp}>
             {copied ? <Check className="h-4 w-4" /> : <ClipboardCopy className="h-4 w-4" />}
             Copy for Mailchimp
-          </button>
-          <button className="btn-ghost" disabled={!hasOutput || busy} onClick={() => setModal("revise")}>
-            <Wand2 className="h-4 w-4" /> Revise Sections
           </button>
           <button className="btn-ghost" disabled={!hasOutput} onClick={() => setModal("send")}>
             <Send className="h-4 w-4" /> Send Test Email
@@ -451,18 +474,6 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
         </div>
       </section>
 
-      {modal === "revise" && (
-        <ReviseSectionsModal
-          mjml={workspace.mjml}
-          busy={busy}
-          error={error}
-          tokens={tokens}
-          bannerSrc={bannerSrc}
-          onClose={() => setModal(null)}
-          onSubmitPrompt={(r) => void generate(r)}
-          onApplyBlocks={applyBlocks}
-        />
-      )}
       {modal === "send" && <SendTestModal html={workspace.html} mjml={workspace.mjml} onClose={() => setModal(null)} />}
       {modal === "save" && (
         <SaveBlastModal

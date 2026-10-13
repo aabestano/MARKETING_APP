@@ -1,20 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  Blocks,
-  Check,
-  EyeOff,
-  MessageSquareText,
-  Plus,
-  Trash2,
-  Wand2,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, ArrowDown, ArrowUp, EyeOff, Plus, Trash2, Wand2 } from "lucide-react";
 import clsx from "clsx";
-import { Modal, Spinner } from "./ui";
+import { Spinner } from "./ui";
 import {
   BLAST_SECTIONS,
   BLOCK_TEMPLATES,
@@ -31,84 +20,19 @@ import {
 import type { ResolvedTokens } from "@/lib/brand-tokens";
 import type { SectionRevision } from "@/lib/types";
 
-type View = "prompt" | "builder";
-
-interface Props {
-  mjml: string;
-  busy: boolean;
-  error?: string | null;
-  tokens: ResolvedTokens;
-  bannerSrc?: string;
-  onClose: () => void;
-  onSubmitPrompt: (revisions: SectionRevision[]) => void;
-  /** Resolves with an error message, or null when the compiled blast was updated. */
-  onApplyBlocks: (mjml: string) => Promise<string | null>;
-}
-
 const labelFor = (name: string) => BLAST_SECTIONS.find((s) => s.marker === name)?.label ?? name;
-
-export function ReviseSectionsModal({ mjml, busy, error, tokens, bannerSrc, onClose, onSubmitPrompt, onApplyBlocks }: Props) {
-  const [view, setView] = useState<View>("prompt");
-
-  return (
-    <Modal
-      title="Revise sections"
-      description={
-        view === "prompt"
-          ? "Describe changes section by section and let Gemini regenerate them. Untouched sections are preserved."
-          : "Reorder, hide, and edit sections directly. Nothing is sent to the AI."
-      }
-      size="wide"
-      onClose={onClose}
-    >
-      <div className="mb-4 inline-flex rounded-md border border-slate-800 bg-slate-900 p-0.5" role="tablist" aria-label="Revision mode">
-        {(
-          [
-            ["prompt", "Prompt Description", MessageSquareText],
-            ["builder", "Block Builder", Blocks],
-          ] as const
-        ).map(([id, label, Icon]) => (
-          <button
-            key={id}
-            role="tab"
-            aria-selected={view === id}
-            onClick={() => setView(id)}
-            className={clsx(
-              "inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition",
-              view === id ? "bg-slate-800 text-slate-100 shadow" : "text-slate-400 hover:text-slate-200",
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" /> {label}
-          </button>
-        ))}
-      </div>
-
-      {view === "prompt" ? (
-        <PromptView mjml={mjml} busy={busy} error={error} onClose={onClose} onSubmit={onSubmitPrompt} />
-      ) : (
-        <BuilderView mjml={mjml} tokens={tokens} bannerSrc={bannerSrc} onClose={onClose} onApply={onApplyBlocks} />
-      )}
-    </Modal>
-  );
-}
-
-function Footer({ children }: { children: React.ReactNode }) {
-  return <div className="sticky bottom-0 -mx-5 -mb-4 mt-5 flex items-center justify-end gap-2 border-t border-slate-800 bg-slate-950 px-5 py-3">{children}</div>;
-}
 
 /* ---------------------------- Prompt view ---------------------------- */
 
-function PromptView({
+export function EmailPromptEditor({
   mjml,
   busy,
   error,
-  onClose,
   onSubmit,
 }: {
   mjml: string;
   busy: boolean;
   error?: string | null;
-  onClose: () => void;
   onSubmit: (r: SectionRevision[]) => void;
 }) {
   const names = useMemo(() => {
@@ -118,8 +42,13 @@ function PromptView({
   const [values, setValues] = useState<Record<string, string>>({});
   const filled = names.filter((n) => values[n]?.trim());
 
+  if (!mjml.trim()) {
+    return <p className="text-sm text-slate-400">Generate a blast from the Brief tab first. Then you can revise sections here.</p>;
+  }
+
   return (
-    <>
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">Describe changes for the sections you want to revise. Blank sections stay as they are.</p>
       <div className="space-y-4">
         {names.map((name) => (
           <div key={name}>
@@ -142,44 +71,65 @@ function PromptView({
           </p>
         )}
       </div>
-      <Footer>
-        <button className="btn-ghost" onClick={onClose} disabled={busy}>
-          Cancel
-        </button>
-        <button
-          className="btn-primary"
-          disabled={!filled.length || busy}
-          onClick={() => onSubmit(filled.map((section) => ({ section, instruction: values[section].trim() })))}
-        >
-          {busy ? <Spinner /> : <Wand2 className="h-4 w-4" />}
-          Regenerate {filled.length ? `${filled.length} section${filled.length > 1 ? "s" : ""}` : ""}
-        </button>
-      </Footer>
-    </>
+      <button
+        type="button"
+        className="btn-primary"
+        disabled={!filled.length || busy}
+        onClick={() => onSubmit(filled.map((section) => ({ section, instruction: values[section].trim() })))}
+      >
+        {busy ? <Spinner /> : <Wand2 className="h-4 w-4" />}
+        Regenerate {filled.length ? `${filled.length} section${filled.length > 1 ? "s" : ""}` : ""}
+      </button>
+    </div>
   );
 }
 
 /* ---------------------------- Block builder -------------------------- */
 
-function BuilderView({
+export function EmailBlockEditor({
   mjml,
   tokens,
   bannerSrc,
-  onClose,
   onApply,
 }: {
   mjml: string;
   tokens: ResolvedTokens;
   bannerSrc?: string;
-  onClose: () => void;
   onApply: (mjml: string) => Promise<string | null>;
 }) {
   const [doc, setDoc] = useState<BlockDocument>(() => parseBlocks(mjml));
   const [adding, setAdding] = useState(false);
   const [applying, setApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
+  const changed = useRef(false);
+  const pending = useRef<string | null>(null);
 
-  const setBlocks = (fn: (blocks: Block[]) => Block[]) => setDoc((d) => ({ ...d, blocks: fn(d.blocks) }));
+  const setBlocks = (fn: (blocks: Block[]) => Block[]) => {
+    changed.current = true;
+    setDoc((d) => ({ ...d, blocks: fn(d.blocks) }));
+  };
+
+  useEffect(() => {
+    if (!changed.current || !doc.parsed) return;
+    const code = serializeBlocks(doc);
+    pending.current = code;
+    setApplying(true);
+    const handle = window.setTimeout(() => {
+      pending.current = null;
+      void onApply(code).then((err) => {
+        setApplying(false);
+        setApplyError(err);
+      });
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [doc, onApply]);
+
+  useEffect(() => {
+    return () => {
+      const code = pending.current;
+      if (code) void onApply(code);
+    };
+  }, [onApply]);
   const patch = (id: string, p: Partial<Block>) => setBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...p } : b)));
   const move = (index: number, dir: -1 | 1) =>
     setBlocks((bs) => {
@@ -202,36 +152,23 @@ function BuilderView({
   const visibleCount = doc.blocks.filter((b) => b.visible).length;
   const hiddenCount = doc.blocks.length - visibleCount;
 
-  const apply = async () => {
-    setApplying(true);
-    setApplyError(null);
-    const err = await onApply(serializeBlocks(doc));
-    setApplying(false);
-    if (err) setApplyError(err);
-  };
-
   if (!doc.parsed) {
     return (
-      <>
-        <div className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>There is no MJML to build from yet. Generate a blast first, or write MJML with an {"<mj-body>"} in the code editor.</p>
-        </div>
-        <Footer>
-          <button className="btn-ghost" onClick={onClose}>
-            Close
-          </button>
-        </Footer>
-      </>
+      <div className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <p>There is no MJML to build from yet. Generate a blast first, or write MJML with an {"<mj-body>"} in the code editor.</p>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">Reorder, show, hide, add, and edit sections here. Hidden sections stay in the email so you can show them again. Nothing on this tab is sent to the AI.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
         <span>
           {doc.blocks.length} block{doc.blocks.length === 1 ? "" : "s"} · {visibleCount} visible
           {hiddenCount ? ` · ${hiddenCount} hidden` : ""}
+          {applying ? " · Updating the preview…" : ""}
         </span>
         <span>Hidden blocks stay in the MJML as comments so you can show them again.</span>
       </div>
@@ -251,8 +188,8 @@ function BuilderView({
       </ol>
 
       <div className="mt-4">
-        <button className="btn-ghost w-full border-dashed" onClick={() => setAdding((a) => !a)} aria-expanded={adding}>
-          <Plus className="h-4 w-4" /> Add Content Block
+        <button type="button" className="btn-ghost w-full border-dashed" onClick={() => setAdding((a) => !a)} aria-expanded={adding}>
+          <Plus className="h-4 w-4" /> Add section
         </button>
         {adding && (
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3" role="menu" aria-label="Block types">
@@ -271,27 +208,21 @@ function BuilderView({
         )}
       </div>
 
+      {visibleCount === 0 && <p className="text-xs text-slate-500">Turn at least one section on. A hidden section stays saved, and the preview leaves it out.</p>}
+
       {applyError && (
-        <p role="alert" className="alert-error mt-4">
+        <p role="alert" className="alert-error">
           {applyError}
         </p>
       )}
-
-      <Footer>
-        <button className="btn-ghost" onClick={onClose} disabled={applying}>
-          Cancel
-        </button>
-        <button className="btn-success" onClick={apply} disabled={applying || visibleCount === 0}>
-          {applying ? <Spinner /> : <Check className="h-4 w-4" />} Apply Changes
-        </button>
-      </Footer>
-    </>
+    </div>
   );
 }
 
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}

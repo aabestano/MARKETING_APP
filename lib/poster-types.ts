@@ -17,17 +17,23 @@ export interface PosterStep {
   decision?: { yes?: string; no?: string };
 }
 
-export type PosterSection =
+export type PosterFixedBlock = "brand" | "headline" | "subheading" | "illustration" | "cta" | "footer";
+
+/** Content blocks. `hidden` keeps the copy but leaves the block out of the preview and exports. */
+export type PosterSection = (
   | { type: "steps"; title?: string; style: "flowchart" | "numbered"; items: PosterStep[] }
   | { type: "bullets"; title?: string; items: string[] }
   | { type: "callout"; title?: string; body: string }
-  | { type: "stats"; title?: string; items: { value: string; label: string }[] };
+  | { type: "stats"; title?: string; items: { value: string; label: string }[] }
+) & { hidden?: boolean };
 
 export interface PosterSpec {
   version: 1;
   theme: PosterTheme;
   /** Block order and which blocks sit in the banner. Omitted specs use the default header band. */
   layout?: PosterLayout;
+  /** Fixed blocks left out of the preview and exports. Section visibility lives on each section. */
+  hiddenBlocks?: PosterFixedBlock[];
   /** requested font family; resolved against uploaded fonts with a closest-match fallback */
   fontFamily?: string;
   header: { brandName?: string; tagline?: string; logoAssetId?: string };
@@ -54,7 +60,7 @@ export interface PosterSize {
   bleedMm: number;
 }
 
-export type IllustrationMode = "auto" | "library" | "none";
+export type IllustrationMode = "auto" | "library" | "none" | "draw";
 
 export interface PosterWorkspace {
   prompt: string;

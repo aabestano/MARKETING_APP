@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
 import { friendlyGeminiError, generateJsonText, resolveGeminiKey, resolveModel } from "@/lib/gemini";
-import { POSTER_SYSTEM_INSTRUCTION, buildPosterPrompt, extractJsonObject, orientationOf, type PosterAssetSummary } from "@/lib/poster-prompt";
+import { POSTER_SYSTEM_INSTRUCTION, buildPosterPrompt, extractJsonObject, normalizeIllustrationMode, orientationOf, type PosterAssetSummary } from "@/lib/poster-prompt";
 import { buildFallbackPoster, sanitizePosterSpec, themeFromTokens } from "@/lib/poster-spec";
 import { describeSize, sanitizeSize, trimPx } from "@/lib/poster-sizes";
 import type { BrandTokens } from "@/lib/types";
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     directive: a.directive ? String(a.directive).slice(0, 200) : undefined,
   }));
   const fonts = (body.fonts ?? []).slice(0, 20).map((f) => String(f).slice(0, 60));
-  const mode: IllustrationMode = body.illustrationMode === "library" || body.illustrationMode === "none" ? body.illustrationMode : "auto";
+  const mode = normalizeIllustrationMode(body.illustrationMode);
   const explicitFont = body.brandTokens?.fontFamily?.trim() || undefined;
   const ctx = { assetIds: new Set(assets.map((a) => a.id)), theme, brandName: body.brandName, fontFamily: explicitFont };
 
@@ -84,6 +84,11 @@ export async function POST(req: Request) {
     const spec = sanitizePosterSpec(extractJsonObject(text), ctx);
     if (mode === "none") delete spec.illustration;
     else if (mode === "library" && spec.illustration) spec.illustration = spec.illustration.assetId ? { assetId: spec.illustration.assetId } : undefined;
+    else if (mode === "draw" && spec.illustration) {
+      const prompt = spec.illustration.prompt;
+      if (prompt) spec.illustration = { prompt };
+      else delete spec.illustration;
+    }
     return NextResponse.json({ spec, warnings, source: "gemini", model });
   } catch (err) {
     if (err instanceof Error && /valid JSON/.test(err.message)) {
