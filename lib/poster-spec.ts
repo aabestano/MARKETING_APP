@@ -1,5 +1,5 @@
 import type { ResolvedTokens } from "./brand-tokens";
-import type { PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
+import type { ColorOverrides, PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -29,6 +29,39 @@ const multiline = (v: unknown, max: number): string | undefined => {
 
 const color = (v: unknown, fallback: string): string => (typeof v === "string" && HEX.test(v.trim()) ? v.trim() : fallback);
 
+const THEME_KEYS: (keyof PosterTheme)[] = ["background", "surface", "text", "muted", "primary", "accent", "onPrimary"];
+
+/** Keeps only valid hex values for known theme roles; returns undefined when nothing is left. */
+export function cleanColorOverrides(raw: unknown): ColorOverrides | undefined {
+  if (!isObj(raw)) return undefined;
+  const out: ColorOverrides = {};
+  for (const k of THEME_KEYS) {
+    const v = raw[k];
+    if (typeof v === "string" && HEX.test(v.trim())) out[k] = v.trim();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/** The theme a part of the poster renders with: the poster theme plus that part's overrides. */
+export function withColors(theme: PosterTheme, overrides?: ColorOverrides): PosterTheme {
+  return overrides ? { ...theme, ...overrides } : theme;
+}
+
+/** Drops every per-part color override so the whole poster follows the theme again. */
+export function clearColorOverrides(spec: PosterSpec): PosterSpec {
+  const strip = <T extends { colors?: ColorOverrides }>(o: T): T => {
+    const { colors: _colors, ...rest } = o;
+    return rest as T;
+  };
+  return {
+    ...spec,
+    header: strip(spec.header),
+    sections: spec.sections.map(strip),
+    cta: spec.cta ? strip(spec.cta) : undefined,
+    footer: spec.footer ? strip(spec.footer) : undefined,
+  };
+}
+
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 function cleanStep(raw: unknown): PosterStep | null {
@@ -50,7 +83,7 @@ function cleanStep(raw: unknown): PosterStep | null {
   return step;
 }
 
-function cleanSection(raw: unknown): PosterSection | null {
+function cleanSectionBody(raw: unknown): PosterSection | null {
   if (!isObj(raw)) return null;
   const title = str(raw.title, 90);
   switch (raw.type) {
@@ -77,6 +110,12 @@ function cleanSection(raw: unknown): PosterSection | null {
     default:
       return null;
   }
+}
+
+function cleanSection(raw: unknown): PosterSection | null {
+  const section = cleanSectionBody(raw);
+  const colors = section && isObj(raw) ? cleanColorOverrides(raw.colors) : undefined;
+  return section && colors ? { ...section, colors } : section;
 }
 
 export interface SanitizeContext {
@@ -111,7 +150,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     version: 1,
     theme,
     fontFamily: str(r.fontFamily, 80) ?? ctx.fontFamily,
-    header: { brandName: str(header.brandName, 60) ?? ctx.brandName, tagline: str(header.tagline, 100), logoAssetId },
+    header: { brandName: str(header.brandName, 60) ?? ctx.brandName, tagline: str(header.tagline, 100), logoAssetId, colors: cleanColorOverrides(header.colors) },
     headline: str(r.headline ?? r.title, 140) ?? "Untitled poster",
     subheading: str(r.subheading ?? r.subtitle, 240),
     sections,
@@ -121,12 +160,12 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     const label = str(r.cta.label, 80);
     let url = str(r.cta.url, 400);
     if (url && !/^https?:\/\//i.test(url)) url = /^[\w-]+(\.[\w-]+)+(\/|$)/.test(url) ? `https://${url}` : undefined;
-    if (label) spec.cta = { label, url, showQr: !!url && r.cta.showQr !== false };
+    if (label) spec.cta = { label, url, showQr: !!url && r.cta.showQr !== false, colors: cleanColorOverrides(r.cta.colors) };
   }
   if (isObj(r.footer)) {
     const text = multiline(r.footer.text, 300);
     const disclaimer = multiline(r.footer.disclaimer, 500);
-    if (text || disclaimer) spec.footer = { text, disclaimer };
+    if (text || disclaimer) spec.footer = { text, disclaimer, colors: cleanColorOverrides(r.footer.colors) };
   }
   return spec;
 }

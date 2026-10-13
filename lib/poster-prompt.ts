@@ -36,6 +36,7 @@ Rules:
 - Use at most 4 sections. Keep each step label under 10 words and each detail under 25 words.
 - For the illustration, prefer an existing asset (match by name, role and directive). Only write "prompt" when nothing listed fits. Never put text inside an illustration prompt; describe a clean flat illustration subject.
 - Only set cta.url when the brief gives a real URL. Do not invent URLs, phone numbers or prices.
+- When revising, copy any existing "colors" objects (on header, sections, cta, footer) through unchanged unless the request is about colors. Never add "colors" on your own.
 - Preserve facts, numbers and wording the brief gives verbatim. Do not add medical, legal or pricing claims that are not in the brief.`;
 
 function describeColors(t: ResolvedTokens): string {
