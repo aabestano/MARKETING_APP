@@ -18,6 +18,7 @@ import {
 import { copyText } from "@/lib/client-utils";
 import { fillPosterFromDirective, isBlankDirective } from "@/lib/poster-directive";
 import { COHORTS, type BrandMode, type Campaign, type EmailContent, type PosterContent } from "@/lib/idea-types";
+import { UNSCHEDULED_IDEA_LIMIT } from "@/lib/idea-rules";
 import { Segmented, useToast } from "./ui";
 import { CardBadge } from "./IdeaInspect";
 
@@ -129,6 +130,9 @@ export function IdeaStudio() {
   const setEmail = (patch: Partial<EmailContent>) => updateCampaign((x) => ({ ...x, email: { ...x.email, ...patch } }));
   const setPoster = (patch: Partial<PosterContent>) => updateCampaign((x) => ({ ...x, poster: { ...x.poster, ...patch } }));
 
+  const scheduledIds = new Set(pipeline.flatMap((item) => (item.ideaData.id ? [item.ideaData.id] : [])));
+  const unscheduledIdeas = ideas.filter((idea) => !idea.id || !scheduledIds.has(idea.id)).slice(0, UNSCHEDULED_IDEA_LIMIT);
+
   if (!c) {
     const upcoming = [...pipeline].sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate)).slice(0, 8);
     return (
@@ -166,14 +170,17 @@ export function IdeaStudio() {
             </div>
           </div>
           <div className="card space-y-2 p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100"><Lightbulb className="h-4 w-4 text-amber-400" /> From a generated idea</h2>
-            {ideas.length === 0 ? (
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <Lightbulb className="h-4 w-4 text-amber-400" /> From a generated idea
+              <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-300">{unscheduledIdeas.length}</span>
+            </h2>
+            {unscheduledIdeas.length === 0 ? (
               <p className="text-xs text-slate-500">No generated ideas right now. Create some in the Idea Generator.</p>
             ) : (
               <ul className="grid gap-1 md:grid-cols-2">
-                {ideas.map((idea, i) => (
-                  <li key={i}>
-                    <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-800" onClick={() => setStudio({ campaign: campaignFromIdea(idea), pipelineId: null })}>
+                {unscheduledIdeas.map((idea) => (
+                  <li key={idea.id ?? idea.title}>
+                    <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-800" onClick={() => setStudio({ campaign: idea.campaign ?? campaignFromIdea(idea), pipelineId: null })}>
                       <CardBadge type={idea.cardType} />
                       <span className="truncate text-slate-200">{idea.title}</span>
                     </button>

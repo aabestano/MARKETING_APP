@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { friendlyGeminiError, generateJsonText, resolveGeminiKey, resolveModel } from "@/lib/gemini";
-import { buildIdeaSystemInstruction, buildOfflineFallbackCards, sanitizeIdeaCards } from "@/lib/idea-gen";
+import { buildCustomOfflineCards, buildIdeaSystemInstruction, buildOfflineFallbackCards, resolveGenMode, sanitizeIdeaCards } from "@/lib/idea-gen";
 import { extractJsonObject } from "@/lib/poster-prompt";
 import { COHORTS, currentCohort, FOCUS_TYPES, type GenMode, type IdeaCard } from "@/lib/idea-types";
 
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const focusTypes = (body.focusTypes ?? []).filter((f) => validFocus.has(f)).slice(0, 6);
   if (!focusTypes.length) return NextResponse.json({ error: "Select at least 1 focus type." }, { status: 400 });
 
-  const mode: GenMode = body.mode === "Idea Base Match" || body.mode === "Pure Random" ? body.mode : "Hybrid";
+  const mode: GenMode = resolveGenMode(body.mode);
   const requestedCohort = currentCohort(body.cohort ?? "");
   const cohort = (COHORTS as readonly string[]).includes(requestedCohort) ? requestedCohort : COHORTS[0];
   const tone = (body.tone ?? "Empathetic & Supportive").slice(0, 80);
@@ -37,14 +37,26 @@ export async function POST(req: Request) {
     titles: (body.exclusions?.titles ?? []).slice(0, 80).map((t) => String(t).slice(0, 160)),
     sourceIds: (body.exclusions?.sourceIds ?? []).slice(0, 200).map(String),
   };
-  const resources = (body.resources ?? [])
-    .filter((r) => r && r.id && r.extractedNotes && !exclusions.sourceIds.includes(r.id))
-    .slice(0, 40)
-    .map((r) => ({ id: String(r.id), name: String(r.name).slice(0, 160), extractedNotes: String(r.extractedNotes).slice(0, 2000) }));
+  const picked = (body.resources ?? []).filter((r) => r && r.id).slice(0, mode === "Custom Items" ? 10 : 40);
+  if (mode === "Custom Items") {
+    if (!picked.length) return NextResponse.json({ error: "Choose at least one Idea Base item." }, { status: 400 });
+    if (picked.some((r) => !String(r.extractedNotes ?? "").trim())) {
+      return NextResponse.json(
+        { error: "Custom Idea Base Items can only use scratch ideas and files that have been analyzed." },
+        { status: 400 },
+      );
+    }
+  }
+  const resources = picked
+    .filter((r) => r.extractedNotes && (mode === "Custom Items" || !exclusions.sourceIds.includes(r.id)))
+    .map((r) => ({ id: String(r.id), name: String(r.name ?? "").slice(0, 160), extractedNotes: String(r.extractedNotes).slice(0, 2000) }));
   const validSourceIds = new Set(resources.map((r) => r.id));
 
   const offline = (reason: string) => {
-    const ideas = buildOfflineFallbackCards(cohort, focusTypes, resources[0]?.id);
+    const ideas =
+      mode === "Custom Items"
+        ? buildCustomOfflineCards(cohort, focusTypes, resources)
+        : buildOfflineFallbackCards(cohort, focusTypes, resources[0]?.id);
     return NextResponse.json({ ideas, source: "fallback", warnings: [reason] });
   };
 

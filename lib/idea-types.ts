@@ -52,12 +52,13 @@ export const FOCUS_TYPES = [
   { value: "Non-promotional (Resource)", hint: "Leverages active Idea Base items", tone: "amber" },
 ] as const;
 
-export type GenMode = "Hybrid" | "Idea Base Match" | "Pure Random";
+export type GenMode = "Hybrid" | "Idea Base Match" | "Pure Random" | "Custom Items";
 
 export const GEN_MODES: { value: GenMode; label: string; hint: string }[] = [
   { value: "Hybrid", label: "Hybrid (Idea Base + AI)", hint: "Synthesizes active Idea Base notes with creative models" },
   { value: "Idea Base Match", label: "Idea Base Match", hint: "Strict adherence to uploaded analyzed documents" },
   { value: "Pure Random", label: "Pure AI", hint: "Zero-base brainstorm tailored to cohort parameters" },
+  { value: "Custom Items", label: "Custom Idea Base Items", hint: "Uses only the Idea Base items you choose" },
 ];
 
 /** Largest file the Idea Base will store in the browser. AI analysis has a smaller limit (see resource-files.ts). */
@@ -99,6 +100,12 @@ export interface IdeaCard {
   coreOutline: string[];
   cta: string;
   smsCopy: string;
+  /** Stable id so a generated idea can be scheduled, inspected, and capped after later batches. */
+  id?: string;
+  /** When this idea was generated. Older unscheduled ideas are removed first once 10 are saved. */
+  generatedAt?: number;
+  /** Idea Studio content cached the first time the full idea is inspected. */
+  campaign?: Campaign;
 }
 
 export type PipelineStatus = "Scheduled" | "Completed" | "Past Date (Released)";
