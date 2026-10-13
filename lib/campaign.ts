@@ -361,7 +361,12 @@ export function buildPosterBrief(c: Campaign): string {
   const points = p.pointsText.split("\n").map((l) => l.trim()).filter(Boolean);
   if (points.length) lines.push("", "Key points:", ...points.map((l) => `- ${l}`));
   if (p.callout.trim()) lines.push("", `Callout: ${p.callout.trim()}`);
-  if (c.ctaLabel.trim()) lines.push("", `Call to action: ${c.ctaLabel.trim()}${c.ctaUrl.trim() ? ` ${c.ctaUrl.trim()}` : ""}${p.showQr && c.ctaUrl.trim() ? " (show a QR code)" : ""}`);
+  if (c.ctaLabel.trim() || c.ctaUrl.trim()) {
+    const label = c.ctaLabel.trim() || "Learn more";
+    const url = c.ctaUrl.trim();
+    lines.push("", `Call to action: ${label}${url ? ` ${url}` : ""}${p.showQr && url ? " (show a QR code)" : ""}`);
+    if (url) lines.push(`Destination: ${url}`);
+  }
   if (p.footer.trim()) lines.push(`Footer: ${p.footer.trim()}`);
   if (p.disclaimer.trim()) lines.push(`Disclaimer: ${p.disclaimer.trim()}`);
   if (p.illustrationHint.trim()) lines.push("", `Illustration idea: ${p.illustrationHint.trim()}`);

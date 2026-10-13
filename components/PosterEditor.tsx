@@ -19,8 +19,9 @@ import {
   type PosterBlockKey,
   type PosterLayout,
 } from "@/lib/poster-blocks";
+import { copyColorToTheme, expandHex, posterContrastWarnings } from "@/lib/poster-colors";
 import { linesToSteps, stepsToLines } from "@/lib/poster-spec";
-import type { PosterSection, PosterSpec, PosterTheme } from "@/lib/poster-types";
+import { TIP_ICONS, TIP_ICON_LABEL, type PosterSection, type PosterSpec, type PosterTheme, type TipIcon } from "@/lib/poster-types";
 
 const THEME_FIELDS: { key: keyof PosterTheme; label: string }[] = [
   { key: "primary", label: "Banner background" },
@@ -37,6 +38,7 @@ const SECTION_LABEL: Record<PosterSection["type"], string> = {
   bullets: "Key points",
   callout: "Callout",
   stats: "Stats",
+  tips: "Tip grid",
 };
 
 const BLOCK_LABEL: Record<string, string> = {
@@ -89,6 +91,9 @@ export function PosterEditor({
   onChange,
   onStructureChange,
   brandTheme,
+  swatches = [],
+  logoChoices = [],
+  resolvedLogoId,
   illustrationEditor,
 }: {
   spec: PosterSpec;
@@ -97,10 +102,16 @@ export function PosterEditor({
   onChange: (spec: PosterSpec) => void;
   onStructureChange: (spec: PosterSpec) => void;
   brandTheme: PosterTheme;
+  swatches?: { hex: string; label: string }[];
+  logoChoices?: { id: string; name: string }[];
+  /** Logo shown when the spec has not chosen one yet. An empty string means the user turned the logo off. */
+  resolvedLogoId?: string;
   illustrationEditor?: ReactNode;
 }) {
   const layout = layoutOf(spec);
   const [adding, setAdding] = useState(false);
+  const [undoTheme, setUndoTheme] = useState<PosterTheme | null>(null);
+  const warnings = posterContrastWarnings(spec.theme);
   const withLayout = (next: PosterLayout, sections = spec.sections) => ({ ...spec, sections, layout: next });
   const setHidden = (key: PosterBlockKey, hide: boolean) => {
     if (isSectionKey(key)) {
@@ -129,7 +140,9 @@ export function PosterEditor({
           ? { type, title: "Key points", items: ["Point one", "Point two"] }
           : type === "callout"
             ? { type, title: "Good to know", body: "Add the note you want highlighted." }
-            : { type, title: "At a glance", items: [{ value: "50%", label: "Caption" }] };
+            : type === "stats"
+              ? { type, title: "At a glance", items: [{ value: "50%", label: "Caption" }] }
+              : { type: "tips", title: "Tips", items: [{ text: "Short tip", icon: "lightbulb" }, { text: "Another short tip", icon: "drop" }] };
     const sections = [...spec.sections, fresh];
     onStructureChange(withLayout(insertSection(layout, sections), sections));
   };
@@ -197,6 +210,53 @@ export function PosterEditor({
             <p className="text-[11px] text-slate-500">One per line as <code>value | caption</code>, e.g. <code>20% | off every refill</code>.</p>
           </>
         )}
+        {s.type === "tips" && (
+          <div className="space-y-2">
+            {s.items.map((tip, tipIndex) => (
+              <div key={tipIndex} className="flex items-start gap-2">
+                <select
+                  className="input w-36 shrink-0 py-1.5"
+                  aria-label={`Tip ${tipIndex + 1} icon`}
+                  value={tip.icon}
+                  onChange={(e) => {
+                    const items = s.items.map((item, index) => (index === tipIndex ? { ...item, icon: e.target.value as TipIcon } : item));
+                    setSection(i, { ...s, items });
+                  }}
+                >
+                  {TIP_ICONS.map((icon) => (
+                    <option key={icon} value={icon}>{TIP_ICON_LABEL[icon]}</option>
+                  ))}
+                </select>
+                <input
+                  className="input py-1.5"
+                  aria-label={`Tip ${tipIndex + 1}`}
+                  value={tip.text}
+                  onChange={(e) => {
+                    const items = s.items.map((item, index) => (index === tipIndex ? { ...item, text: e.target.value } : item));
+                    setSection(i, { ...s, items });
+                  }}
+                />
+                <button
+                  type="button"
+                  className="rounded p-1 text-slate-400 hover:bg-red-950/60 hover:text-red-300"
+                  aria-label={`Remove tip ${tipIndex + 1}`}
+                  onClick={() => setSection(i, { ...s, items: s.items.filter((_, index) => index !== tipIndex) })}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="btn-ghost px-2 py-1 text-xs"
+              disabled={s.items.length >= 8}
+              onClick={() => setSection(i, { ...s, items: [...s.items, { text: "New tip", icon: "none" }] })}
+            >
+              <Plus className="h-3 w-3" /> Add tip
+            </button>
+            <p className="text-[11px] text-slate-500">Each tip can use a lightbulb, drop, sun, heart pulse, pill, or no icon. Short tips keep the grid even, and longer tips wrap inside their card.</p>
+          </div>
+        )}
       </div>
     );
   };
@@ -204,13 +264,36 @@ export function PosterEditor({
   const blockFields = (key: PosterBlockKey) => {
     if (key === "brand") {
       return (
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Brand name">
-            <input className="input" value={spec.header.brandName ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, brandName: e.target.value || undefined } })} />
-          </Field>
-          <Field label="Tagline">
-            <input className="input" value={spec.header.tagline ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, tagline: e.target.value || undefined } })} />
-          </Field>
+        <div className="space-y-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Brand name">
+              <input className="input" value={spec.header.brandName ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, brandName: e.target.value || undefined } })} />
+            </Field>
+            <Field label="Tagline">
+              <input className="input" value={spec.header.tagline ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, tagline: e.target.value || undefined } })} />
+            </Field>
+            <Field label="Header pill">
+              <input className="input" aria-label="Header pill" placeholder="Short label" value={spec.header.pill ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, pill: e.target.value || undefined } })} />
+            </Field>
+            <div className="hidden sm:block" />
+            <Field label="Logo">
+              <select className="input" aria-label="Logo" value={spec.header.logoAssetId ?? resolvedLogoId ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, logoAssetId: e.target.value } })}>
+                <option value="">None</option>
+                {logoChoices.map((logo) => (
+                  <option key={logo.id} value={logo.id}>{logo.name}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Second logo">
+              <select className="input" aria-label="Second logo" value={spec.header.secondLogoAssetId ?? ""} onChange={(e) => onChange({ ...spec, header: { ...spec.header, secondLogoAssetId: e.target.value || undefined } })}>
+                <option value="">None</option>
+                {logoChoices.map((logo) => (
+                  <option key={logo.id} value={logo.id}>{logo.name}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          {logoChoices.length === 0 && <p className="text-[11px] text-slate-500">No logos are tagged in this brand book yet. Partner logos count once they are in the book.</p>}
         </div>
       );
     }
@@ -242,12 +325,20 @@ export function PosterEditor({
           </div>
           {spec.cta && (
             <>
-              <input className="input py-1.5" aria-label="Button label" placeholder="Button label" value={spec.cta.label} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, label: e.target.value } })} />
-              <input className="input py-1.5" aria-label="Link" placeholder="https://…" value={spec.cta.url ?? ""} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, url: e.target.value.trim() || undefined } })} />
+              <Field label="Button label">
+                <input className="input py-1.5" aria-label="Button label" placeholder="Button label" value={spec.cta.label} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, label: e.target.value } })} />
+              </Field>
+              <Field label="Destination">
+                <input className="input py-1.5" aria-label="Destination" placeholder="https://…" value={spec.cta.url ?? ""} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, url: e.target.value.trim() || undefined, showQr: e.target.value.trim() ? spec.cta!.showQr : false } })} />
+              </Field>
               <label className="flex items-center gap-2 text-sm text-slate-300">
                 <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={spec.cta.showQr} disabled={!spec.cta.url} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, showQr: e.target.checked } })} />
-                Show a QR code for the link
+                Show a QR code for the destination
               </label>
+              <Field label="QR caption">
+                <input className="input py-1.5" aria-label="QR caption" placeholder="Shown with the QR code" value={spec.cta.qrCaption ?? ""} onChange={(e) => onChange({ ...spec, cta: { ...spec.cta!, qrCaption: e.target.value || undefined } })} />
+              </Field>
+              <p className="text-[11px] text-slate-500">The destination stays visible on the poster. The caption appears beside the QR code when the code is on.</p>
             </>
           )}
         </div>
@@ -332,7 +423,7 @@ export function PosterEditor({
             ))}
           </div>
         )}
-        {spec.sections.length === 0 && <p className="text-xs text-slate-500">No sections yet. Add steps, key points, a callout, or stats.</p>}
+        {spec.sections.length === 0 && <p className="text-xs text-slate-500">No sections yet. Add steps, key points, a callout, stats, or a tip grid.</p>}
 
         {layout.order.map((item, index) => {
           if (item === "banner") {
@@ -374,24 +465,78 @@ export function PosterEditor({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-200">Colors</h3>
-          <button type="button" className="text-xs text-blue-400 hover:text-blue-300" onClick={() => onChange({ ...spec, theme: brandTheme })}>Reset to brand</button>
+          <div className="flex items-center gap-3">
+            {undoTheme && (
+              <button
+                type="button"
+                className="text-xs text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  onChange({ ...spec, theme: undoTheme });
+                  setUndoTheme(null);
+                }}
+              >
+                Undo color copy
+              </button>
+            )}
+            <button type="button" className="text-xs text-blue-400 hover:text-blue-300" onClick={() => onChange({ ...spec, theme: brandTheme })}>Reset to brand</button>
+          </div>
         </div>
-        <p className="text-[11px] text-slate-500">Banner background and Banner text color the whole banner. Section titles and step numbers use Banner background too.</p>
-        <div className="grid grid-cols-2 gap-2">
+        <p className="text-[11px] text-slate-500">Banner background and Banner text color the whole banner. Section titles and step numbers use Banner background too. Swatches are the selected brand book.</p>
+        <div className="grid gap-2 sm:grid-cols-2">
           {THEME_FIELDS.map((f) => (
-            <label key={f.key} className="flex items-center gap-2 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300">
-              <input
-                type="color"
-                className="h-6 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
-                value={/^#[0-9a-f]{6}$/i.test(spec.theme[f.key]) ? spec.theme[f.key] : "#000000"}
-                onChange={(e) => onChange({ ...spec, theme: { ...spec.theme, [f.key]: e.target.value } })}
-              />
-              {f.label}
-            </label>
+            <div key={f.key} className="space-y-1.5 rounded-md border border-slate-800 bg-slate-900 px-2 py-1.5 text-xs text-slate-300">
+              <label className="flex items-center gap-2">
+                <input
+                  type="color"
+                  aria-label={f.label}
+                  className="h-6 w-8 cursor-pointer rounded border-0 bg-transparent p-0"
+                  value={/^#[0-9a-f]{6}$/i.test(spec.theme[f.key]) ? spec.theme[f.key] : "#000000"}
+                  onChange={(e) => onChange({ ...spec, theme: { ...spec.theme, [f.key]: e.target.value } })}
+                />
+                {f.label}
+              </label>
+              {swatches.length > 0 && (
+                <div className="flex flex-wrap gap-1" role="group" aria-label={`${f.label} brand swatches`}>
+                  {swatches.map((swatch) => (
+                    <button
+                      key={swatch.hex}
+                      type="button"
+                      title={`${swatch.label} ${swatch.hex}`}
+                      aria-label={`${f.label}: ${swatch.label}`}
+                      className="h-5 w-5 rounded border border-slate-600"
+                      style={{ background: swatch.hex }}
+                      onClick={() => onChange({ ...spec, theme: { ...spec.theme, [f.key]: expandHex(swatch.hex) } })}
+                    />
+                  ))}
+                </div>
+              )}
+              <button
+                type="button"
+                className="text-[11px] text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  const color = spec.theme[f.key];
+                  if (!window.confirm(`Copy ${f.label} to every color? You can undo it afterward.`)) return;
+                  setUndoTheme(spec.theme);
+                  onChange({ ...spec, theme: copyColorToTheme(spec.theme, color) });
+                }}
+              >
+                Copy color to all sections
+              </button>
+            </div>
           ))}
         </div>
+        {warnings.length > 0 && (
+          <div role="status" className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            <p className="font-medium">Contrast warning</p>
+            <ul className="mt-1 space-y-1">
+              {warnings.map((warning) => (
+                <li key={warning}>{warning} You can still save and download.</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,8 @@ import { trimIllustrationUrl } from "@/lib/poster-trim";
 import { describeExport, downloadBlob, exportPdf, exportPng, makeThumbnail, openVectorPrint, qrDataUrl } from "@/lib/poster-export";
 import { drawsOnGenerate, orientationOf, posterRevisionInstruction, posterRevisionTargets, usesLibraryOnGenerate, type PosterAssetSummary } from "@/lib/poster-prompt";
 import { CUSTOM_PRESET_ID, SIZE_PRESETS, describeSize, isPrintSize, sanitizeSize, sizeFromPreset, swapOrientation, trimPx } from "@/lib/poster-sizes";
+import { brandSwatches } from "@/lib/poster-colors";
+import { buildLayoutPrompt } from "@/lib/poster-layout-prompt";
 import { themeFromTokens } from "@/lib/poster-spec";
 import { slugify } from "@/lib/html";
 import { DEFAULT_IMAGE_MODEL, type BrandAsset } from "@/lib/types";
@@ -153,11 +155,18 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   const fontCss = useMemo(() => buildFontFaceCss(fontAssets(bookAssets)), [bookAssets]);
   const tokens = useMemo(() => resolveBrandTokens({ tokens: book?.tokens, assets: bookAssets }), [book, bookAssets]);
   const brandTheme = useMemo(() => themeFromTokens(tokens), [tokens]);
+  const swatches = useMemo(() => brandSwatches(tokens), [tokens]);
+  const logoChoices = useMemo(
+    () => bookAssets.filter((a) => isLogo(a) && ((a.kind === "image" && !!a.dataUrl) || (a.kind === "cdn-url" && !!a.url))).map((a) => ({ id: a.id, name: a.name })),
+    [bookAssets],
+  );
   const hasKey = !!settings.geminiApiKey || !!status?.gemini;
   const useFlux = settings.imageProvider === "flux";
   const canDraw = useFlux ? !!settings.fluxApiKey || !!status?.flux : hasKey;
   const font = useMemo(() => resolveFontStack(spec?.fontFamily || book?.tokens?.fontFamily, families), [spec?.fontFamily, book?.tokens?.fontFamily, families]);
-  const logoSrc = assetSrc(spec ? findLogo(allAssets, book?.id ?? null, spec.header.logoAssetId) : undefined);
+  const fallbackLogo = spec?.header.logoAssetId === "" ? undefined : findLogo(allAssets, book?.id ?? null, spec?.header.logoAssetId || undefined);
+  const logoSrc = assetSrc(fallbackLogo);
+  const secondLogoSrc = assetSrc(spec?.header.secondLogoAssetId ? allAssets.find((a) => a.id === spec.header.secondLogoAssetId) : undefined);
   const illustrationSrc = assetSrc(spec?.illustration?.assetId ? allAssets.find((a) => a.id === spec.illustration?.assetId) : undefined);
   const ctaUrl = spec?.cta?.showQr ? spec.cta.url : undefined;
 
@@ -266,7 +275,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   };
 
   const run = async (revisionText?: string) => {
-    if (!revisionText && !poster.prompt.trim()) {
+    if (!revisionText && !(poster.layoutPrompt?.trim() || poster.prompt.trim())) {
       setError("Describe the poster first, or pick a suggested format.");
       return;
     }
@@ -274,7 +283,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
     setError(null);
     try {
       const data = await postJson<{ spec: PosterSpec; warnings: string[]; source: "gemini" | "fallback" }>("/api/generate-poster", {
-        prompt: poster.prompt,
+        prompt: poster.layoutPrompt?.trim() || poster.prompt,
         brandName: book?.name,
         brandTokens: book?.tokens,
         size,
@@ -436,7 +445,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="label !mb-0" htmlFor="poster-prompt">Poster brief</label>
                   {poster.prompt && (
-                    <button className="text-xs text-slate-500 hover:text-slate-200" onClick={() => updatePoster({ prompt: "" })}>Clear</button>
+                    <button className="text-xs text-slate-500 hover:text-slate-200" onClick={() => updatePoster({ prompt: "", layoutPrompt: "" })}>Clear</button>
                   )}
                 </div>
                 <textarea
@@ -455,13 +464,49 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                         key={b.id}
                         title={b.hint}
                         className="rounded-full border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:border-blue-500/60 hover:text-slate-100"
-                        onClick={() => updatePoster({ prompt: b.text })}
+                        onClick={() => updatePoster({ prompt: b.text, layoutPrompt: "" })}
                       >
                         {b.label}
                       </button>
                     ))}
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label className="label !mb-0" htmlFor="poster-layout-prompt">Layout prompt</label>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-40"
+                    disabled={!poster.prompt.trim()}
+                    onClick={() =>
+                      updatePoster({
+                        layoutPrompt: buildLayoutPrompt({
+                          brief: poster.prompt,
+                          spec,
+                          brandName: book?.name,
+                          theme: spec?.theme ?? brandTheme,
+                          fontFamily: font.stack,
+                          size,
+                          heroSize,
+                          illustrationMode: poster.illustrationMode,
+                        }),
+                      })
+                    }
+                  >
+                    Build layout prompt
+                  </button>
+                </div>
+                <textarea
+                  id="poster-layout-prompt"
+                  rows={8}
+                  className="input text-[13px] leading-relaxed"
+                  placeholder="Build a layout prompt from the brief, the brand book, and the current size, hero, and layout pieces. Generate poster uses it when this box has text."
+                  value={poster.layoutPrompt ?? ""}
+                  onChange={(e) => updatePoster({ layoutPrompt: e.target.value })}
+                />
+                <p className="mt-1.5 text-xs text-slate-500">Generate poster uses this text when it is filled in, and the brief when it is empty. Build it again after you change the brief, the size, or the hero.</p>
               </div>
 
               <div>
@@ -555,6 +600,9 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 onChange={(s) => setSpec(s)}
                 onStructureChange={changeStructure}
                 brandTheme={brandTheme}
+                swatches={swatches}
+                logoChoices={logoChoices}
+                resolvedLogoId={spec.header.logoAssetId === "" ? "" : fallbackLogo?.id}
                 illustrationEditor={
                   <IllustrationControls
                     spec={spec}
@@ -577,7 +625,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         {panel === "brief" && (
           <div className="border-t border-slate-800 bg-slate-950 p-4">
             {error && <p role="alert" className="alert-error mb-3">{error}</p>}
-            <button className="btn-primary w-full py-2.5" disabled={busy || illBusy || !poster.prompt.trim()} onClick={() => void run()}>
+            <button className="btn-primary w-full py-2.5" disabled={busy || illBusy || !(poster.layoutPrompt?.trim() || poster.prompt.trim())} onClick={() => void run()}>
               {busy || illBusy ? <Spinner /> : <Sparkles className="h-4 w-4" />}
               {illBusy ? "Drawing illustration…" : busy ? "Designing poster…" : spec ? "Regenerate poster" : "Generate poster"}
             </button>
@@ -693,7 +741,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
             </div>
           ) : (
             <PreviewStage size={size} showGuides={showGuides}>
-              <PosterCanvas ref={nodeRef} spec={spec} size={size} fontStack={font.stack} logoSrc={logoSrc} illustrationSrc={trimmedSrc ?? illustrationSrc} illustrationPending={illBusy} qrSrc={qrSrc} heroSize={heroSize} onOverflow={onOverflow} />
+              <PosterCanvas ref={nodeRef} spec={spec} size={size} fontStack={font.stack} logoSrc={logoSrc} secondLogoSrc={secondLogoSrc} illustrationSrc={trimmedSrc ?? illustrationSrc} illustrationPending={illBusy} qrSrc={qrSrc} heroSize={heroSize} onOverflow={onOverflow} />
             </PreviewStage>
           )}
           {spec && (

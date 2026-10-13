@@ -22,12 +22,14 @@ export function posterPlainText(spec: PosterSpec): string {
   if (!hidden.has("brand")) {
     push(spec.header.brandName);
     push(spec.header.tagline);
+    push(spec.header.pill);
   }
   if (!hidden.has("headline")) push(spec.headline);
   if (!hidden.has("subheading")) push(spec.subheading);
   if (!hidden.has("cta")) {
     push(spec.cta?.label);
     push(spec.cta?.url);
+    if (spec.cta?.showQr) push(spec.cta.qrCaption);
   }
   if (!hidden.has("footer")) {
     push(spec.footer?.text);
@@ -47,6 +49,8 @@ export function posterPlainText(spec: PosterSpec): string {
       parts.push(...section.items);
     } else if (section.type === "callout") {
       push(section.body);
+    } else if (section.type === "tips") {
+      for (const tip of section.items) push(tip.text);
     } else {
       for (const item of section.items) {
         push(item.value);

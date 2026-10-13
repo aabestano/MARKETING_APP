@@ -1,6 +1,6 @@
 import type { ResolvedTokens } from "./brand-tokens";
 import { normalizeLayout, type PosterLayout } from "./poster-blocks";
-import type { PosterFixedBlock, PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
+import { tipIconFrom, type PosterFixedBlock, type PosterSection, type PosterSpec, type PosterStep, type PosterTheme, type PosterTip } from "./poster-types";
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -88,6 +88,21 @@ function cleanSection(raw: unknown): PosterSection | null {
         .slice(0, 4);
       return items.length ? withHidden({ type: "stats", title, items }, raw) : null;
     }
+    case "tips": {
+      const items = (Array.isArray(raw.items) ? raw.items : [])
+        .map((item): PosterTip | null => {
+          if (typeof item === "string") {
+            const text = str(item, 180);
+            return text ? { text, icon: "none" } : null;
+          }
+          if (!isObj(item)) return null;
+          const text = str(item.text ?? item.label, 180);
+          return text ? { text, icon: tipIconFrom(item.icon) } : null;
+        })
+        .filter((item): item is PosterTip => !!item)
+        .slice(0, 8);
+      return items.length ? withHidden({ type: "tips", title, items }, raw) : null;
+    }
     default:
       return null;
   }
@@ -115,7 +130,9 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     onPrimary: color(t.onPrimary, base.onPrimary),
   };
   const header = isObj(r.header) ? r.header : {};
-  const logoAssetId = typeof header.logoAssetId === "string" && ctx.assetIds.has(header.logoAssetId) ? header.logoAssetId : undefined;
+  const logoAssetId = header.logoAssetId === "" ? "" : typeof header.logoAssetId === "string" && ctx.assetIds.has(header.logoAssetId) ? header.logoAssetId : undefined;
+  const secondLogoAssetId = typeof header.secondLogoAssetId === "string" && ctx.assetIds.has(header.secondLogoAssetId) ? header.secondLogoAssetId : undefined;
+  const pill = str(header.pill, 40);
   const ill = isObj(r.illustration) ? r.illustration : {};
   const illAsset = typeof ill.assetId === "string" && ctx.assetIds.has(ill.assetId) ? ill.assetId : undefined;
   const illPrompt = str(ill.prompt, 400);
@@ -129,7 +146,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     version: 1,
     theme,
     fontFamily: str(r.fontFamily, 80) ?? ctx.fontFamily,
-    header: { brandName: str(header.brandName, 60) ?? ctx.brandName, tagline: str(header.tagline, 100), logoAssetId },
+    header: { brandName: str(header.brandName, 60) ?? ctx.brandName, tagline: str(header.tagline, 100), logoAssetId, secondLogoAssetId, pill },
     headline: str(r.headline ?? r.title, 140) ?? "Untitled poster",
     subheading: str(r.subheading ?? r.subtitle, 240),
     sections,
@@ -141,7 +158,8 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     const label = str(r.cta.label, 80);
     let url = str(r.cta.url, 400);
     if (url && !/^https?:\/\//i.test(url)) url = /^[\w-]+(\.[\w-]+)+(\/|$)/.test(url) ? `https://${url}` : undefined;
-    if (label) spec.cta = { label, url, showQr: !!url && r.cta.showQr !== false };
+    const qrCaption = str(r.cta.qrCaption, 140);
+    if (label) spec.cta = { label, url, showQr: !!url && r.cta.showQr !== false, ...(qrCaption ? { qrCaption } : {}) };
   }
   if (isObj(r.footer)) {
     const text = multiline(r.footer.text, 300);
@@ -154,6 +172,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
 const LIST_ITEM = /^\s*(?:\d+[.)]|step\s*\d+\s*[:.\-)]?|[-*•▪●])\s+/i;
 const URL_RE = /https?:\/\/[^\s)>\]]+/i;
 const DECISION_RE = /\s*\(\s*yes\s*:\s*([^;)]*);\s*no\s*:\s*([^)]*)\)\s*$/i;
+const TIP_ICON_LINE = /^(lightbulb|drop|sun|heart pulse|heart-pulse|heartpulse|pill|none)\s*[:\-–—]\s*(.+)$/i;
 
 function parseCta(text: string): PosterSpec["cta"] | undefined {
   const m = URL_RE.exec(text);
@@ -179,16 +198,48 @@ export function buildFallbackPoster(args: { prompt: string; brandName?: string; 
     used.add(i);
     return lines[i];
   };
-  const LABELLED = /^(brand|key points|callout|call to action|cta|footer|disclaimer|illustration idea)\b|\(flowchart\)\s*:?$/i;
+  const LABELLED = /^(brand|key points|callout|call to action|cta|footer|disclaimer|illustration idea|header pill|destination|qr caption|tips|layout)\b|\(flowchart\)\s*:?$/i;
 
   let stepsTitle: string | undefined;
   let callout: string | undefined;
   let cta: PosterSpec["cta"];
   let illustrationPrompt: string | undefined;
+  let pill: string | undefined;
+  let qrCaption: string | undefined;
+  let destination: string | undefined;
   const footer: string[] = [];
   const disclaimer: string[] = [];
+  const tipItems: PosterTip[] = [];
+  let tipMode = false;
 
   lines.forEach((l, i) => {
+    if (/^layout\b/i.test(l)) {
+      used.add(i);
+      tipMode = false;
+      return;
+    }
+    if (/^tips\s*:?\s*$/i.test(l)) {
+      used.add(i);
+      tipMode = true;
+      return;
+    }
+    if (/^key points\s*:?\s*$/i.test(l)) {
+      used.add(i);
+      tipMode = false;
+      return;
+    }
+    if (LABELLED.test(l) && !LIST_ITEM.test(l)) tipMode = false;
+    if (tipMode && LIST_ITEM.test(l)) {
+      used.add(i);
+      const raw = l.replace(LIST_ITEM, "").trim();
+      const iconLine = TIP_ICON_LINE.exec(raw);
+      if (iconLine) tipItems.push({ icon: tipIconFrom(iconLine[1]), text: iconLine[2].trim() });
+      else if (raw) tipItems.push({ icon: "none", text: raw });
+    }
+  });
+
+  lines.forEach((l, i) => {
+    if (used.has(i)) return;
     let m: RegExpExecArray | null;
     if ((m = /^(.+?)\s*\(flowchart\)\s*:?$/i.exec(l))) {
       stepsTitle = m[1].trim();
@@ -200,6 +251,18 @@ export function buildFallbackPoster(args: { prompt: string; brandName?: string; 
       used.add(i);
     } else if ((m = /^(?:call to action|cta)\s*:\s*(.+)$/i.exec(l))) {
       cta = parseCta(m[1]);
+      used.add(i);
+    } else if ((m = /^destination\s*:\s*(.+)$/i.exec(l))) {
+      destination = m[1].trim();
+      used.add(i);
+    } else if ((m = /^qr caption\s*:\s*(.+)$/i.exec(l))) {
+      qrCaption = m[1].trim();
+      used.add(i);
+    } else if ((m = /^header pill\s*:\s*(.+)$/i.exec(l))) {
+      pill = m[1].trim();
+      used.add(i);
+    } else if ((m = /^tips\s*:\s*(.+)$/i.exec(l))) {
+      tipItems.push({ icon: "none", text: m[1].trim() });
       used.add(i);
     } else if ((m = /^illustration idea\s*:\s*(.+)$/i.exec(l))) {
       illustrationPrompt = m[1].trim();
@@ -245,11 +308,20 @@ export function buildFallbackPoster(args: { prompt: string; brandName?: string; 
   if (steps.length >= 2) sections.push({ type: "steps", title: stepsTitle, style: "flowchart", items: steps.slice(0, 12) });
   else if (steps.length === 1) bullets.unshift(steps[0].detail ? `${steps[0].label}: ${steps[0].detail}` : steps[0].label);
   if (bullets.length) sections.push({ type: "bullets", title: steps.length >= 2 ? "Key points" : stepsTitle, items: bullets.slice(0, 12) });
+  if (tipItems.length) sections.push({ type: "tips", title: "Tips", items: tipItems.slice(0, 8) });
 
   if (!cta) {
     const urlIdx = lines.findIndex((l, i) => !used.has(i) && URL_RE.test(l));
     if (urlIdx >= 0) cta = parseCta(take(urlIdx));
   }
+  if (destination) {
+    const parsed = parseCta(destination);
+    const url = parsed?.url ?? (/^https?:\/\//i.test(destination) ? destination : undefined);
+    if (url) {
+      cta = cta ? { ...cta, url: cta.url ?? url, showQr: cta.showQr || !!url } : { label: parsed?.label || "Learn more", url, showQr: true };
+    }
+  }
+  if (qrCaption && cta) cta = { ...cta, qrCaption: qrCaption.slice(0, 140) };
 
   const rest = lines.filter((_, i) => !used.has(i)).map(clean);
   const calloutBody = [callout, ...rest].filter(Boolean).join("\n").slice(0, 400);
@@ -259,7 +331,7 @@ export function buildFallbackPoster(args: { prompt: string; brandName?: string; 
     {
       theme: args.theme,
       fontFamily: args.fontFamily,
-      header: { brandName: args.brandName },
+      header: { brandName: args.brandName, pill },
       headline,
       subheading,
       illustration: illustrationPrompt ? { prompt: illustrationPrompt } : undefined,

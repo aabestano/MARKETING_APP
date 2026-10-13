@@ -212,7 +212,7 @@ export function IdeaStudio() {
     if (poster.spec && !poster.savedId && !window.confirm("Replace the poster you are working on? Save it to the repository first if you want to keep it.")) return;
     const wanted = [c.brand1, c.brand2].map((b) => b.trim().toLowerCase()).filter(Boolean);
     const book = books.find((b) => wanted.includes(b.name.trim().toLowerCase()));
-    updatePoster({ prompt: buildPosterBrief(c), spec: null, source: null, warnings: [], savedId: null, pipelineId: linked?.id ?? null });
+    updatePoster({ prompt: buildPosterBrief(c), layoutPrompt: "", spec: null, source: null, warnings: [], savedId: null, pipelineId: linked?.id ?? null });
     if (book) updateWorkspace({ brandBookId: book.id });
     setDesignMode("poster");
     setTab("design-studio");
