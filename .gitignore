@@ -1,5 +1,6 @@
 node_modules
 .next
+public/pdf.worker.min.mjs
 out
 next-env.d.ts
 *.tsbuildinfo
