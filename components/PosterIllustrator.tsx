@@ -8,11 +8,11 @@ import { resolveBrandTokens } from "@/lib/brand-tokens";
 import { downscaleDataUrl, postJson } from "@/lib/client-utils";
 import { buildFontFaceCss, fontAssets, fontFamilies, resolveFontStack } from "@/lib/fonts";
 import { assetSrc, findLogo, isLogo, isPosterImage, pickIllustration, posterIllustrations } from "@/lib/poster-assets";
-import { layoutOf, normalizeLayout, type HeroSize } from "@/lib/poster-blocks";
+import { layoutOf, preservePosterEdits, type HeroSize } from "@/lib/poster-blocks";
 import { missingFromPoster } from "@/lib/poster-check";
 import { trimIllustrationUrl } from "@/lib/poster-trim";
 import { describeExport, downloadBlob, exportPdf, exportPng, makeThumbnail, openVectorPrint, qrDataUrl } from "@/lib/poster-export";
-import { orientationOf, type PosterAssetSummary } from "@/lib/poster-prompt";
+import { drawsOnGenerate, orientationOf, posterRevisionInstruction, posterRevisionTargets, usesLibraryOnGenerate, type PosterAssetSummary } from "@/lib/poster-prompt";
 import { CUSTOM_PRESET_ID, SIZE_PRESETS, describeSize, isPrintSize, sanitizeSize, sizeFromPreset, swapOrientation, trimPx } from "@/lib/poster-sizes";
 import { themeFromTokens } from "@/lib/poster-spec";
 import { slugify } from "@/lib/html";
@@ -108,7 +108,7 @@ function exportErrorMessage(err: unknown): string {
   return "Export failed.";
 }
 
-type Panel = "brief" | "content";
+type Panel = "brief" | "ai" | "manual";
 
 export function PosterIllustrator({ status, onOpenSettings }: { status: ServerStatus | null; onOpenSettings: () => void }) {
   const poster = useStore((s) => s.poster);
@@ -138,7 +138,6 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   const [includeBleed, setIncludeBleed] = useState(true);
   const [cropMarks, setCropMarks] = useState(true);
   const [revision, setRevision] = useState(0);
-  const [refine, setRefine] = useState("");
   const [illPrompt, setIllPrompt] = useState("");
   const [qrSrc, setQrSrc] = useState<string>();
   const [hideMissing, setHideMissing] = useState(false);
@@ -255,6 +254,17 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
     [book, useFlux, settings.imageModel, settings.fluxModel, settings.fluxApiKey, settings.geminiApiKey, addAsset, toast, trimW, trimH],
   );
 
+  const drawSavedIllustration = async () => {
+    if (!spec || !canDraw) return;
+    const subject = (illPrompt.trim() || spec.illustration?.prompt || spec.headline).trim();
+    if (!subject) {
+      toast("Describe the picture first.", "error");
+      return;
+    }
+    const asset = await drawIllustration(subject);
+    if (asset) setSpec({ ...spec, illustration: { assetId: asset.id, prompt: spec.illustration?.prompt || subject } });
+  };
+
   const run = async (revisionText?: string) => {
     if (!revisionText && !poster.prompt.trim()) {
       setError("Describe the poster first, or pick a suggested format.");
@@ -276,30 +286,29 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         apiKey: settings.geminiApiKey,
       });
       let next = data.spec;
-      if (revisionText && spec?.layout) next = { ...next, layout: normalizeLayout(spec.layout, next.sections) };
+      if (revisionText && spec) next = preservePosterEdits(spec, next);
       const warnings = [...data.warnings];
-      if (!next.illustration?.assetId && poster.illustrationMode !== "none") {
+      if (usesLibraryOnGenerate(poster.illustrationMode) && !next.illustration?.assetId) {
         const hint = next.illustration?.prompt;
         const text = `${hint ?? ""} ${next.headline} ${poster.prompt}`;
         const match = pickIllustration(illustrations, text);
         if (match && (data.source === "fallback" || poster.illustrationMode === "library")) {
           next = { ...next, illustration: { assetId: match.id } };
-        } else if (hint && poster.illustrationMode === "auto") {
+        } else if (hint && drawsOnGenerate(poster.illustrationMode)) {
           if (!canDraw) warnings.push(`No illustration in the library fits and no ${useFlux ? "FLUX (fal.ai)" : "Gemini"} key is set for drawing, so none was drawn. Upload one to Poster Illustration or add a key.`);
           else {
             updatePoster({ spec: next, source: data.source, warnings });
-            setPanel("content");
+            setPanel("manual");
             const asset = await drawIllustration(hint);
             if (asset) next = { ...next, illustration: { assetId: asset.id } };
-            else warnings.push("The illustration could not be drawn. Try again from the Content tab.");
+            else warnings.push("The illustration could not be drawn. Try again from Manually Edit Sections.");
           }
         }
       }
       updatePoster({ spec: next, source: data.source, warnings, savedId: revisionText ? poster.savedId : null });
       setHideMissing(false);
       setRevision((n) => n + 1);
-      setRefine("");
-      if (!revisionText) setPanel("content");
+      if (!revisionText) setPanel("manual");
       toast(revisionText ? "Poster revised." : "Poster generated.", "success");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Generation failed.");
@@ -387,13 +396,16 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   return (
     <div className="grid h-full grid-cols-1 lg:grid-cols-[40%_60%]">
       <section className="flex min-h-0 flex-col border-b border-slate-800 lg:border-b-0 lg:border-r">
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-800 px-4 py-2.5 md:px-6">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-4 py-2.5 md:px-6">
           <Segmented<Panel>
+            wrap
+            label="Poster sections"
             value={panel}
             onChange={setPanel}
             options={[
               { value: "brief", label: "Brief" },
-              { value: "content", label: "Edit content" },
+              { value: "ai", label: "Edit Sections with AI" },
+              { value: "manual", label: "Manually Edit Sections" },
             ]}
           />
           {spec && (
@@ -413,7 +425,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-4 md:p-6">
-          {panel === "brief" || !spec ? (
+          {panel === "brief" ? (
             <>
               <header>
                 <h1 className="text-xl font-semibold text-slate-100">Poster Illustrator</h1>
@@ -480,8 +492,31 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 <select id="poster-ill" className="input" value={poster.illustrationMode} onChange={(e) => updatePoster({ illustrationMode: e.target.value as typeof poster.illustrationMode })}>
                   <option value="auto">Use my library first, draw one with AI if none fits</option>
                   <option value="library">Only use my library</option>
+                  <option value="draw" disabled={!canDraw}>
+                    {canDraw ? "AI draw only" : `AI draw only (needs a ${useFlux ? "FLUX" : "Gemini"} API key)`}
+                  </option>
                   <option value="none">No illustration</option>
                 </select>
+                {!canDraw && (
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    AI draw only needs a {useFlux ? "FLUX" : "Gemini"} API key in Settings. The key stays in this browser.
+                  </p>
+                )}
+                {poster.illustrationMode === "draw" && canDraw && (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-slate-500">Each generation uses an image-generation call. Nothing is drawn until you select Draw illustration.</p>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={illBusy || !spec}
+                      title={spec ? "Draw a new picture for this poster" : "Generate the poster first, then draw the picture."}
+                      onClick={() => void drawSavedIllustration()}
+                    >
+                      {illBusy ? <Spinner /> : <Sparkles className="h-4 w-4" />}
+                      {spec?.illustration?.assetId ? "Draw again" : "Draw illustration"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {!hasKey && (
@@ -494,6 +529,10 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 </div>
               )}
             </>
+          ) : !spec ? (
+            <p className="text-sm text-slate-400">Generate a poster from the Brief tab first. Then you can revise sections here.</p>
+          ) : panel === "ai" ? (
+            <PosterAiEditor spec={spec} busy={busy} hasKey={hasKey} error={error} onSubmit={(instruction) => void run(instruction)} />
           ) : (
             <>
               {layoutOf(spec).banner.length > 0 && (
@@ -501,24 +540,6 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                   Banner styling is on. The banner holds up to four blocks, and the whole group uses Banner background and Banner text. Slot 1 is the brand row, slot 2 is the headline, slot 3 is text, and slot 4 is subtext. Turn a block off to place it directly under the banner.
                 </p>
               )}
-              <div className="card space-y-2 p-3">
-                <label className="label !mb-0" htmlFor="poster-refine">Refine with AI</label>
-                <div className="flex gap-2">
-                  <input
-                    id="poster-refine"
-                    className="input py-1.5"
-                    placeholder="e.g. make the tone friendlier, shorten the steps"
-                    value={refine}
-                    onChange={(e) => setRefine(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && refine.trim() && !busy && void run(refine.trim())}
-                  />
-                  <button className="btn-primary px-3 py-1.5" disabled={busy || !refine.trim() || !hasKey} onClick={() => void run(refine.trim())}>
-                    {busy ? <Spinner /> : <Wand2 className="h-4 w-4" />}
-                  </button>
-                </div>
-                {!hasKey && <p className="text-[11px] text-slate-500">AI revisions need a Gemini key. You can still edit everything by hand below.</p>}
-              </div>
-
               <div className="card p-3 text-xs text-slate-400">
                 <span className="font-medium text-slate-300">Font: </span>
                 {font.match === "uploaded"
@@ -540,15 +561,12 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                     illustrations={illustrations}
                     busy={illBusy}
                     hasKey={canDraw}
+                    drawOnly={poster.illustrationMode === "draw"}
                     providerName={useFlux ? "FLUX" : "Gemini"}
                     prompt={illPrompt}
                     onPrompt={setIllPrompt}
                     onPick={(id) => setSpec({ ...spec, illustration: id ? { assetId: id } : undefined })}
-                    onDraw={async () => {
-                      const subject = illPrompt.trim() || spec.illustration?.prompt || spec.headline;
-                      const asset = await drawIllustration(subject);
-                      if (asset) setSpec({ ...spec, illustration: { assetId: asset.id } });
-                    }}
+                    onDraw={() => void drawSavedIllustration()}
                   />
                 }
               />
@@ -566,7 +584,6 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
             {spec && <p className="mt-2 text-center text-[11px] text-slate-500">Regenerating replaces your manual edits. Size and hero changes never need a regenerate.</p>}
           </div>
         )}
-        {panel === "content" && error && <p role="alert" className="alert-error m-4">{error}</p>}
       </section>
 
       <section className="flex min-h-[640px] min-w-0 flex-col lg:min-h-0">
@@ -794,11 +811,59 @@ function SizeBar({
   );
 }
 
+function PosterAiEditor({
+  spec,
+  busy,
+  hasKey,
+  error,
+  onSubmit,
+}: {
+  spec: PosterSpec;
+  busy: boolean;
+  hasKey: boolean;
+  error: string | null;
+  onSubmit: (instruction: string) => void;
+}) {
+  const targets = posterRevisionTargets(spec);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const filled = targets.filter((target) => values[target.id]?.trim());
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">Describe changes for the sections you want to revise. Blank sections stay as they are.</p>
+      {targets.map((target) => (
+        <div key={target.id}>
+          <label className="label" htmlFor={`poster-rev-${target.id}`}>{target.label}</label>
+          <textarea
+            id={`poster-rev-${target.id}`}
+            rows={2}
+            className="input resize-none"
+            placeholder="e.g. Make this shorter, or change the wording."
+            value={values[target.id] ?? ""}
+            onChange={(e) => setValues((current) => ({ ...current, [target.id]: e.target.value }))}
+          />
+        </div>
+      ))}
+      {error && <p role="alert" className="alert-error">{error}</p>}
+      {!hasKey && <p className="text-xs text-slate-500">AI revisions need a Gemini key. You can still edit every section by hand.</p>}
+      <button
+        type="button"
+        className="btn-primary"
+        disabled={!filled.length || busy || !hasKey}
+        onClick={() => onSubmit(posterRevisionInstruction(filled.map((target) => ({ label: target.label, instruction: values[target.id] ?? "" }))))}
+      >
+        {busy ? <Spinner /> : <Wand2 className="h-4 w-4" />}
+        Regenerate {filled.length ? `${filled.length} section${filled.length > 1 ? "s" : ""}` : ""}
+      </button>
+    </div>
+  );
+}
+
 function IllustrationControls({
   spec,
   illustrations,
   busy,
   hasKey,
+  drawOnly,
   providerName,
   prompt,
   onPrompt,
@@ -809,6 +874,7 @@ function IllustrationControls({
   illustrations: BrandAsset[];
   busy: boolean;
   hasKey: boolean;
+  drawOnly: boolean;
   providerName: string;
   prompt: string;
   onPrompt: (v: string) => void;
@@ -827,12 +893,18 @@ function IllustrationControls({
       </select>
       <div className="flex gap-2">
         <input className="input py-1.5" aria-label="Describe a picture to draw" placeholder={spec.illustration?.prompt || "Describe a picture to draw with AI"} value={prompt} onChange={(e) => onPrompt(e.target.value)} />
-        <button className="btn-ghost shrink-0 px-3 py-1.5" disabled={busy || !hasKey} onClick={onDraw} title={hasKey ? `Draw with ${providerName} and save to the library` : `Needs a ${providerName} API key`}>
-          {busy ? <Spinner /> : <Sparkles className="h-4 w-4" />} Draw
+        <button type="button" className="btn-ghost shrink-0 px-3 py-1.5" disabled={busy || !hasKey} onClick={onDraw} title={hasKey ? `Draw with ${providerName} and save to the library` : `Needs a ${providerName} API key`}>
+          {busy ? <Spinner /> : <Sparkles className="h-4 w-4" />} {drawOnly ? (spec.illustration?.assetId ? "Draw again" : "Draw illustration") : "Draw"}
         </button>
       </div>
       <p className="text-[11px] text-slate-500">
-        {hasKey ? "Drawn pictures are saved to the brand book as Poster Illustration so you can reuse them." : `Add a ${providerName === "FLUX" ? "fal.ai (FLUX)" : "Gemini"} API key in Settings to draw pictures. Library pictures work without one.`}
+        {drawOnly
+          ? hasKey
+            ? "Each generation uses an image-generation call. Nothing is drawn until you select Draw illustration."
+            : `AI draw only needs a ${providerName} API key in Settings. The key stays in this browser.`
+          : hasKey
+            ? "Drawn pictures are saved to the brand book as Poster Illustration so you can reuse them."
+            : `Add a ${providerName === "FLUX" ? "fal.ai (FLUX)" : "Gemini"} API key in Settings to draw pictures. Library pictures work without one.`}
       </p>
     </div>
   );

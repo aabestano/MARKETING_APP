@@ -148,16 +148,23 @@ export function Segmented<T extends string>({
   value,
   onChange,
   options,
+  label,
+  wrap = false,
 }: {
   value: T;
   onChange: (v: T) => void;
   options: { value: T; label: string; icon?: ReactNode }[];
+  label?: string;
+  wrap?: boolean;
 }) {
   return (
-    <div className="inline-flex rounded-md border border-slate-800 bg-slate-900 p-0.5">
+    <div role="tablist" aria-label={label} className={clsx("inline-flex max-w-full rounded-md border border-slate-800 bg-slate-900 p-0.5", wrap && "flex w-full flex-wrap")}>
       {options.map((o) => (
         <button
           key={o.value}
+          type="button"
+          role="tab"
+          aria-selected={value === o.value}
           onClick={() => onChange(o.value)}
           className={clsx(
             "inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition",

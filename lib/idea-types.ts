@@ -169,6 +169,8 @@ export interface PosterContent {
   footer: string;
   disclaimer: string;
   illustrationHint: string;
+  /** "N/A" keeps the idea's own poster sections. Any other text can fill those sections. */
+  customDirective?: string;
 }
 
 export type BrandMode = "single" | "co2" | "co3";

@@ -16,6 +16,7 @@ import {
   tableMatrix,
 } from "@/lib/campaign";
 import { copyText } from "@/lib/client-utils";
+import { fillPosterFromDirective, isBlankDirective } from "@/lib/poster-directive";
 import { COHORTS, type BrandMode, type Campaign, type EmailContent, type PosterContent } from "@/lib/idea-types";
 import { Segmented, useToast } from "./ui";
 import { CardBadge } from "./IdeaInspect";
@@ -31,11 +32,11 @@ function Text({ label, value, onChange, placeholder }: { label: string; value: s
   );
 }
 
-function Area({ label, value, onChange, rows = 3, hint }: { label: string; value: string; onChange: (v: string) => void; rows?: number; hint?: string }) {
+function Area({ label, value, onChange, rows = 3, hint, id }: { label: string; value: string; onChange: (v: string) => void; rows?: number; hint?: string; id?: string }) {
   return (
     <div>
-      <label className="label">{label}</label>
-      <textarea className="input text-[13px] leading-relaxed" rows={rows} value={value} onChange={(e) => onChange(e.target.value)} />
+      <label className="label" htmlFor={id}>{label}</label>
+      <textarea id={id} className="input text-[13px] leading-relaxed" rows={rows} value={value} onChange={(e) => onChange(e.target.value)} />
       {hint && <p className="mt-1 text-[11px] text-slate-500">{hint}</p>}
     </div>
   );
@@ -478,6 +479,27 @@ export function IdeaStudio() {
 
         {section === "poster" && (
           <>
+            <Group title="Custom directive">
+              <Area
+                id="poster-custom-directive"
+                label="Custom directive"
+                rows={4}
+                value={p.customDirective ?? "N/A"}
+                onChange={(v) => setPoster({ customDirective: v })}
+                hint="Tell the AI what you want to see in the poster, such as the headline focus, key points, or tone. Select the button to fill the poster sections from your request. Leave as N/A to use the idea's default content."
+              />
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={isBlankDirective(p.customDirective)}
+                onClick={() => {
+                  setPoster(fillPosterFromDirective(p, p.customDirective ?? ""));
+                  toast("Poster sections filled from your request.", "success");
+                }}
+              >
+                Fill poster sections
+              </button>
+            </Group>
             <Group title="Headline">
               <Text label="Headline" value={p.headline} onChange={(v) => setPoster({ headline: v })} />
               <Text label="Subheading" value={p.subheading} onChange={(v) => setPoster({ subheading: v })} />

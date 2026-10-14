@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { FINE_PRINT_SCALE, HERO_RATIO, MIN_FIT, isSectionKey, layoutOf, sectionIndex, type HeroSize, type PosterBlockKey } from "@/lib/poster-blocks";
+import { FINE_PRINT_SCALE, HERO_RATIO, MIN_FIT, isBlockHidden, isSectionKey, layoutOf, sectionIndex, type HeroSize, type PosterBlockKey } from "@/lib/poster-blocks";
 import { mmToPx, trimPx } from "@/lib/poster-sizes";
 import type { PosterSection, PosterSize, PosterSpec, PosterStep, PosterTheme } from "@/lib/poster-types";
 
@@ -100,6 +100,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   const fine = (n: number) => n * FINE_PRINT_SCALE;
 
   const visible = (key: PosterBlockKey) => {
+    if (isBlockHidden(spec, key)) return false;
     if (key === "brand") return !!(logoSrc || spec.header.brandName || spec.header.tagline);
     if (key === "headline") return !!spec.headline.trim();
     if (key === "subheading") return !!spec.subheading?.trim();
@@ -147,6 +148,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   };
 
   const bannerSlot = (key: PosterBlockKey, slot: number): ReactNode => {
+    if (isBlockHidden(spec, key)) return null;
     if (key === "brand" && slot === 0 && (logoSrc || spec.header.brandName || spec.header.tagline)) {
       return (
         <div key={`${key}-${slot}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 * u }}>
@@ -283,7 +285,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
     return null;
   };
 
-  const flow = layout.order.filter((item) => item === "banner" || visible(item));
+  const flow = layout.order.filter((item) => (item === "banner" ? layout.banner.some((key) => !isBlockHidden(spec, key)) : visible(item)));
 
   return (
     <div ref={ref} data-poster-root style={root}>

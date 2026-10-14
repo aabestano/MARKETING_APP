@@ -1,6 +1,6 @@
 import type { ResolvedTokens } from "./brand-tokens";
 import { normalizeLayout, type PosterLayout } from "./poster-blocks";
-import type { PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
+import type { PosterFixedBlock, PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -58,6 +58,12 @@ function cleanStep(raw: unknown): PosterStep | null {
   return step;
 }
 
+const FIXED_BLOCKS: PosterFixedBlock[] = ["brand", "headline", "subheading", "illustration", "cta", "footer"];
+
+function withHidden(section: PosterSection, raw: Record<string, unknown>): PosterSection {
+  return raw.hidden === true ? { ...section, hidden: true } : section;
+}
+
 function cleanSection(raw: unknown): PosterSection | null {
   if (!isObj(raw)) return null;
   const title = str(raw.title, 90);
@@ -65,22 +71,22 @@ function cleanSection(raw: unknown): PosterSection | null {
     case "steps": {
       const items = (Array.isArray(raw.items) ? raw.items : []).map(cleanStep).filter((s): s is PosterStep => !!s).slice(0, 12);
       if (!items.length) return null;
-      return { type: "steps", title, style: raw.style === "numbered" ? "numbered" : "flowchart", items };
+      return withHidden({ type: "steps", title, style: raw.style === "numbered" ? "numbered" : "flowchart", items }, raw);
     }
     case "bullets": {
       const items = (Array.isArray(raw.items) ? raw.items : []).map((i) => str(i, 200)).filter((s): s is string => !!s).slice(0, 12);
-      return items.length ? { type: "bullets", title, items } : null;
+      return items.length ? withHidden({ type: "bullets", title, items }, raw) : null;
     }
     case "callout": {
       const body = multiline(raw.body, 400);
-      return body ? { type: "callout", title, body } : null;
+      return body ? withHidden({ type: "callout", title, body }, raw) : null;
     }
     case "stats": {
       const items = (Array.isArray(raw.items) ? raw.items : [])
         .map((i) => (isObj(i) ? { value: str(i.value, 20), label: str(i.label, 60) } : null))
         .filter((i): i is { value: string; label: string } => !!i && !!i.value && !!i.label)
         .slice(0, 4);
-      return items.length ? { type: "stats", title, items } : null;
+      return items.length ? withHidden({ type: "stats", title, items }, raw) : null;
     }
     default:
       return null;
@@ -115,6 +121,9 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
   const illPrompt = str(ill.prompt, 400);
   const sections = (Array.isArray(r.sections) ? r.sections : []).map(cleanSection).filter((s): s is PosterSection => !!s).slice(0, 6);
   const layout = cleanLayout(r.layout, sections);
+  const hiddenBlocks = Array.isArray(r.hiddenBlocks)
+    ? r.hiddenBlocks.filter((key): key is PosterFixedBlock => typeof key === "string" && FIXED_BLOCKS.includes(key as PosterFixedBlock))
+    : [];
 
   const spec: PosterSpec = {
     version: 1,
@@ -126,6 +135,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     sections,
     layout,
   };
+  if (hiddenBlocks.length) spec.hiddenBlocks = hiddenBlocks;
   if (illAsset || illPrompt) spec.illustration = { assetId: illAsset, prompt: illPrompt };
   if (isObj(r.cta)) {
     const label = str(r.cta.label, 80);

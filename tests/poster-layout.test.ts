@@ -6,8 +6,10 @@ import {
   HERO_RATIO,
   MIN_FIT,
   defaultLayout,
+  isBlockHidden,
   moveInOrder,
   normalizeLayout,
+  preservePosterEdits,
   removeSection,
   setInBanner,
   textSizePx,
@@ -151,4 +153,44 @@ test("A4 fine print stays readable at the 0.85 floor", () => {
     },
     { disclaimer: 8.7, tagline: 11.5, url: 11.9, chip: 10.2, headline: 36.9, heroS: 270, heroM: 303, heroL: 337 },
   );
+});
+
+test("hidden sections and blocks stay out of the poster check and survive sanitize", () => {
+  const spec = sanitizePosterSpec(
+    {
+      headline: "Visible headline",
+      hiddenBlocks: ["footer", "headline", "nope"],
+      sections: [
+        { type: "callout", body: "Secret 20%", hidden: true },
+        { type: "bullets", items: ["Shown"], hidden: false },
+      ],
+    },
+    ctx,
+  );
+  assert.equal(spec.sections[0].hidden, true);
+  assert.equal(spec.sections[1].hidden, undefined);
+  assert.deepEqual(spec.hiddenBlocks, ["footer", "headline"]);
+  assert.equal(isBlockHidden(spec, "headline"), true);
+  assert.equal(isBlockHidden(spec, "section:0"), true);
+  assert.equal(isBlockHidden(spec, "section:1"), false);
+  assert.ok(missingFromPoster("Secret 20% is the offer", spec).some((fact) => fact.includes("20%")));
+});
+
+test("a revision keeps hidden sections and the previous order", () => {
+  const prev = sanitizePosterSpec(
+    {
+      headline: "Hi",
+      hiddenBlocks: ["footer"],
+      sections: [{ type: "bullets", items: ["A"], hidden: true }],
+      layout: { order: ["illustration", "banner", "section:0", "cta", "footer"], banner: ["brand", "headline", "subheading"] },
+    },
+    ctx,
+  );
+  const next = sanitizePosterSpec({ headline: "Hello", sections: [{ type: "bullets", items: ["B"] }] }, ctx);
+  const kept = preservePosterEdits(prev, next);
+  assert.equal(kept.headline, "Hello");
+  assert.equal(kept.sections[0].type === "bullets" && kept.sections[0].items[0], "B");
+  assert.equal(kept.sections[0].hidden, true);
+  assert.deepEqual(kept.hiddenBlocks, ["footer"]);
+  assert.deepEqual(kept.layout?.order, prev.layout?.order);
 });

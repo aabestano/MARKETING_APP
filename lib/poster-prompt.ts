@@ -40,6 +40,54 @@ Rules:
 - Do not paraphrase a number, price, date, or required phrase into different words.
 - Only set cta.url when the brief gives a real URL. Do not invent URLs.`;
 
+export function normalizeIllustrationMode(value: unknown): IllustrationMode {
+  return value === "library" || value === "none" || value === "draw" || value === "auto" ? value : "auto";
+}
+
+/** Image generation during Generate poster. AI draw only waits for its own button. */
+export function drawsOnGenerate(mode: IllustrationMode): boolean {
+  return mode === "auto";
+}
+
+/** Library matching during Generate poster. AI draw only never picks a library asset here. */
+export function usesLibraryOnGenerate(mode: IllustrationMode): boolean {
+  return mode === "auto" || mode === "library";
+}
+
+function illustrationInstruction(mode: IllustrationMode): string {
+  if (mode === "none") return "Do not include an illustration.";
+  if (mode === "library") return "Use only a listed asset for the illustration. If none fits, omit the illustration.";
+  if (mode === "draw") return "Do not use a listed asset. Always give an illustration prompt and leave assetId empty. The picture is drawn separately, only when the user asks.";
+  return "Prefer a listed asset; if none fits, give an illustration prompt.";
+}
+
+const SECTION_KIND = { steps: "Steps and flowchart", bullets: "Key points", callout: "Callout", stats: "Stats" } as const;
+
+/** Sections the poster AI editor can revise one at a time. */
+export function posterRevisionTargets(spec: PosterSpec): { id: string; label: string }[] {
+  const items = [
+    { id: "brand", label: "Brand row" },
+    { id: "headline", label: "Headline" },
+    { id: "subheading", label: "Subheading" },
+    { id: "illustration", label: "Illustration" },
+  ];
+  spec.sections.forEach((section, index) => {
+    const kind = SECTION_KIND[section.type];
+    items.push({ id: `section:${index}`, label: section.title ? `${kind}: ${section.title}` : kind });
+  });
+  items.push({ id: "cta", label: "Call to action" }, { id: "footer", label: "Footer" });
+  return items;
+}
+
+/** One revision instruction that names only the sections the user filled in. */
+export function posterRevisionInstruction(items: { label: string; instruction: string }[]): string {
+  const lines = items.flatMap((item) => {
+    const instruction = item.instruction.trim();
+    return instruction ? [`${item.label}: ${instruction}`] : [];
+  });
+  return `Revise only these sections. Leave every other section exactly as it is.\n${lines.join("\n")}`;
+}
+
 function describeColors(t: ResolvedTokens): string {
   return [
     `primary = ${t.primary}`,
@@ -68,12 +116,7 @@ export function buildPosterPrompt(args: {
   const assetLines = args.assets.length
     ? args.assets.map((a) => `- id=${a.id} | ${a.kind}${a.role ? ` (${a.role})` : ""} | ${a.name}${a.directive ? ` | note: ${a.directive}` : ""}`).join("\n")
     : "(no poster assets in the library)";
-  const illustrationRule =
-    args.illustrationMode === "none"
-      ? "Do not include an illustration."
-      : args.illustrationMode === "library"
-        ? "Use only a listed asset for the illustration. If none fits, omit the illustration."
-        : "Prefer a listed asset; if none fits, give an illustration prompt.";
+  const illustrationRule = illustrationInstruction(args.illustrationMode);
 
   const common = [
     args.brandName ? `BRAND: ${args.brandName}` : "",
