@@ -51,7 +51,7 @@ export function parseReferenceImages(input: { name?: string; mime: string; dataU
     }
     const m = /^data:(image\/(?:png|jpe?g));base64,([A-Za-z0-9+/=]+)$/.exec(item?.dataUrl ?? "");
     if (!m) {
-      warnings.push(`Reference screenshot "${item?.name ?? "image"}" was skipped (only PNG/JPEG base64 images are supported).`);
+      warnings.push(`Reference screenshot "${item?.name ?? "image"}" was skipped (only PNG and JPEG images are supported).`);
       continue;
     }
     const mime = (m[1] === "image/jpg" ? "image/jpeg" : m[1]) as InlineImage["mime"];
@@ -126,10 +126,10 @@ export async function generateMjmlText(args: {
 export function friendlyGeminiError(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
   if (/API key not valid|API_KEY_INVALID|PERMISSION_DENIED|401|403/i.test(raw)) {
-    return "Gemini rejected the API key. Check it in API & Mail Settings.";
+    return "Gemini rejected the API key. Check it in API and Mail Settings.";
   }
   if (/404|not found|NOT_FOUND/i.test(raw)) {
-    return "Gemini model not found. Pick another model in API & Mail Settings.";
+    return "Gemini model not found. Pick another model in API and Mail Settings.";
   }
   if (/429|RESOURCE_EXHAUSTED/i.test(raw)) {
     return "Gemini rate limit or quota reached. Wait a moment and retry.";

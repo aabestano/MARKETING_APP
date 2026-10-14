@@ -68,7 +68,7 @@ export function WorkspaceBackup() {
     <section className="space-y-3">
       <h3 className="text-sm font-semibold text-slate-200">Workspace backup</h3>
       <p className="text-xs text-slate-500">
-        Export brand books, assets (including fonts), saved blasts and posters, the Idea Base and the calendar as one file to move to another browser or teammate. API keys are never included. These
+        Export brand books, assets (including fonts), saved blasts and posters, the Idea Base, and the calendar as one file to move to another browser or teammate. API keys are never included. These
         buttons apply immediately, without Save settings.
       </p>
       <div className="flex flex-wrap gap-2">

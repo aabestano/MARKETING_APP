@@ -1,11 +1,11 @@
-# Brand Engine
+# IDEAte
 
 One workspace that takes a campaign from idea to finished design: plan it on a calendar, write the content once, then produce
-Mailchimp-ready MJML emails and print-ready posters in your brand's colors, fonts, logos and illustrations. It replaces the old standalone
-IDEAte app (Idea Base, AI Generator, Calendar Pipeline) and the earlier Brand & MJML Email Engine.
+Mailchimp-ready MJML emails and print-ready posters in your brand's colors, fonts, logos, and illustrations. It replaces the old standalone
+IDEAte app (Idea Base, AI Generator, Calendar Pipeline) and the earlier Brand and MJML Email Engine.
 
 Stack: Next.js 14 (App Router), React, TypeScript, Tailwind CSS, Lucide icons, Zustand persisted in IndexedDB, server-side `mjml`,
-`@google/genai`, `html-to-image` + `jspdf` + `qrcode` for poster export, and `resend` / SendGrid / Mandrill for test sends.
+`@google/genai`, `html-to-image` + `jspdf` + `qrcode` for poster export, and resend, SendGrid, and Mandrill for test sends.
 
 ## Run locally
 
@@ -21,9 +21,9 @@ npm run dev                  # http://localhost:4310
 | --- | --- | --- |
 | **Plan** | Calendar | Month grid of scheduled campaigns. Click a day to view, mark complete, move, remove, add a campaign, or open it in Idea Studio. Exports CSV and iCal. Scheduled items become "Past Date (Released)" after their date. |
 | | Design Repository | Saved emails and posters. Open a poster to keep editing; inspect an email to edit its HTML. |
-| **Create** | Idea Generator | AI campaign ideas from the Idea Base (Hybrid / Idea Base Match / Pure Random), by cohort, tone and focus. Inspect an idea, copy it, and schedule it. |
+| **Create** | Idea Generator | AI campaign ideas from the Idea Base (Hybrid (Idea Base + AI), Idea Base Match, and Pure AI), by cohort, tone, and focus. Inspect an idea, copy it, and schedule it. |
 | | Idea Studio | The full campaign form: shared basics (title, brand header, CTA) plus Email content and Poster content. Reach it from an idea, a calendar item, or the tab. Autosaves to the linked calendar item. Designs sent from here and then saved are attached to that calendar item and listed in its day view. |
-| | Design Studio | **Email Designer** (blueprint to MJML) and **Poster Illustrator** (brief to editable poster, PNG / PDF export). |
+| | Design Studio | **Email Designer** (blueprint to MJML) and **Poster Illustrator** (brief to editable poster, PNG and PDF export). |
 | **Library** | Idea Base | Scratch notes and uploaded documents (PDF, PNG/JPG, HTML, TXT up to 25 MB; AI analysis reads PDFs up to 2.5 MB and shrinks larger images first) with AI analysis, filters, and an active toggle. |
 | | Brand Books | Per brand: colors and font, logos, illustrations, uploaded fonts, PDFs, CDN URLs. Every asset is tagged Email Design, Poster Illustration, or both. |
 
@@ -42,15 +42,15 @@ Email Designer blueprint or the Poster Illustrator brief.
 
 ## Moving data from the old IDEAte app
 
-In the old app open the browser console and run `copy(localStorage.getItem('bestLifePipelineDBv4'))`, then use **Import from IDEAte** in Idea Base or Calendar and paste the result
+In the old app open the browser console and run `copy(localStorage.getItem('bestLifePipelineDBv4'))`, then use **Import from older IDEAte versions** in Idea Base or Calendar and paste the result
 (or choose a saved file). Existing items are never overwritten. The Gemini key and model can be copied across if you choose.
 
 ## Features added in v2
 
-- **Light / Dark theme** - toggle next to the sidebar brand header, persisted in the Zustand store. Light mode follows the `ideate_content_pipeline_v4` palette (canvas `#F8FAFC`, navy sidebar `#0F172A` / hover `#1E293B`, borders `#E2E8F0`; badges emerald `#10B981` promo, purple `#6366F1` non-promo, amber `#F59E0B` seasonal).
+- **Light and Dark theme** - toggle next to the sidebar brand header, persisted in the Zustand store. Light mode follows the `ideate_content_pipeline_v4` palette (canvas `#F8FAFC`, navy sidebar `#0F172A` with hover `#1E293B`, borders `#E2E8F0`; badges emerald `#10B981` promo, purple `#6366F1` non-promo, amber `#F59E0B` seasonal).
 - **11-section blueprint catalog** (`lib/blocks.ts`) with `<!-- SECTION: NAME -->` / `<!-- END SECTION: NAME -->` markers, legacy marker mapping (e.g. `VALUE GRID`), heuristic classification of un-marked MJML, and custom sections rendered as generic content blocks.
-- **Revise Sections modal** (`components/ReviseSectionsModal.tsx`) with a Prompt Description view and an interactive Block Builder (reorder, show/hide, inline text / button / image-URL editing, add blocks, Apply Changes recompiles).
-- **Brand tokens** - `{{BRAND_PRIMARY_COLOR}}`, `{{BRAND_SECONDARY_COLOR}}`, `{{BRAND_ACCENT_COLOR}}`, `{{BRAND_CANVAS_BG}}`, `{{BRAND_CONTAINER_BG}}`, `{{BRAND_FONT_FAMILY}}` (and text / muted / border / button-text variants) are resolved server-side from the brand book's tokens, hints in directives, or defaults before compiling. Co-branded headers are grouped in `<mj-group>`.
+- **Revise Sections modal** (`components/ReviseSectionsModal.tsx`) with a Prompt Description view and an interactive Block Builder (reorder, show or hide, inline text, button, and image URL editing, add blocks, Apply Changes recompiles).
+- **Brand tokens** - `{{BRAND_PRIMARY_COLOR}}`, `{{BRAND_SECONDARY_COLOR}}`, `{{BRAND_ACCENT_COLOR}}`, `{{BRAND_CANVAS_BG}}`, `{{BRAND_CONTAINER_BG}}`, `{{BRAND_FONT_FAMILY}}` (and text, muted, border, and button-text variants) are resolved server-side from the brand book's tokens, hints in directives, or defaults before compiling. Co-branded headers are grouped in `<mj-group>`.
 - **Reference screenshots** - attach up to 3 PNG/JPG images under Custom Directives; they are sent to Gemini as inline base64 image parts, and can optionally be saved to the active brand book.
 - **Repair engine** (`lib/mjml-repair.ts`) also balances `<table>/<tr>/<td>/<th>` inside `<mj-table>` and wraps stray `<mj-column>` / `<mj-group>` / content in valid parents.
 

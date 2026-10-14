@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   if (!apiKey) {
     source = "fallback";
     warnings.push(
-      "No Gemini API key configured: generated with the built-in offline template. Add a key in API & Mail Settings for AI-written layouts.",
+      "No Gemini API key configured: generated with the built-in offline template. Add a key in API and Mail Settings for AI-written layouts.",
     );
     if (referenceImages.length) warnings.push("Reference screenshots are only used with a Gemini API key; they were ignored.");
     rawMjml = revision

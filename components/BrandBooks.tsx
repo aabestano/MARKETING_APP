@@ -137,7 +137,7 @@ export function BrandBooks() {
           }
           addAsset({ bookId, kind: "template", name: file.name, mime: file.type || "text/plain", size: file.size, text: await readAsText(file), directive: fileDirective.trim() || undefined, purposes: uploadPurposes });
         } else {
-          toast(`${file.name}: unsupported type. Use PDF, PNG/JPG/SVG, TTF/OTF/WOFF fonts, or TXT/HTML.`, "error");
+          toast(`${file.name}: unsupported type. Use a PDF, a PNG, JPG, or SVG image, a TTF, OTF, or WOFF font, or a TXT or HTML file.`, "error");
           continue;
         }
         added++;
@@ -197,9 +197,9 @@ export function BrandBooks() {
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
         <header>
-          <h1 className="text-xl font-semibold text-slate-100">Brand Books &amp; Asset Manager</h1>
+          <h1 className="text-xl font-semibold text-slate-100">Brand Books and Asset Manager</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Upload brand guides, past blasts and template code, and save hosted CDN image URLs with usage directives. Selected brand books
+            Upload brand guides, past blasts, and template code, and save hosted CDN image URLs with usage directives. Selected brand books
             are injected into every blast prompt.
           </p>
         </header>
@@ -244,7 +244,7 @@ export function BrandBooks() {
             >
               {busy ? <Spinner className="mb-2 text-blue-400" /> : <UploadCloud className="mb-2 h-7 w-7 text-slate-500" />}
               <p className="text-sm font-medium text-slate-200">Drop files here or click to browse</p>
-              <p className="mt-1 text-xs text-slate-500">PDF guides · PNG/JPG/SVG images · TTF/OTF/WOFF fonts · TXT/HTML template code</p>
+              <p className="mt-1 text-xs text-slate-500">PDF guides, PNG, JPG, or SVG images, TTF, OTF, or WOFF fonts, and TXT or HTML template code</p>
               <input
                 ref={fileRef}
                 type="file"

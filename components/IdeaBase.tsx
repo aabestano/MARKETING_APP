@@ -61,7 +61,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
       toast(
         mode === "too-large"
           ? `This PDF is over ${formatBytes(MAX_ANALYZE_BYTES)}, which is the most AI analysis can read. Open it and type or paste the key points as notes instead.`
-          : "AI analysis supports PDF and PNG/JPG files. Add notes by hand for this file.",
+          : "AI analysis supports PDF, PNG, and JPG files. Add notes by hand for this file.",
         "error",
       );
       return;
@@ -109,7 +109,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="btn-ghost" onClick={() => setImportOpen(true)}>
-              <Upload className="h-4 w-4" /> Import from IDEAte
+              <Upload className="h-4 w-4" /> Import from older IDEAte versions
             </button>
             <button
               className="btn-ghost"
@@ -138,7 +138,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative min-w-[12rem] flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <input className="input pl-9" placeholder="Search title, tags or notes…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search Idea Base" />
+                <input className="input pl-9" placeholder="Search title, tags, or notes…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search Idea Base" />
               </div>
               <select className="input w-auto" aria-label="Filter by cohort" value={cohortF} onChange={(e) => setCohortF(e.target.value)}>
                 <option value="">All cohorts</option>
@@ -155,7 +155,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
               <select className="input w-auto" aria-label="Filter by status" value={statusF} onChange={(e) => setStatusF(e.target.value)}>
                 <option value="">Any status</option>
                 <option value="active">Active</option>
-                <option value="paused">Paused</option>
+                <option value="paused">Inactive</option>
                 <option value="needs">Needs analysis</option>
                 <option value="ready">Analyzed</option>
               </select>
@@ -169,7 +169,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
                 action={
                   <div className="flex gap-2">
                     <button className="btn-primary" onClick={() => loadSample(SAMPLE_RESOURCES())}>Load sample ideas</button>
-                    <button className="btn-ghost" onClick={() => setImportOpen(true)}>Import from IDEAte</button>
+                    <button className="btn-ghost" onClick={() => setImportOpen(true)}>Import from older IDEAte versions</button>
                   </div>
                 }
               />

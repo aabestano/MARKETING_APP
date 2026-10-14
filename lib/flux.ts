@@ -40,9 +40,9 @@ export function parseFluxResponse(json: unknown): string {
 }
 
 export function friendlyFluxError(status: number, detail?: string): string {
-  if (status === 401 || status === 403) return "fal.ai rejected the API key. Check the FLUX key in API & Mail Settings.";
+  if (status === 401 || status === 403) return "fal.ai rejected the API key. Check the FLUX key in API and Mail Settings.";
   if (status === 402) return "fal.ai says the account has no credit. Add credit at fal.ai, then try again.";
-  if (status === 404) return "That FLUX model wasn't found on fal.ai. Check the model name in API & Mail Settings.";
+  if (status === 404) return "That FLUX model wasn't found on fal.ai. Check the model name in API and Mail Settings.";
   if (status === 422) return `fal.ai could not use that description${detail ? `: ${detail}` : ""}. Try rephrasing it.`;
   if (status === 429) return "fal.ai is rate-limiting requests. Wait a moment and try again.";
   return `FLUX image generation failed (${status})${detail ? `: ${detail}` : ""}.`;

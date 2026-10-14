@@ -89,7 +89,7 @@ export function ReferenceScreenshots({
       >
         {busy ? <Spinner className="text-blue-400" /> : <ImagePlus className="h-5 w-5 shrink-0 text-slate-500" />}
         <p className="text-xs text-slate-400">
-          <span className="font-medium text-slate-200">Drop, paste or browse</span> a PNG/JPG of a layout you want Gemini to emulate (up to {MAX_IMAGES}).
+          <span className="font-medium text-slate-200">Drop, paste, or browse</span> a PNG or JPG of a layout you want Gemini to emulate (up to {MAX_IMAGES}).
         </p>
         <input
           ref={inputRef}

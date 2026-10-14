@@ -6,7 +6,7 @@ import type { PosterSection, PosterSpec, PosterTheme } from "@/lib/poster-types"
 
 const THEME_FIELDS: { key: keyof PosterTheme; label: string }[] = [
   { key: "primary", label: "Primary" },
-  { key: "accent", label: "Accent / button" },
+  { key: "accent", label: "Accent and button" },
   { key: "onPrimary", label: "Text on primary" },
   { key: "background", label: "Background" },
   { key: "surface", label: "Cards" },
@@ -15,7 +15,7 @@ const THEME_FIELDS: { key: keyof PosterTheme; label: string }[] = [
 ];
 
 const SECTION_LABEL: Record<PosterSection["type"], string> = {
-  steps: "Steps / flowchart",
+  steps: "Steps and flowchart",
   bullets: "Key points",
   callout: "Callout",
   stats: "Stats",
@@ -138,7 +138,7 @@ export function PosterEditor({
                   defaultValue={stepsToLines(s.items)}
                   onChange={(e) => setSection(i, { ...s, items: linesToSteps(e.target.value) })}
                 />
-                <p className="text-[11px] text-slate-500">One step per line. Add detail with <code>Label :: detail</code>. Make a yes/no decision with <code>Label ?? yes outcome || no outcome</code>.</p>
+                <p className="text-[11px] text-slate-500">One step per line. Add detail with <code>Label :: detail</code>. Make a yes or no decision with <code>Label ?? yes outcome || no outcome</code>.</p>
               </>
             )}
             {s.type === "bullets" && (

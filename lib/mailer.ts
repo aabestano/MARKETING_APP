@@ -43,7 +43,7 @@ function parseFrom(input: MailInput): { name: string; email: string } {
     }
   }
   if (!email && input.provider === "resend") email = "onboarding@resend.dev";
-  if (!email) throw new Error("A verified sender email is required. Set it in API & Mail Settings.");
+  if (!email) throw new Error("A verified sender email is required. Set it in API and Mail Settings.");
   return { name, email };
 }
 
@@ -59,7 +59,7 @@ async function readError(res: Response): Promise<string> {
 
 export async function sendMail(input: MailInput): Promise<{ id?: string; provider: MailerProvider }> {
   const apiKey = resolveMailerKey(input.provider, input.apiKey);
-  if (!apiKey) throw new Error(`No ${input.provider} API key configured. Add one in API & Mail Settings.`);
+  if (!apiKey) throw new Error(`No ${input.provider} API key configured. Add one in API and Mail Settings.`);
   const from = parseFrom(input);
   const fromHeader = from.name ? `${from.name} <${from.email}>` : from.email;
 

@@ -56,7 +56,7 @@ export function ReviseSectionsModal({ mjml, busy, error, tokens, bannerSrc, onCl
       description={
         view === "prompt"
           ? "Describe changes section by section and let Gemini regenerate them. Untouched sections are preserved."
-          : "Reorder, hide and edit sections directly. Nothing is sent to the AI."
+          : "Reorder, hide, and edit sections directly. Nothing is sent to the AI."
       }
       size="wide"
       onClose={onClose}

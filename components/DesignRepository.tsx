@@ -262,7 +262,7 @@ function InspectorModal({ blast, onClose }: { blast: SavedBlast; onClose: () => 
               <Printer className="h-4 w-4" /> Print
             </button>
             <button className="btn-primary" onClick={() => !openHtmlInNewTab(draft) && toast("Pop-up blocked. Allow pop-ups to render in a new tab.", "error")}>
-              <ExternalLink className="h-4 w-4" /> Render in New Tab / Print
+              <ExternalLink className="h-4 w-4" /> Render in a new tab
             </button>
           </>
         )

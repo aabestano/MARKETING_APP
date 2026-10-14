@@ -1,3 +1,4 @@
+import { APP_NAME } from "./app-name";
 import { normalizePurposes } from "./assets";
 import type { BrandAsset, BrandBook, SavedBlast, Settings, Theme } from "./types";
 import type { IdeaResource, PipelineItem } from "./idea-types";
@@ -79,7 +80,7 @@ export function parseWorkspaceExport(text: string): WorkspaceExport {
     throw new Error("That file isn't valid JSON. Choose a workspace file exported from this app.");
   }
   if (!isObj(raw) || raw.app !== EXPORT_APP || !isObj(raw.data)) {
-    throw new Error("That file isn't a Brand Engine workspace export.");
+    throw new Error(`That file isn't an ${APP_NAME} workspace export.`);
   }
   if (typeof raw.version === "number" && raw.version > EXPORT_VERSION) {
     throw new Error("This export was made by a newer version of the app. Update the app and try again.");

@@ -49,7 +49,7 @@ export function SettingsModal({ status, onClose }: { status: ServerStatus | null
 
   return (
     <Modal
-      title="API & Mail Settings"
+      title="API and Mail Settings"
       description="Keys are stored in this browser and sent only to this app's own server routes."
       onClose={onClose}
       footer={
