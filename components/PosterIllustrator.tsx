@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, Download, FileDown, ImageIcon, Printer, RefreshCw, Save, Sparkles, Wand2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { AlertTriangle, ArrowLeftRight, ChevronDown, Download, FileDown, ImageIcon, Printer, RefreshCw, Save, Sparkles, Wand2 } from "lucide-react";
 import clsx from "clsx";
 import { assetInFolder } from "@/lib/assets";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
 import { downscaleDataUrl, postJson } from "@/lib/client-utils";
 import { buildFontFaceCss, fontAssets, fontFamilies, resolveFontStack } from "@/lib/fonts";
 import { assetSrc, findLogo, isLogo, isPosterImage, pickIllustration, posterIllustrations } from "@/lib/poster-assets";
+import { layoutOf, normalizeLayout, type HeroSize } from "@/lib/poster-blocks";
+import { missingFromPoster } from "@/lib/poster-check";
+import { trimIllustrationUrl } from "@/lib/poster-trim";
 import { describeExport, downloadBlob, exportPdf, exportPng, makeThumbnail, openVectorPrint, qrDataUrl } from "@/lib/poster-export";
 import { orientationOf, type PosterAssetSummary } from "@/lib/poster-prompt";
 import { CUSTOM_PRESET_ID, SIZE_PRESETS, describeSize, isPrintSize, sanitizeSize, sizeFromPreset, swapOrientation, trimPx } from "@/lib/poster-sizes";
@@ -138,6 +141,9 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   const [refine, setRefine] = useState("");
   const [illPrompt, setIllPrompt] = useState("");
   const [qrSrc, setQrSrc] = useState<string>();
+  const [hideMissing, setHideMissing] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+  const [trimmedSrc, setTrimmedSrc] = useState<string | undefined>();
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const { spec, size } = poster;
@@ -167,6 +173,32 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
       alive = false;
     };
   }, [ctaUrl]);
+
+  useEffect(() => {
+    let alive = true;
+    if (!illustrationSrc) {
+      setTrimmedSrc(undefined);
+      return;
+    }
+    setTrimmedSrc(undefined);
+    void trimIllustrationUrl(illustrationSrc).then((url) => {
+      if (alive) setTrimmedSrc(url);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [illustrationSrc]);
+
+  const heroSize = poster.heroSize ?? "m";
+  const missing = useMemo(() => (spec ? missingFromPoster(poster.prompt, spec) : []), [spec, poster.prompt]);
+  const onOverflow = useCallback((value: boolean) => {
+    setOverflowing((prev) => (prev === value ? prev : value));
+  }, []);
+  const checkBrief = () => {
+    if (!spec) return;
+    setHideMissing(false);
+    if (missingFromPoster(poster.prompt, spec).length === 0) toast("Nothing is missing from the poster.", "success");
+  };
 
   const { w: trimW, h: trimH } = trimPx(size);
   const dpi = isPrintSize(size) ? printDpi : 96 * pxScale;
@@ -244,6 +276,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         apiKey: settings.geminiApiKey,
       });
       let next = data.spec;
+      if (revisionText && spec?.layout) next = { ...next, layout: normalizeLayout(spec.layout, next.sections) };
       const warnings = [...data.warnings];
       if (!next.illustration?.assetId && poster.illustrationMode !== "none") {
         const hint = next.illustration?.prompt;
@@ -263,6 +296,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         }
       }
       updatePoster({ spec: next, source: data.source, warnings, savedId: revisionText ? poster.savedId : null });
+      setHideMissing(false);
       setRevision((n) => n + 1);
       setRefine("");
       if (!revisionText) setPanel("content");
@@ -462,6 +496,11 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
             </>
           ) : (
             <>
+              {layoutOf(spec).banner.length > 0 && (
+                <p data-banner-helper className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                  Banner styling is on. The banner holds up to four blocks, and the whole group uses Banner background and Banner text. Slot 1 is the brand row, slot 2 is the headline, slot 3 is text, and slot 4 is subtext. Turn a block off to place it directly under the banner.
+                </p>
+              )}
               <div className="card space-y-2 p-3">
                 <label className="label !mb-0" htmlFor="poster-refine">Refine with AI</label>
                 <div className="flex gap-2">
@@ -480,22 +519,6 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                 {!hasKey && <p className="text-[11px] text-slate-500">AI revisions need a Gemini key. You can still edit everything by hand below.</p>}
               </div>
 
-              <IllustrationControls
-                spec={spec}
-                illustrations={illustrations}
-                busy={illBusy}
-                hasKey={canDraw}
-                providerName={useFlux ? "FLUX" : "Gemini"}
-                prompt={illPrompt}
-                onPrompt={setIllPrompt}
-                onPick={(id) => setSpec({ ...spec, illustration: id ? { assetId: id } : undefined })}
-                onDraw={async () => {
-                  const subject = illPrompt.trim() || spec.illustration?.prompt || spec.headline;
-                  const asset = await drawIllustration(subject);
-                  if (asset) setSpec({ ...spec, illustration: { assetId: asset.id } });
-                }}
-              />
-
               <div className="card p-3 text-xs text-slate-400">
                 <span className="font-medium text-slate-300">Font: </span>
                 {font.match === "uploaded"
@@ -505,7 +528,30 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
                     : "Default sans-serif. Upload a brand font in Brand Books to use it."}
               </div>
 
-              <PosterEditor spec={spec} revision={revision} onChange={(s) => setSpec(s)} onStructureChange={changeStructure} brandTheme={brandTheme} />
+              <PosterEditor
+                spec={spec}
+                revision={revision}
+                onChange={(s) => setSpec(s)}
+                onStructureChange={changeStructure}
+                brandTheme={brandTheme}
+                illustrationEditor={
+                  <IllustrationControls
+                    spec={spec}
+                    illustrations={illustrations}
+                    busy={illBusy}
+                    hasKey={canDraw}
+                    providerName={useFlux ? "FLUX" : "Gemini"}
+                    prompt={illPrompt}
+                    onPrompt={setIllPrompt}
+                    onPick={(id) => setSpec({ ...spec, illustration: id ? { assetId: id } : undefined })}
+                    onDraw={async () => {
+                      const subject = illPrompt.trim() || spec.illustration?.prompt || spec.headline;
+                      const asset = await drawIllustration(subject);
+                      if (asset) setSpec({ ...spec, illustration: { assetId: asset.id } });
+                    }}
+                  />
+                }
+              />
             </>
           )}
         </div>
@@ -517,7 +563,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
               {busy || illBusy ? <Spinner /> : <Sparkles className="h-4 w-4" />}
               {illBusy ? "Drawing illustration…" : busy ? "Designing poster…" : spec ? "Regenerate poster" : "Generate poster"}
             </button>
-            {spec && <p className="mt-2 text-center text-[11px] text-slate-500">Regenerating replaces your manual edits. Size changes never need a regenerate.</p>}
+            {spec && <p className="mt-2 text-center text-[11px] text-slate-500">Regenerating replaces your manual edits. Size and hero changes never need a regenerate.</p>}
           </div>
         )}
         {panel === "content" && error && <p role="alert" className="alert-error m-4">{error}</p>}
@@ -527,17 +573,12 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         <SizeBar size={size} onPreset={onPreset} onSize={setSize} onSwap={() => updatePoster({ size: swapOrientation(size) })} orientation={orientation} />
 
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 px-4 py-2.5">
-          <button className="btn-success" disabled={!spec || !!exporting} onClick={() => void doExport("pdf")}>
-            {exporting === "pdf" ? <Spinner /> : <FileDown className="h-4 w-4" />} Download PDF
-          </button>
-          <button className="btn-ghost" disabled={!spec || !!exporting} onClick={() => void doExport("png")}>
-            {exporting === "png" ? <Spinner /> : <Download className="h-4 w-4" />} PNG
-          </button>
-          <button className="btn-ghost" disabled={!spec || !!exporting} onClick={() => void doExport("vector")} title="Opens the print dialog; choose Save as PDF for live text and embedded fonts">
-            <Printer className="h-4 w-4" /> Vector PDF
-          </button>
+          <DownloadMenu disabled={!spec || !!exporting} busy={!!exporting && exporting !== "save"} onPick={(kind) => void doExport(kind)} />
           <button className="btn-ghost" disabled={!spec || !!exporting} onClick={() => void doSave()}>
             {exporting === "save" ? <Spinner /> : <Save className="h-4 w-4" />} {savedRecord ? "Update saved" : "Save to repository"}
+          </button>
+          <button className="btn-ghost" disabled={!spec || !!exporting} onClick={checkBrief}>
+            Check against brief
           </button>
         </div>
 
@@ -571,12 +612,43 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
             </>
           )}
           <label className="flex items-center gap-1.5">
+            Hero
+            <select id="poster-hero" className="input w-auto py-1 text-xs" value={heroSize} onChange={(e) => updatePoster({ heroSize: e.target.value as HeroSize })}>
+              <option value="s">Small</option>
+              <option value="m">Medium</option>
+              <option value="l">Large</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5">
             <input type="checkbox" className="h-3.5 w-3.5 accent-blue-500" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} /> Trim guides
           </label>
           <span className="ml-auto text-slate-500">
             {info.width} × {info.height} px{info.clamped ? ` (capped at ${info.effectiveDpi} DPI)` : ""} · RGB
           </span>
         </div>
+
+        {spec && overflowing && (
+          <p role="status" className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+            {heroSize === "s"
+              ? "Text is at the smallest readable size, and the hero is already Small. Shorten a section, or move a block out of the banner."
+              : "The poster is too full for the text to stay readable. Set the hero to Small."}
+          </p>
+        )}
+
+        {spec && !hideMissing && missing.length > 0 && (
+          <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-medium">Missing from the poster</p>
+              <button type="button" className="shrink-0 underline hover:text-slate-100" onClick={() => setHideMissing(true)}>Dismiss</button>
+            </div>
+            <ul className="mt-1.5 list-disc space-y-0.5 pl-5">
+              {missing.map((fact) => (
+                <li key={fact}>{fact}</li>
+              ))}
+            </ul>
+            <p className="mt-1.5">These facts are in the brief and not on the poster. Nothing was changed.</p>
+          </div>
+        )}
 
         {spec && poster.warnings.length > 0 && (
           <details className="border-b border-slate-800 bg-slate-900/40 px-4 py-2 text-xs text-slate-400" open>
@@ -604,7 +676,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
             </div>
           ) : (
             <PreviewStage size={size} showGuides={showGuides}>
-              <PosterCanvas ref={nodeRef} spec={spec} size={size} fontStack={font.stack} logoSrc={logoSrc} illustrationSrc={illustrationSrc} illustrationPending={illBusy} qrSrc={qrSrc} />
+              <PosterCanvas ref={nodeRef} spec={spec} size={size} fontStack={font.stack} logoSrc={logoSrc} illustrationSrc={trimmedSrc ?? illustrationSrc} illustrationPending={illBusy} qrSrc={qrSrc} heroSize={heroSize} onOverflow={onOverflow} />
             </PreviewStage>
           )}
           {spec && (
@@ -745,8 +817,7 @@ function IllustrationControls({
 }) {
   const current = spec.illustration?.assetId ?? "";
   return (
-    <div className="card space-y-2.5 p-3">
-      <h3 className="text-sm font-semibold text-slate-200">Illustration</h3>
+    <div className="space-y-2.5">
       <select className="input py-1.5" aria-label="Illustration from library" value={current} onChange={(e) => onPick(e.target.value || null)}>
         <option value="">None</option>
         {current && !illustrations.some((a) => a.id === current) && <option value={current}>Current picture</option>}
@@ -763,6 +834,47 @@ function IllustrationControls({
       <p className="text-[11px] text-slate-500">
         {hasKey ? "Drawn pictures are saved to the brand book as Poster Illustration so you can reuse them." : `Add a ${providerName === "FLUX" ? "fal.ai (FLUX)" : "Gemini"} API key in Settings to draw pictures. Library pictures work without one.`}
       </p>
+    </div>
+  );
+}
+
+function DownloadMenu({ disabled, busy, onPick }: { disabled: boolean; busy: boolean; onPick: (kind: "pdf" | "png" | "vector") => void }) {
+  const [open, setOpen] = useState(false);
+  const items: { kind: "pdf" | "png" | "vector"; label: string; hint: string; icon: ReactNode }[] = [
+    { kind: "pdf", label: "PDF", hint: "Print-ready file", icon: <FileDown className="h-4 w-4" /> },
+    { kind: "png", label: "PNG", hint: "Image file", icon: <Download className="h-4 w-4" /> },
+    { kind: "vector", label: "Vector PDF", hint: "Opens the print dialog. Choose Save as PDF for live text.", icon: <Printer className="h-4 w-4" /> },
+  ];
+  return (
+    <div className="relative">
+      <button type="button" className="btn-success" disabled={disabled} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        {busy ? <Spinner /> : <FileDown className="h-4 w-4" />} Download Poster <ChevronDown className="h-3.5 w-3.5" />
+      </button>
+      {open && !disabled && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div role="menu" aria-label="Download Poster" className="absolute left-0 z-40 mt-1 w-72 overflow-hidden rounded-lg border border-slate-800 bg-slate-950 shadow-xl">
+            {items.map((item) => (
+              <button
+                key={item.kind}
+                type="button"
+                role="menuitem"
+                className="flex w-full items-start gap-2.5 px-3 py-2.5 text-left hover:bg-slate-900"
+                onClick={() => {
+                  setOpen(false);
+                  onPick(item.kind);
+                }}
+              >
+                <span className="mt-0.5 text-slate-400">{item.icon}</span>
+                <span>
+                  <span className="block text-sm font-medium text-slate-100">{item.label}</span>
+                  <span className="block text-xs text-slate-500">{item.hint}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -35,8 +35,10 @@ Rules:
 - Flowcharts: use "steps" with style "flowchart". Use "decision" only for genuine yes/no branches.
 - Use at most 4 sections. Keep each step label under 10 words and each detail under 25 words.
 - For the illustration, prefer an existing asset (match by name, role and directive). Only write "prompt" when nothing listed fits. Never put text inside an illustration prompt; describe a clean flat illustration subject.
-- Only set cta.url when the brief gives a real URL. Do not invent URLs, phone numbers or prices.
-- Preserve facts, numbers and wording the brief gives verbatim. Do not add medical, legal or pricing claims that are not in the brief.`;
+- Copy facts verbatim. Numbers, prices, dates, percentages, doses, phone numbers, email addresses, and URLs must appear exactly as written in the brief.
+- Do not invent claims, offers, statistics, dates, names, places, or medical advice. If the brief does not say it, leave it out.
+- Do not paraphrase a number, price, date, or required phrase into different words.
+- Only set cta.url when the brief gives a real URL. Do not invent URLs.`;
 
 function describeColors(t: ResolvedTokens): string {
   return [
@@ -85,7 +87,7 @@ export function buildPosterPrompt(args: {
     .join("\n\n");
 
   if (args.revision) {
-    return `${common}\n\nCURRENT POSTER SPEC:\n${JSON.stringify(args.revision.spec)}\n\nREVISION REQUEST:\n${args.revision.instruction}\n\nReturn the complete updated poster spec JSON. Change only what the request needs.`;
+    return `${common}\n\nCURRENT POSTER SPEC:\n${JSON.stringify({ ...args.revision.spec, layout: undefined })}\n\nREVISION REQUEST:\n${args.revision.instruction}\n\nReturn the complete updated poster spec JSON. Change only what the request needs.`;
   }
   return `${common}\n\nPOSTER BRIEF:\n${args.prompt}\n\nReturn the poster spec JSON.`;
 }

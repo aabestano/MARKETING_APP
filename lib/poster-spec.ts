@@ -1,4 +1,5 @@
 import type { ResolvedTokens } from "./brand-tokens";
+import { normalizeLayout, type PosterLayout } from "./poster-blocks";
 import type { PosterSection, PosterSpec, PosterStep, PosterTheme } from "./poster-types";
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -30,6 +31,13 @@ const multiline = (v: unknown, max: number): string | undefined => {
 const color = (v: unknown, fallback: string): string => (typeof v === "string" && HEX.test(v.trim()) ? v.trim() : fallback);
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+
+function cleanLayout(raw: unknown, sections: PosterSection[]): PosterLayout {
+  if (!isObj(raw)) return normalizeLayout(undefined, sections);
+  const order = Array.isArray(raw.order) ? raw.order.filter((item): item is string => typeof item === "string") : [];
+  const banner = Array.isArray(raw.banner) ? raw.banner.filter((item): item is string => typeof item === "string") : [];
+  return normalizeLayout({ order: order as PosterLayout["order"], banner: banner as PosterLayout["banner"] }, sections);
+}
 
 function cleanStep(raw: unknown): PosterStep | null {
   if (typeof raw === "string") {
@@ -106,6 +114,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
   const illAsset = typeof ill.assetId === "string" && ctx.assetIds.has(ill.assetId) ? ill.assetId : undefined;
   const illPrompt = str(ill.prompt, 400);
   const sections = (Array.isArray(r.sections) ? r.sections : []).map(cleanSection).filter((s): s is PosterSection => !!s).slice(0, 6);
+  const layout = cleanLayout(r.layout, sections);
 
   const spec: PosterSpec = {
     version: 1,
@@ -115,6 +124,7 @@ export function sanitizePosterSpec(raw: unknown, ctx: SanitizeContext): PosterSp
     headline: str(r.headline ?? r.title, 140) ?? "Untitled poster",
     subheading: str(r.subheading ?? r.subtitle, 240),
     sections,
+    layout,
   };
   if (illAsset || illPrompt) spec.illustration = { assetId: illAsset, prompt: illPrompt };
   if (isObj(r.cta)) {
