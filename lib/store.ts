@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const EMPTY_POSTER: PosterWorkspace = {
   prompt: "",
+  layoutPrompt: "",
   spec: null,
   size: DEFAULT_SIZE,
   illustrationMode: "auto",

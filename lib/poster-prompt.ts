@@ -16,7 +16,7 @@ Return ONLY one JSON object (no markdown fences, no commentary) with this shape:
 {
   "theme": { "background": "#hex", "surface": "#hex", "text": "#hex", "muted": "#hex", "primary": "#hex", "accent": "#hex", "onPrimary": "#hex" },
   "fontFamily": "optional font family name, only if the brand specifies one",
-  "header": { "brandName": "string", "tagline": "optional", "logoAssetId": "id from the asset list, optional" },
+  "header": { "brandName": "string", "tagline": "optional", "pill": "optional short header label", "logoAssetId": "id from the asset list, optional", "secondLogoAssetId": "optional second logo id from the asset list" },
   "headline": "max 12 words, the main message",
   "subheading": "optional one-sentence support line",
   "illustration": { "assetId": "id from the asset list, if one fits", "prompt": "describe the picture to draw only if NO listed asset fits" },
@@ -24,9 +24,10 @@ Return ONLY one JSON object (no markdown fences, no commentary) with this shape:
     { "type": "steps", "title": "optional", "style": "flowchart" | "numbered", "items": [ { "label": "short step", "detail": "optional", "decision": { "yes": "outcome", "no": "outcome" } } ] },
     { "type": "bullets", "title": "optional", "items": ["short point"] },
     { "type": "callout", "title": "optional", "body": "short highlighted note" },
-    { "type": "stats", "title": "optional", "items": [ { "value": "50%", "label": "short caption" } ] }
+    { "type": "stats", "title": "optional", "items": [ { "value": "50%", "label": "short caption" } ] },
+    { "type": "tips", "title": "optional", "items": [ { "text": "short tip", "icon": "lightbulb" | "drop" | "sun" | "heart-pulse" | "pill" | "none" } ] }
   ],
-  "cta": { "label": "button text", "url": "https://...", "showQr": true },
+  "cta": { "label": "button text", "url": "https://...", "showQr": true, "qrCaption": "optional short line shown with the QR code" },
   "footer": { "text": "contact or support line", "disclaimer": "fine print, optional" }
 }
 
@@ -38,7 +39,11 @@ Rules:
 - Copy facts verbatim. Numbers, prices, dates, percentages, doses, phone numbers, email addresses, and URLs must appear exactly as written in the brief.
 - Do not invent claims, offers, statistics, dates, names, places, or medical advice. If the brief does not say it, leave it out.
 - Do not paraphrase a number, price, date, or required phrase into different words.
-- Only set cta.url when the brief gives a real URL. Do not invent URLs.`;
+- Only set cta.url when the brief gives a real URL. Do not invent URLs.
+- When the brief includes lines that start with "Layout", follow that section order, hero size, font, colors, and the layout pieces it names.
+- Use a "tips" section only when the brief asks for a tip grid. Each icon must be lightbulb, drop, sun, heart-pulse, pill, or none.
+- Set header.pill only when the brief asks for a header label. Set secondLogoAssetId only when the brief asks for two logos.
+- Set qrCaption only when the brief gives a caption to show with the QR code.`;
 
 export function normalizeIllustrationMode(value: unknown): IllustrationMode {
   return value === "library" || value === "none" || value === "draw" || value === "auto" ? value : "auto";
@@ -61,7 +66,7 @@ function illustrationInstruction(mode: IllustrationMode): string {
   return "Prefer a listed asset; if none fits, give an illustration prompt.";
 }
 
-const SECTION_KIND = { steps: "Steps and flowchart", bullets: "Key points", callout: "Callout", stats: "Stats" } as const;
+const SECTION_KIND = { steps: "Steps and flowchart", bullets: "Key points", callout: "Callout", stats: "Stats", tips: "Tip grid" } as const;
 
 /** Sections the poster AI editor can revise one at a time. */
 export function posterRevisionTargets(spec: PosterSpec): { id: string; label: string }[] {
