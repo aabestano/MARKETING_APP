@@ -18,8 +18,10 @@ import type { AssetKind, AssetPurpose, BrandAsset, BrandBook, BrandTokens } from
 import { parseFontFileName } from "@/lib/fonts";
 import { assetInFolder, assetPurposes, type AssetFolder } from "@/lib/assets";
 import { FolderTabs, PurposePicker } from "./PurposePicker";
+import { assetFile, assetPreviewKind, downloadAssetFile } from "@/lib/asset-file";
 import { DEFAULT_TOKENS, isHex } from "@/lib/brand-tokens";
 import { downscaleImage, formatBytes, readAsDataUrl, readAsText, timeAgo } from "@/lib/client-utils";
+import { AssetViewer } from "./AssetViewer";
 import { EmptyState, Spinner, useToast } from "./ui";
 
 const MAX_PDF_BYTES = 3 * 1024 * 1024;
@@ -55,6 +57,7 @@ export function BrandBooks() {
   const [uploadPurposes, setUploadPurposes] = useState<AssetPurpose[]>(["email"]);
   const [cdnPurposes, setCdnPurposes] = useState<AssetPurpose[]>(["email"]);
   const [folder, setFolder] = useState<AssetFolder>("all");
+  const [viewing, setViewing] = useState<BrandAsset | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [cdnUrl, setCdnUrl] = useState("");
@@ -352,6 +355,7 @@ export function BrandBooks() {
                             onDirective={(d) => updateAsset(a.id, { directive: d })}
                             onPurposes={(p) => updateAsset(a.id, { purposes: p })}
                             onFamily={(f) => updateAsset(a.id, { fontFamily: f })}
+                            onView={() => setViewing(a)}
                           />
                         ))}
                       </ul>
@@ -363,6 +367,7 @@ export function BrandBooks() {
           )}
         </section>
       </div>
+      {viewing && <AssetViewer asset={viewing} onClose={() => setViewing(null)} />}
     </div>
   );
 }
@@ -373,29 +378,39 @@ function AssetRow({
   onDirective,
   onPurposes,
   onFamily,
+  onView,
 }: {
   asset: BrandAsset;
   onDelete: () => void;
   onDirective: (d: string) => void;
   onPurposes: (p: AssetPurpose[]) => void;
   onFamily: (family: string) => void;
+  onView: () => void;
 }) {
   const meta = KIND_META[asset.kind];
   const Icon = meta.icon;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(asset.directive ?? "");
-  const thumb = asset.kind === "image" ? asset.dataUrl : asset.kind === "cdn-url" && /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(asset.url ?? "") ? asset.url : undefined;
+  const preview = assetPreviewKind(asset);
+  const file = assetFile(asset);
+  const thumb = asset.kind === "image" ? asset.dataUrl : preview === "image" ? asset.url : undefined;
 
   return (
     <li className="flex gap-3 px-4 py-3">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-800 bg-slate-950">
-        {thumb ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt="" className="h-full w-full object-contain" loading="lazy" />
-        ) : (
+      {preview ? (
+        <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-800 bg-slate-950" aria-label={`View ${asset.name}`} onClick={onView}>
+          {thumb ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={thumb} alt="" className="h-full w-full object-contain" loading="lazy" />
+          ) : (
+            <Icon className="h-5 w-5 text-slate-500" />
+          )}
+        </button>
+      ) : (
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-800 bg-slate-950">
           <Icon className="h-5 w-5 text-slate-500" />
-        )}
-      </div>
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="truncate text-sm font-medium text-slate-100">{asset.name}</span>
@@ -435,9 +450,26 @@ function AssetRow({
           </button>
         )}
       </div>
-      <button className="self-start rounded p-1.5 text-slate-500 hover:bg-red-500/15 hover:text-red-400" aria-label={`Delete ${asset.name}`} onClick={onDelete}>
-        <Trash2 className="h-4 w-4" />
-      </button>
+      <div className="flex shrink-0 items-start gap-1">
+        {preview && (
+          <button type="button" className="btn-ghost px-2 py-1 text-xs" onClick={onView}>
+            View
+          </button>
+        )}
+        {file && (
+          <button type="button" className="btn-ghost px-2 py-1 text-xs" onClick={() => downloadAssetFile(file)}>
+            Download
+          </button>
+        )}
+        {asset.kind === "cdn-url" && asset.url && (
+          <a className="btn-ghost px-2 py-1 text-xs" href={asset.url} target="_blank" rel="noopener noreferrer">
+            Open
+          </a>
+        )}
+        <button type="button" className="self-start rounded p-1.5 text-slate-500 hover:bg-red-500/15 hover:text-red-400" aria-label={`Delete ${asset.name}`} onClick={onDelete}>
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
     </li>
   );
 }
