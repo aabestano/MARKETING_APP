@@ -89,7 +89,7 @@ interface AppState {
   updatePoster: (patch: Partial<PosterWorkspace>) => void;
   resetPoster: () => void;
   savePoster: (poster: Omit<SavedPoster, "id" | "createdAt" | "updatedAt">) => SavedPoster;
-  patchSavedPoster: (id: string, patch: Partial<Pick<SavedPoster, "name" | "spec" | "size" | "prompt" | "thumbnail">>) => void;
+  patchSavedPoster: (id: string, patch: Partial<Pick<SavedPoster, "name" | "spec" | "size" | "prompt" | "thumbnail" | "sharedBookIds" | "removeBackground">>) => void;
   deletePoster: (id: string) => void;
 
   addResource: (resource: Omit<IdeaResource, "id" | "dateAdded">) => IdeaResource;
@@ -122,7 +122,7 @@ interface AppState {
   importWorkspace: (data: WorkspaceData, mode: ImportMode) => void;
   deleteAsset: (id: string) => void;
   saveBlast: (blast: Omit<SavedBlast, "id" | "createdAt" | "updatedAt">) => SavedBlast;
-  updateBlast: (id: string, patch: Partial<Pick<SavedBlast, "html" | "mjml" | "name" | "subject" | "category">>) => void;
+  updateBlast: (id: string, patch: Partial<Pick<SavedBlast, "html" | "mjml" | "name" | "subject" | "category" | "sharedBookIds">>) => void;
   deleteBlast: (id: string) => void;
   updateSettings: (patch: Partial<Settings>) => void;
   updateWorkspace: (patch: Partial<Workspace>) => void;
@@ -295,10 +295,20 @@ export const useStore = create<AppState>()(
           brandBooks: s.brandBooks.filter((b) => b.id !== id),
           assets: s.assets.filter((a) => a.bookId !== id),
           workspace: s.workspace.brandBookId === id ? { ...s.workspace, brandBookId: null } : s.workspace,
+          settings: s.settings.createBrandBookId === id ? { ...s.settings, createBrandBookId: null } : s.settings,
+          blasts: s.blasts.map((b) => (b.sharedBookIds?.includes(id) ? { ...b, sharedBookIds: b.sharedBookIds.filter((x) => x !== id) } : b)),
+          posters: s.posters.map((p) => (p.sharedBookIds?.includes(id) ? { ...p, sharedBookIds: p.sharedBookIds.filter((x) => x !== id) } : p)),
+          ideaBase: s.ideaBase.map((r) => (r.brandBookId === id ? { ...r, brandBookId: undefined } : r)),
         })),
 
       addAsset: (asset) => {
-        const full: BrandAsset = { ...asset, purposes: normalizePurposes(asset.purposes), id: uid(), createdAt: Date.now() };
+        const full: BrandAsset = {
+          ...asset,
+          sharedWithAll: asset.sharedWithAll ?? false,
+          purposes: normalizePurposes(asset.purposes),
+          id: uid(),
+          createdAt: Date.now(),
+        };
         set((s) => ({ assets: [...s.assets, full] }));
         return full;
       },

@@ -202,6 +202,7 @@ export function IdeaStudio() {
     const rest = workspace.directives.split("\n").filter((l) => !l.startsWith("Header Layout Directive:")).join("\n").trim();
     const wanted = [c.brand1, c.brand2].map((b) => b.trim().toLowerCase()).filter(Boolean);
     const book = books.find((b) => wanted.includes(b.name.trim().toLowerCase()));
+    if (book) useStore.getState().updateSettings({ createBrandBookId: book.id });
     updateWorkspace({ blueprint: buildEmailBlueprint(c), directives: [header, rest].filter(Boolean).join("\n"), pipelineId: linked?.id ?? null, mjml: "", html: "", warnings: [], source: null, ...(book ? { brandBookId: book.id } : {}) });
     setDesignMode("email");
     setTab("design-studio");
@@ -213,7 +214,10 @@ export function IdeaStudio() {
     const wanted = [c.brand1, c.brand2].map((b) => b.trim().toLowerCase()).filter(Boolean);
     const book = books.find((b) => wanted.includes(b.name.trim().toLowerCase()));
     updatePoster({ prompt: buildPosterBrief(c), layoutPrompt: "", spec: null, source: null, warnings: [], savedId: null, pipelineId: linked?.id ?? null });
-    if (book) updateWorkspace({ brandBookId: book.id });
+    if (book) {
+      updateWorkspace({ brandBookId: book.id });
+      useStore.getState().updateSettings({ createBrandBookId: book.id });
+    }
     setDesignMode("poster");
     setTab("design-studio");
     toast("Sent to the Poster Illustrator. Press Generate poster.", "success");

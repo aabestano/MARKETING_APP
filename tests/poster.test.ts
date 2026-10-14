@@ -153,16 +153,17 @@ test("model JSON is extracted from fenced or chatty replies", () => {
 test("illustration picker matches by name, role and directive words and ignores logos", async () => {
   const { pickIllustration, posterIllustrations, findLogo } = await import("../lib/poster-assets");
   const img = (id: string, name: string, over: Partial<BrandAsset> = {}): BrandAsset =>
-    ({ id, bookId: "b", kind: "image", name, dataUrl: "data:image/png;base64,AA", purposes: ["poster"], createdAt: 1, ...over }) as BrandAsset;
+    ({ id, bookId: "b", kind: "image", name, dataUrl: "data:image/png;base64,AA", purposes: ["poster"], sharedWithAll: false, createdAt: 1, ...over }) as BrandAsset;
   const assets = [
     img("1", "pharmacist-delivery.png"),
     img("2", "flu-vaccine.png", { directive: "seasonal immunization" }),
     img("3", "brand-logo.png", { role: "Logo" }),
     img("4", "email-hero.png", { purposes: ["email"] }),
     img("5", "other.png", { bookId: "other" }),
+    img("6", "shared-clinic.png", { bookId: "other", sharedWithAll: true }),
   ];
   const pool = posterIllustrations(assets, "b");
-  assert.deepEqual(pool.map((a) => a.id), ["1", "2"]);
+  assert.deepEqual(pool.map((a) => a.id), ["1", "2", "6"]);
   assert.equal(pickIllustration(pool, "Seasonal immunization drive for flu season")?.id, "2");
   assert.equal(pickIllustration(pool, "Quarterly report")?.id, undefined);
   assert.equal(findLogo(assets, "b")?.id, "3");

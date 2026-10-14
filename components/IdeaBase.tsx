@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { BookOpen, ExternalLink, FileText, FileUp, Lightbulb, Loader2, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
+import { uiCopy } from "@/lib/ui-copy";
 import { downscaleDataUrl, postJson, readAsDataUrl, readAsText, formatBytes } from "@/lib/client-utils";
 import { MAX_ANALYZE_BYTES, analysisMode, dataUrlBytes } from "@/lib/resource-files";
 import { COHORTS, MAX_RESOURCE_FILE_BYTES, MONTHS, SOURCE_TYPES, type IdeaResource } from "@/lib/idea-types";
@@ -12,6 +13,25 @@ import { SAMPLE_RESOURCES } from "@/lib/pipeline";
 import { EmptyState, Modal, Segmented, Spinner, useToast } from "./ui";
 import { ImportIdeateModal } from "./ImportIdeateModal";
 import type { ServerStatus } from "./AppShell";
+
+function BrandScopeSelect({ id, value, onChange }: { id: string; value?: string; onChange: (id: string | undefined) => void }) {
+  const books = useStore((s) => s.brandBooks);
+  const copy = useStore((s) => s.settings.copyOverrides);
+  const current = value && books.some((book) => book.id === value) ? value : "";
+  return (
+    <label className="block text-[11px] text-slate-400" htmlFor={id}>
+      {uiCopy("brand.create", copy)}
+      <select id={id} className="input mt-1 py-1 text-xs" value={current} aria-label={`${uiCopy("brand.create", copy)} for this idea`} onChange={(e) => onChange(e.target.value || undefined)}>
+        <option value="">{uiCopy("brand.all", copy)}</option>
+        {books.map((book) => (
+          <option key={book.id} value={book.id}>
+            {book.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 const stripHtml = (html: string) =>
   html
@@ -250,6 +270,7 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
                     </div>
                     <p className="line-clamp-3 whitespace-pre-line text-xs text-slate-400">{r.extractedNotes || "No notes yet. Open this item to run AI analysis or type the key points."}</p>
                     {r.tags.length > 0 && <p className="text-[11px] text-slate-500">{r.tags.map((t) => `#${t}`).join("  ")}</p>}
+                    <BrandScopeSelect id={`idea-book-${r.id}`} value={r.brandBookId} onChange={(brandBookId) => updateResource(r.id, { brandBookId })} />
                     <div className="mt-auto flex gap-2 pt-1">
                       <button className="btn-ghost flex-1 py-1.5 text-xs" onClick={() => setOpenId(r.id)}>
                         <FileText className="h-3.5 w-3.5" /> Details
@@ -314,6 +335,7 @@ function AddResource({ mode, onMode, onAdd }: { mode: "note" | "file"; onMode: (
   const [cohort, setCohort] = useState<string>(COHORTS[0]);
   const [tags, setTags] = useState("");
   const [active, setActive] = useState(true);
+  const [brandBookId, setBrandBookId] = useState<string | undefined>(undefined);
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
@@ -332,6 +354,7 @@ function AddResource({ mode, onMode, onAdd }: { mode: "note" | "file"; onMode: (
       cohort,
       tags: tags.split(",").map((t) => t.trim().replace(/^#/, "")).filter(Boolean),
       active,
+      ...(brandBookId ? { brandBookId } : {}),
     };
     if (mode === "note") {
       if (!notes.trim()) return;
@@ -429,6 +452,7 @@ function AddResource({ mode, onMode, onAdd }: { mode: "note" | "file"; onMode: (
         <label className="label" htmlFor="res-tags">Tags</label>
         <input id="res-tags" className="input py-1.5" placeholder="adherence, diabetes, copay" value={tags} onChange={(e) => setTags(e.target.value)} />
       </div>
+      <BrandScopeSelect id="res-brand-book" value={brandBookId} onChange={setBrandBookId} />
       <label className="flex items-center gap-2 text-sm text-slate-300">
         <input type="checkbox" className="h-4 w-4 accent-blue-500" checked={active} onChange={(e) => setActive(e.target.checked)} />
         Active (use in the Idea Generator)
@@ -477,6 +501,7 @@ function ResourceModal({ resource: r, busy, onAnalyze, onClose }: { resource: Id
           </button>
         )}
         {r.tags.length > 0 && <p className="text-xs text-slate-500">{r.tags.map((t) => `#${t}`).join("  ")}</p>}
+        <BrandScopeSelect id="res-edit-brand-book" value={r.brandBookId} onChange={(brandBookId) => update(r.id, { brandBookId })} />
       </div>
     </Modal>
   );

@@ -4,13 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AlertTriangle, ArrowLeftRight, ChevronDown, Download, FileDown, ImageIcon, Layers, Printer, RefreshCw, Save, Sparkles, Wand2 } from "lucide-react";
 import clsx from "clsx";
 import { assetInFolder } from "@/lib/assets";
+import { assetForBook } from "@/lib/brand-scope";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
 import { downscaleDataUrl, postJson } from "@/lib/client-utils";
 import { buildFontFaceCss, fontAssets, fontFamilies, resolveFontStack } from "@/lib/fonts";
 import { assetSrc, findLogo, isLogo, isPosterImage, pickIllustration, posterIllustrations } from "@/lib/poster-assets";
 import { layoutOf, preservePosterEdits, type HeroSize } from "@/lib/poster-blocks";
 import { missingFromPoster } from "@/lib/poster-check";
-import { trimIllustrationUrl } from "@/lib/poster-trim";
+import { removeBackgroundUrl, trimIllustrationUrl } from "@/lib/poster-trim";
+import { uiCopy } from "@/lib/ui-copy";
 import { describeExport, downloadBlob, exportPdf, exportPng, makeThumbnail, openVectorPrint, qrDataUrl } from "@/lib/poster-export";
 import { posterToSvg } from "@/lib/poster-svg";
 import { drawsOnGenerate, orientationOf, posterRevisionInstruction, posterRevisionTargets, usesLibraryOnGenerate, type PosterAssetSummary } from "@/lib/poster-prompt";
@@ -23,6 +25,7 @@ import { DEFAULT_IMAGE_MODEL, type BrandAsset } from "@/lib/types";
 import { DEFAULT_FLUX_MODEL } from "@/lib/flux";
 import { useStore } from "@/lib/store";
 import type { PosterSize, PosterSpec, SizeUnit } from "@/lib/poster-types";
+import { chooseBrandBook } from "./CreateBrandSelect";
 import { EmptyState, Segmented, Spinner, useToast } from "./ui";
 import { PosterCanvas } from "./PosterCanvas";
 import { PosterEditor } from "./PosterEditor";
@@ -150,7 +153,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
 
   const { spec, size } = poster;
   const book = books.find((b) => b.id === workspace.brandBookId) ?? null;
-  const bookAssets = useMemo(() => (book ? allAssets.filter((a) => a.bookId === book.id && assetInFolder(a, "poster")) : []), [allAssets, book]);
+  const bookAssets = useMemo(() => (book ? allAssets.filter((a) => assetForBook(a, book.id) && assetInFolder(a, "poster")) : []), [allAssets, book]);
   const illustrations = useMemo(() => posterIllustrations(allAssets, book?.id ?? null), [allAssets, book]);
   const families = useMemo(() => fontFamilies(bookAssets), [bookAssets]);
   const fontCss = useMemo(() => buildFontFaceCss(fontAssets(bookAssets)), [bookAssets]);
@@ -196,13 +199,15 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
       return;
     }
     setTrimmedSrc(undefined);
-    void trimIllustrationUrl(illustrationSrc).then((url) => {
+    void (async () => {
+      const cleared = poster.removeBackground ? await removeBackgroundUrl(illustrationSrc) : illustrationSrc;
+      const url = await trimIllustrationUrl(cleared);
       if (alive) setTrimmedSrc(url);
-    });
+    })();
     return () => {
       alive = false;
     };
-  }, [illustrationSrc]);
+  }, [illustrationSrc, poster.removeBackground]);
 
   const heroSize = poster.heroSize ?? "m";
   const missing = useMemo(() => (spec ? missingFromPoster(poster.prompt, spec) : []), [spec, poster.prompt]);
@@ -355,7 +360,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
         if (document.fonts?.ready) await document.fonts.ready;
         const svg = posterToSvg(node);
         downloadBlob(new Blob([svg], { type: "image/svg+xml" }), filename("svg"));
-        toast("Figma SVG downloaded. Drag it into Figma. Text stays editable, and fonts need to be installed there.", "success");
+        toast("Figma SVG downloaded. Drag it into Figma, or open it with the IDEAte plugin. Text stays editable, and fonts need to be installed there.", "success");
         return;
       }
       if (kind === "vector") {
@@ -385,7 +390,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
     try {
       const thumbnail = await makeThumbnail(node, fontCss);
       if (savedRecord) {
-        patchSavedPoster(savedRecord.id, { spec, size, prompt: poster.prompt, thumbnail, name: savedRecord.name });
+        patchSavedPoster(savedRecord.id, { spec, size, prompt: poster.prompt, thumbnail, name: savedRecord.name, removeBackground: !!poster.removeBackground });
         if (poster.pipelineId && useStore.getState().pipeline.some((i) => i.id === poster.pipelineId)) linkDesign(poster.pipelineId, { posterId: savedRecord.id });
         toast(`Updated “${savedRecord.name}” in the Design Repository.`, "success");
       } else {
@@ -397,6 +402,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
           size,
           prompt: poster.prompt,
           thumbnail,
+          removeBackground: !!poster.removeBackground,
         });
         updatePoster({ savedId: rec.id });
         const linked = !!poster.pipelineId && useStore.getState().pipeline.some((i) => i.id === poster.pipelineId);
@@ -525,8 +531,8 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
 
               <div>
                 <label className="label" htmlFor="poster-brand">Brand book</label>
-                <select id="poster-brand" className="input" value={workspace.brandBookId ?? ""} onChange={(e) => updateWorkspace({ brandBookId: e.target.value || null })}>
-                  <option value="">No brand book</option>
+                <select id="poster-brand" className="input" value={workspace.brandBookId ?? ""} onChange={(e) => chooseBrandBook(e.target.value || null)}>
+                  <option value="">{uiCopy("brand.all", settings.copyOverrides)}</option>
                   {books.map((b) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
@@ -698,9 +704,20 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
               <option value="l">Large</option>
             </select>
           </label>
+          <label className="flex items-center gap-1.5" title={uiCopy("poster.removeBg.hint", settings.copyOverrides)}>
+            <input
+              id="poster-remove-bg"
+              type="checkbox"
+              className="h-3.5 w-3.5 accent-blue-500"
+              checked={!!poster.removeBackground}
+              onChange={(e) => updatePoster({ removeBackground: e.target.checked })}
+            />
+            {uiCopy("poster.removeBg", settings.copyOverrides)}
+          </label>
           <label className="flex items-center gap-1.5">
             <input type="checkbox" className="h-3.5 w-3.5 accent-blue-500" checked={showGuides} onChange={(e) => setShowGuides(e.target.checked)} /> Trim guides
           </label>
+          <span className="basis-full text-[11px] text-slate-500">{uiCopy("poster.removeBg.hint", settings.copyOverrides)}</span>
           <span className="ml-auto text-slate-500">
             {info.width} × {info.height} px{info.clamped ? ` (capped at ${info.effectiveDpi} DPI)` : ""} · RGB
           </span>
@@ -974,16 +991,17 @@ function IllustrationControls({
 
 function DownloadMenu({ disabled, busy, onPick }: { disabled: boolean; busy: boolean; onPick: (kind: "pdf" | "png" | "vector" | "svg") => void }) {
   const [open, setOpen] = useState(false);
+  const overrides = useStore((s) => s.settings.copyOverrides);
   const items: { kind: "pdf" | "png" | "vector" | "svg"; label: string; hint: string; icon: ReactNode }[] = [
     { kind: "pdf", label: "PDF", hint: "Print-ready file", icon: <FileDown className="h-4 w-4" /> },
     { kind: "png", label: "PNG", hint: "Image file", icon: <Download className="h-4 w-4" /> },
     { kind: "vector", label: "Vector PDF", hint: "Opens the print dialog. Choose Save as PDF for live text.", icon: <Printer className="h-4 w-4" /> },
-    { kind: "svg", label: "Figma SVG", hint: "Layered file to drag into Figma. Text stays editable.", icon: <Layers className="h-4 w-4" /> },
+    { kind: "svg", label: uiCopy("download.svg", overrides), hint: uiCopy("download.svg.hint", overrides), icon: <Layers className="h-4 w-4" /> },
   ];
   return (
     <div className="relative">
       <button type="button" className="btn-success" disabled={disabled} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-        {busy ? <Spinner /> : <FileDown className="h-4 w-4" />} Download Poster <ChevronDown className="h-3.5 w-3.5" />
+        {busy ? <Spinner /> : <FileDown className="h-4 w-4" />} {uiCopy("download.poster", overrides)} <ChevronDown className="h-3.5 w-3.5" />
       </button>
       {open && !disabled && (
         <>

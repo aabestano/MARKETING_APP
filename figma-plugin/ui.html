@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <body style="margin: 0; padding: 16px; font: 12px/1.4 sans-serif; color: #1b1b1c;">
+    <p style="margin: 0 0 8px;">Choose the Figma SVG you downloaded from IDEAte. Groups in that file become layers.</p>
+    <input id="file" type="file" accept=".svg,image/svg+xml" />
+    <p id="status" style="margin: 8px 0 0; color: #64748b;"></p>
+    <script>
+      document.getElementById("file").addEventListener("change", function (event) {
+        var file = event.target.files && event.target.files[0];
+        if (!file) return;
+        var status = document.getElementById("status");
+        status.textContent = "Reading " + file.name + "…";
+        file.text().then(function (svg) {
+          parent.postMessage({ pluginMessage: { type: "import-svg", svg: svg } }, "*");
+        }).catch(function () {
+          status.textContent = "That file could not be read.";
+        });
+      });
+    </script>
+  </body>
+</html>

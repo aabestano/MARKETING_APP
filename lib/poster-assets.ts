@@ -1,4 +1,5 @@
 import { assetInFolder } from "./assets";
+import { assetForBook } from "./brand-scope";
 import type { BrandAsset } from "./types";
 
 const STOP = new Set(["with", "your", "from", "that", "this", "have", "will", "into", "about", "more", "than", "their", "them", "they", "what", "when", "where", "which", "while", "image", "illustration", "picture", "poster", "photo", "icon", "png", "jpg", "jpeg", "svg"]);
@@ -10,7 +11,7 @@ export const isPosterImage = (a: BrandAsset) => a.kind === "image" && !!a.dataUr
 
 /** Poster-tagged pictures from a brand book, excluding logos. */
 export function posterIllustrations(assets: BrandAsset[], bookId: string | null): BrandAsset[] {
-  return assets.filter((a) => a.bookId === bookId && assetInFolder(a, "poster") && isPosterImage(a) && !isLogo(a));
+  return assets.filter((a) => !!bookId && assetForBook(a, bookId) && assetInFolder(a, "poster") && isPosterImage(a) && !isLogo(a));
 }
 
 export function isLogo(a: BrandAsset): boolean {
@@ -19,7 +20,7 @@ export function isLogo(a: BrandAsset): boolean {
 
 /** Logo picked by id, else the first poster-tagged logo (embedded image or CDN URL). */
 export function findLogo(assets: BrandAsset[], bookId: string | null, assetId?: string): BrandAsset | undefined {
-  const pool = assets.filter((a) => a.bookId === bookId && assetInFolder(a, "poster"));
+  const pool = assets.filter((a) => !!bookId && assetForBook(a, bookId) && assetInFolder(a, "poster"));
   const byId = assetId ? pool.find((a) => a.id === assetId) : undefined;
   if (byId) return byId;
   return pool.find((a) => isLogo(a) && ((a.kind === "image" && a.dataUrl) || (a.kind === "cdn-url" && a.url)));

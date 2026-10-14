@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { APP_NAME, displayAppName } from "../lib/app-name";
-import { moveTab, orderedTabIds } from "../lib/nav";
+import { moveSection, moveTab, orderedSectionIds, orderedTabIds } from "../lib/nav";
 import { pipelineToIcs } from "../lib/pipeline";
 import { escapeXml, layerId, posterLayerName } from "../lib/poster-svg";
 import { buildExport, parseWorkspaceExport } from "../lib/workspace-io";
@@ -42,15 +42,19 @@ test("subtab order stays inside its section and missing tabs are appended", () =
     "idea-studio",
     "idea-generator",
   ]);
-  assert.deepEqual(orderedTabIds("plan", { plan: ["repository", "idea-studio", "calendar"] }), ["repository", "calendar"]);
-  assert.deepEqual(orderedTabIds("library", undefined), ["idea-base", "brands"]);
+  assert.deepEqual(orderedTabIds("plan", { plan: ["repository", "idea-studio", "calendar"] }), ["calendar"]);
+  assert.deepEqual(orderedTabIds("library", { library: ["brands", "idea-base"] }), ["brands", "idea-base", "repository"]);
+  assert.deepEqual(orderedTabIds("library", undefined), ["idea-base", "brands", "repository"]);
   assert.deepEqual(moveTab(["idea-studio", "idea-generator", "design-studio"], "idea-generator", -1), [
     "idea-generator",
     "idea-studio",
     "design-studio",
   ]);
-  const pinned = ["calendar", "repository"] as const;
+  const pinned = ["calendar"] as const;
   assert.equal(moveTab([...pinned], "calendar", -1).join(), pinned.join());
+  assert.deepEqual(orderedSectionIds(["library", "nope" as never, "plan"]), ["library", "plan", "create"]);
+  assert.deepEqual(moveSection(["plan", "create", "library"], "library", -1), ["plan", "library", "create"]);
+  assert.deepEqual(moveSection(["plan", "create", "library"], "plan", -1), ["plan", "create", "library"]);
 });
 
 test("workspace export keeps the app name and tab order, and still omits API keys", () => {
@@ -76,7 +80,7 @@ test("older exports still import, and a bad tab list cannot move a tab into anot
     }),
   );
   assert.equal(messy.data.settings.displayName, "Hello there");
-  assert.deepEqual(messy.data.settings.tabOrder?.plan, ["repository", "calendar"]);
+  assert.deepEqual(messy.data.settings.tabOrder?.plan, ["calendar"]);
   assert.equal(messy.data.settings.tabOrder?.library, undefined);
   assert.equal("geminiApiKey" in messy.data.settings, false);
   assert.throws(() => parseWorkspaceExport(JSON.stringify({ hello: 1 })), /isn't an IDEAte/);

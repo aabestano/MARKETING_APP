@@ -1,11 +1,12 @@
 "use client";
 
-import { Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap } from "lucide-react";
+import { ArrowDown, ArrowUp, Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap } from "lucide-react";
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
 import { modelLabel, type SectionId } from "@/lib/types";
 import { displayAppName } from "@/lib/app-name";
-import { SECTIONS, orderedTabs, sectionOf } from "@/lib/nav";
+import { moveSection, orderedSectionIds, orderedSections, orderedTabs, sectionOf } from "@/lib/nav";
+import { uiCopy } from "@/lib/ui-copy";
 import type { ServerStatus } from "./AppShell";
 
 const SECTION_ICONS: Record<SectionId, typeof Boxes> = { plan: CalendarDays, create: Sparkles, library: Library };
@@ -21,6 +22,13 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
   const toggleTheme = useStore((s) => s.toggleTheme);
 
   const appName = displayAppName(settings.displayName);
+  const sections = orderedSections(settings.sectionOrder);
+  const shiftSection = (id: SectionId, dir: -1 | 1) => {
+    const ids = orderedSectionIds(settings.sectionOrder);
+    const next = moveSection(ids, id, dir);
+    if (next === ids) return;
+    useStore.getState().updateSettings({ sectionOrder: next });
+  };
   const geminiReady = !!settings.geminiApiKey || !!status?.gemini;
   const mailerReady = !!settings.mailerApiKey || !!status?.mailers[settings.mailerProvider];
   const model = settings.geminiModel || status?.geminiModel || "gemini-2.5-flash";
@@ -50,38 +58,68 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
       </div>
 
       <nav className="flex gap-1 overflow-x-auto p-2 md:flex-1 md:flex-col md:overflow-visible" aria-label="Primary">
-        {SECTIONS.map((section, i) => {
+        {sections.map((section, i) => {
           const Icon = SECTION_ICONS[section.id];
           const active = activeSection === section.id;
           const count = section.id === "plan" ? upcoming : section.id === "library" ? bookCount : null;
+          const label = uiCopy(section.labelKey, settings.copyOverrides);
+          const hint = uiCopy(section.hintKey, settings.copyOverrides);
           return (
-            <button
+            <div
               key={section.id}
-              onClick={() => {
-                if (active) return;
-                const first = orderedTabs(section.id, settings.tabOrder)[0];
-                if (first) setTab(first.id);
-              }}
-              aria-current={active ? "page" : undefined}
               className={clsx(
-                "group flex min-w-fit items-center gap-3 rounded-md border px-3 py-2.5 text-left transition",
+                "group flex min-w-fit items-center gap-1 rounded-md border px-2 py-1.5 transition",
                 active
                   ? "border-blue-500/40 bg-blue-500/10 text-white"
                   : "border-transparent text-slate-400 hover:bg-slate-900 hover:text-slate-200",
               )}
             >
-              <Icon className={clsx("h-4 w-4 shrink-0", active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")} />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">
-                  <span className="mr-1.5 text-slate-400">{i + 1}.</span>
-                  {section.label}
+              <button
+                onClick={() => {
+                  if (active) return;
+                  const first = orderedTabs(section.id, settings.tabOrder)[0];
+                  if (first) setTab(first.id);
+                }}
+                aria-current={active ? "page" : undefined}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1 py-1 text-left"
+              >
+                <Icon className={clsx("h-4 w-4 shrink-0", active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")} />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium">
+                    <span className="mr-1.5 text-slate-400">{i + 1}.</span>
+                    {label}
+                  </span>
+                  <span className="hidden text-[11px] text-slate-500 md:block">{hint}</span>
                 </span>
-                <span className="hidden text-[11px] text-slate-500 md:block">{section.hint}</span>
-              </span>
-              {count !== null && count > 0 && (
-                <span className="rounded-full border border-slate-700 bg-slate-900 px-1.5 text-[11px] text-slate-300">{count}</span>
+                {count !== null && count > 0 && (
+                  <span className="rounded-full border border-slate-700 bg-slate-900 px-1.5 text-[11px] text-slate-300">{count}</span>
+                )}
+              </button>
+              {active && (
+                <span className="flex shrink-0 flex-col">
+                  <button
+                    type="button"
+                    aria-label={`${uiCopy("nav.moveUp", settings.copyOverrides)} ${label}`}
+                    title={uiCopy("nav.moveUp", settings.copyOverrides)}
+                    disabled={i === 0}
+                    onClick={() => shiftSection(section.id, -1)}
+                    className="rounded p-0.5 text-slate-400 hover:bg-slate-900 hover:text-slate-100 disabled:opacity-30"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`${uiCopy("nav.moveDown", settings.copyOverrides)} ${label}`}
+                    title={uiCopy("nav.moveDown", settings.copyOverrides)}
+                    disabled={i === sections.length - 1}
+                    onClick={() => shiftSection(section.id, 1)}
+                    className="rounded p-0.5 text-slate-400 hover:bg-slate-900 hover:text-slate-100 disabled:opacity-30"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                </span>
               )}
-            </button>
+            </div>
           );
         })}
       </nav>
@@ -92,7 +130,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
           className="w-full rounded-md border border-slate-800 bg-slate-900 p-3 text-left transition hover:border-slate-700 hover:bg-slate-800/70"
         >
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
-            <Settings2 className="h-4 w-4 text-slate-400" /> API and Mail Settings
+            <Settings2 className="h-4 w-4 text-slate-400" /> {uiCopy("settings.api", settings.copyOverrides)}
           </div>
           <dl className="space-y-1.5 text-[11px]">
             <div className="flex items-center justify-between gap-2">

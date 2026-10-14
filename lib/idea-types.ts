@@ -80,6 +80,8 @@ export interface IdeaResource {
   /** Set only when a rename changed cohort, so the previous name can be restored. */
   legacyCohort?: string;
   tags: string[];
+  /** Missing or "all" means every brand book can use this item. */
+  brandBookId?: string;
   active: boolean;
   dateAdded: string;
   extractedNotes: string;

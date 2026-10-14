@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, Image as ImageIcon, KeyRound } from "lucide-react";
 import { APP_NAME, APP_NAME_LIMIT } from "@/lib/app-name";
+import { UI_COPY, cleanCopyText, uiCopy, type CopyKey } from "@/lib/ui-copy";
 import { DEFAULT_FLUX_MODEL, FLUX_MODELS } from "@/lib/flux";
 import { Modal } from "./ui";
 import { WorkspaceBackup } from "./WorkspaceBackup";
@@ -50,30 +51,39 @@ export function SettingsModal({ status, onClose }: { status: ServerStatus | null
 
   return (
     <Modal
-      title="API and Mail Settings"
+      title={uiCopy("settings.title", draft.copyOverrides)}
       description="Keys are stored in this browser and sent only to this app's own server routes."
       onClose={onClose}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose}>
-            Cancel
+            {uiCopy("settings.cancel", draft.copyOverrides)}
           </button>
           <button
             className="btn-primary"
             onClick={() => {
               const displayName = (draft.displayName ?? "").trim().replace(/\s+/g, " ").slice(0, APP_NAME_LIMIT).trim();
-              update({ ...draft, displayName });
+              const copyOverrides: Partial<Record<CopyKey, string>> = {};
+              for (const key of Object.keys(UI_COPY) as CopyKey[]) {
+                const text = cleanCopyText(draft.copyOverrides?.[key] ?? "", UI_COPY[key].limit);
+                if (text) copyOverrides[key] = text;
+              }
+              update({
+                ...draft,
+                displayName,
+                copyOverrides: Object.keys(copyOverrides).length ? copyOverrides : undefined,
+              });
               onClose();
             }}
           >
-            Save settings
+            {uiCopy("settings.save", draft.copyOverrides)}
           </button>
         </>
       }
     >
       <div className="space-y-6">
         <section className="space-y-2">
-          <label className="label" htmlFor="settings-app-name">App name</label>
+          <label className="label" htmlFor="settings-app-name">{uiCopy("settings.appName", draft.copyOverrides)}</label>
           <input
             id="settings-app-name"
             className="input"
@@ -82,7 +92,68 @@ export function SettingsModal({ status, onClose }: { status: ServerStatus | null
             placeholder={APP_NAME}
             onChange={(e) => set("displayName", e.target.value)}
           />
-          <p className="text-xs text-slate-500">This is the name in the sidebar, the browser tab, and calendar exports. Leave it blank to use {APP_NAME}.</p>
+          <p className="text-xs text-slate-500">{uiCopy("settings.appName.hint", draft.copyOverrides)}</p>
+        </section>
+
+        <section className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-200">{uiCopy("nav.reset", draft.copyOverrides)}</h3>
+            <button
+              type="button"
+              className="btn-ghost py-1.5 text-xs"
+              onClick={() => setDraft((current) => ({ ...current, sectionOrder: undefined, tabOrder: undefined }))}
+            >
+              {uiCopy("nav.reset", draft.copyOverrides)}
+            </button>
+          </div>
+          <p className="text-xs text-slate-500">Restores Plan, Create, and Library, and the tabs inside them. This applies when you save settings.</p>
+        </section>
+
+        <section className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-200">{uiCopy("copy.heading", draft.copyOverrides)}</h3>
+            <button
+              type="button"
+              className="btn-ghost py-1.5 text-xs"
+              onClick={() => setDraft((current) => ({ ...current, copyOverrides: undefined }))}
+            >
+              {uiCopy("copy.resetAll", draft.copyOverrides)}
+            </button>
+          </div>
+          <p className="text-xs text-slate-500">Rename headers, helper text, and buttons. A blank field uses the original wording. This applies when you save settings.</p>
+          <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-slate-800 p-3">
+            {(Object.keys(UI_COPY) as CopyKey[]).map((key) => (
+              <div key={key}>
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <label className="label !mb-0" htmlFor={`copy-${key}`}>
+                    {UI_COPY[key].text}
+                    <span className="ml-2 font-normal normal-case tracking-normal text-slate-500">{UI_COPY[key].where}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="text-[11px] text-blue-400 hover:text-blue-300"
+                    onClick={() =>
+                      setDraft((current) => {
+                        const next = { ...current.copyOverrides };
+                        delete next[key];
+                        return { ...current, copyOverrides: next };
+                      })
+                    }
+                  >
+                    Reset
+                  </button>
+                </div>
+                <input
+                  id={`copy-${key}`}
+                  className="input py-1.5 text-xs"
+                  maxLength={UI_COPY[key].limit}
+                  placeholder={UI_COPY[key].text}
+                  value={draft.copyOverrides?.[key] ?? ""}
+                  onChange={(e) => setDraft((current) => ({ ...current, copyOverrides: { ...current.copyOverrides, [key]: e.target.value } }))}
+                />
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-3">
