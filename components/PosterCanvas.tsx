@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { mmToPx, trimPx } from "@/lib/poster-sizes";
 import { orientationOf } from "@/lib/poster-prompt";
+import { withColors } from "@/lib/poster-spec";
 import type { PosterSection, PosterSize, PosterSpec, PosterStep, PosterTheme } from "@/lib/poster-types";
 
 export interface PosterCanvasProps {
@@ -42,6 +43,9 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
   const u = Math.sqrt(trimW * trimH) / 100;
   const landscape = orientationOf(trimW, trimH) === "landscape";
   const t = spec.theme;
+  const headerTheme = withColors(t, spec.header.colors);
+  const ctaTheme = withColors(t, spec.cta?.colors);
+  const footerTheme = withColors(t, spec.footer?.colors);
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(1);
@@ -143,8 +147,8 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
         <div
           style={{
             alignSelf: "flex-start",
-            background: t.accent,
-            color: readableOn(t.accent),
+            background: ctaTheme.accent,
+            color: spec.cta.colors?.onPrimary ?? readableOn(ctaTheme.accent),
             fontWeight: 800,
             fontSize: fs(2),
             padding: `${(1 * u * fit).toFixed(2)}px ${(2.4 * u * fit).toFixed(2)}px`,
@@ -154,7 +158,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
           {spec.cta.label}
         </div>
         {spec.cta.url && (
-          <div style={{ fontSize: fs(1.35), color: t.muted, wordBreak: "break-all" }}>{spec.cta.url.replace(/^https?:\/\//, "")}</div>
+          <div style={{ fontSize: fs(1.35), color: ctaTheme.muted, wordBreak: "break-all" }}>{spec.cta.url.replace(/^https?:\/\//, "")}</div>
         )}
       </div>
       {spec.cta.showQr && qrSrc && (
@@ -170,8 +174,8 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
     <div ref={ref} data-poster-root style={root}>
       <div
         style={{
-          background: t.primary,
-          color: t.onPrimary,
+          background: headerTheme.primary,
+          color: headerTheme.onPrimary,
           padding: `${bleed + 2.4 * u}px ${padX}px ${2.6 * u}px`,
           display: "flex",
           flexDirection: "column",
@@ -231,14 +235,15 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
           style={{
             flex: "0 0 auto",
             padding: `${1.2 * u}px ${padX}px ${bleed + 1.8 * u}px`,
-            borderTop: `${Math.max(1, u * 0.12)}px solid ${t.muted}33`,
+            borderTop: `${Math.max(1, u * 0.12)}px solid ${footerTheme.muted}33`,
+            color: footerTheme.text,
             display: "flex",
             flexDirection: "column",
             gap: gap(0.5),
           }}
         >
           {spec.footer?.text && <div style={{ fontSize: fs(1.3), fontWeight: 600, whiteSpace: "pre-line" }}>{spec.footer.text}</div>}
-          {spec.footer?.disclaimer && <div style={{ fontSize: fs(0.98), color: t.muted, lineHeight: 1.35, whiteSpace: "pre-line" }}>{spec.footer.disclaimer}</div>}
+          {spec.footer?.disclaimer && <div style={{ fontSize: fs(0.98), color: footerTheme.muted, lineHeight: 1.35, whiteSpace: "pre-line" }}>{spec.footer.disclaimer}</div>}
         </div>
       )}
       {!(spec.footer?.text || spec.footer?.disclaimer) && <div style={{ flex: "0 0 auto", height: bleed + 1.8 * u }} />}
@@ -252,7 +257,16 @@ function SectionTitle({ children, fs, color }: { children: ReactNode; fs: Fs; co
   return <div style={{ fontWeight: 800, fontSize: fs(1.9), color, letterSpacing: "-0.005em" }}>{children}</div>;
 }
 
-function SectionView({ section, theme, fs, gap }: { section: PosterSection; theme: PosterTheme; fs: Fs; gap: Fs }) {
+function SectionView({ section, theme: baseTheme, fs, gap }: { section: PosterSection; theme: PosterTheme; fs: Fs; gap: Fs }) {
+  const theme = withColors(baseTheme, section.colors);
+  return (
+    <div style={{ color: theme.text }}>
+      <SectionBody section={section} theme={theme} fs={fs} gap={gap} />
+    </div>
+  );
+}
+
+function SectionBody({ section, theme, fs, gap }: { section: PosterSection; theme: PosterTheme; fs: Fs; gap: Fs }) {
   const title = section.title ? <SectionTitle fs={fs} color={theme.primary}>{section.title}</SectionTitle> : null;
 
   if (section.type === "steps") {

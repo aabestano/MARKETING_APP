@@ -15,18 +15,21 @@ export interface PosterStep {
   decision?: { yes?: string; no?: string };
 }
 
+/** Per-part color overrides; any role left out falls back to the poster theme. */
+export type ColorOverrides = Partial<PosterTheme>;
+
 export type PosterSection =
-  | { type: "steps"; title?: string; style: "flowchart" | "numbered"; items: PosterStep[] }
-  | { type: "bullets"; title?: string; items: string[] }
-  | { type: "callout"; title?: string; body: string }
-  | { type: "stats"; title?: string; items: { value: string; label: string }[] };
+  | { type: "steps"; title?: string; style: "flowchart" | "numbered"; items: PosterStep[]; colors?: ColorOverrides }
+  | { type: "bullets"; title?: string; items: string[]; colors?: ColorOverrides }
+  | { type: "callout"; title?: string; body: string; colors?: ColorOverrides }
+  | { type: "stats"; title?: string; items: { value: string; label: string }[]; colors?: ColorOverrides };
 
 export interface PosterSpec {
   version: 1;
   theme: PosterTheme;
   /** requested font family; resolved against uploaded fonts with a closest-match fallback */
   fontFamily?: string;
-  header: { brandName?: string; tagline?: string; logoAssetId?: string };
+  header: { brandName?: string; tagline?: string; logoAssetId?: string; colors?: ColorOverrides };
   headline: string;
   subheading?: string;
   illustration?: {
@@ -36,8 +39,8 @@ export interface PosterSpec {
     prompt?: string;
   };
   sections: PosterSection[];
-  cta?: { label: string; url?: string; showQr: boolean };
-  footer?: { text?: string; disclaimer?: string };
+  cta?: { label: string; url?: string; showQr: boolean; colors?: ColorOverrides };
+  footer?: { text?: string; disclaimer?: string; colors?: ColorOverrides };
 }
 
 export type SizeUnit = "mm" | "in" | "px";

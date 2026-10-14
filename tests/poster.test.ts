@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { buildFontFaceCss, parseFontFileName, resolveFontStack } from "../lib/fonts";
-import { buildFallbackPoster, linesToSteps, sanitizePosterSpec, stepsToLines, themeFromTokens } from "../lib/poster-spec";
+import { buildFallbackPoster, cleanColorOverrides, clearColorOverrides, linesToSteps, sanitizePosterSpec, stepsToLines, themeFromTokens, withColors } from "../lib/poster-spec";
 import { DEFAULT_TOKENS } from "../lib/brand-tokens";
 import { exportPixelRatio, sanitizeSize, sizeFromPreset, trimMm, trimPx } from "../lib/poster-sizes";
 import { extractJsonObject } from "../lib/poster-prompt";
@@ -165,4 +165,43 @@ test("illustration picker matches by name, role and directive words and ignores 
   assert.equal(pickIllustration(pool, "Seasonal immunization drive for flu season")?.id, "2");
   assert.equal(pickIllustration(pool, "Quarterly report")?.id, undefined);
   assert.equal(findLogo(assets, "b")?.id, "3");
+});
+
+test("per-part color overrides are validated and survive sanitizing", () => {
+  assert.deepEqual(cleanColorOverrides({ primary: "#abc", accent: "red", bogus: "#fff", text: " #112233 " }), { primary: "#abc", text: "#112233" });
+  assert.equal(cleanColorOverrides({ primary: "nope" }), undefined);
+  assert.equal(cleanColorOverrides("x"), undefined);
+
+  const spec = sanitizePosterSpec(
+    {
+      header: { colors: { primary: "#111111" } },
+      sections: [{ type: "callout", body: "Hi", colors: { accent: "#00ff00", surface: "bad" } }, { type: "bullets", items: ["a"] }],
+      cta: { label: "Go", colors: { accent: "#ff8800", onPrimary: "#000000" } },
+      footer: { text: "Help", colors: { muted: "#999999" } },
+    },
+    ctx,
+  );
+  assert.deepEqual(spec.header.colors, { primary: "#111111" });
+  assert.deepEqual(spec.sections[0].colors, { accent: "#00ff00" });
+  assert.equal(spec.sections[1].colors, undefined);
+  assert.deepEqual(spec.cta?.colors, { accent: "#ff8800", onPrimary: "#000000" });
+  assert.deepEqual(spec.footer?.colors, { muted: "#999999" });
+});
+
+test("withColors layers overrides on the theme and clearColorOverrides removes them", () => {
+  assert.equal(withColors(theme), theme);
+  const merged = withColors(theme, { accent: "#123456" });
+  assert.equal(merged.accent, "#123456");
+  assert.equal(merged.primary, theme.primary);
+
+  const spec = sanitizePosterSpec(
+    { header: { colors: { primary: "#111111" } }, sections: [{ type: "bullets", items: ["a"], colors: { accent: "#00ff00" } }], cta: { label: "Go", colors: { accent: "#ff8800" } }, footer: { text: "x", colors: { muted: "#999999" } } },
+    ctx,
+  );
+  const cleared = clearColorOverrides(spec);
+  assert.equal(cleared.header.colors, undefined);
+  assert.equal(cleared.sections[0].colors, undefined);
+  assert.equal(cleared.cta?.colors, undefined);
+  assert.equal(cleared.footer?.colors, undefined);
+  assert.equal(cleared.sections[0].type === "bullets" && cleared.sections[0].items[0], "a");
 });
