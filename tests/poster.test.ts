@@ -22,6 +22,7 @@ test("font resolution: uploaded match wins, otherwise closest system look, other
   assert.equal(closest.match, "closest");
   assert.match(closest.stack, /Georgia/);
   assert.match(resolveFontStack("Futura", []).stack, /Century Gothic/);
+  assert.match(resolveFontStack("Poppins", []).stack, /Century Gothic/);
   assert.equal(resolveFontStack(undefined, []).match, "default");
   assert.equal(resolveFontStack(undefined, ["Brand Sans"]).family, "Brand Sans");
 });

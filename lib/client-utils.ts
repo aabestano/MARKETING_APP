@@ -43,6 +43,7 @@ export interface DownscaleOptions {
 export async function downscaleDataUrl(dataUrl: string, { maxEdge = 1100, quality = 0.72, keepAlpha = false }: DownscaleOptions = {}): Promise<string> {
   const img = await loadImage(dataUrl);
   const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+  if (scale === 1 && dataUrl.length * 0.75 <= 1.5 * 1024 * 1024) return dataUrl;
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(img.width * scale));
   canvas.height = Math.max(1, Math.round(img.height * scale));

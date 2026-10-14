@@ -19,7 +19,8 @@ import { parseFontFileName } from "@/lib/fonts";
 import { assetInFolder, assetPurposes, type AssetFolder } from "@/lib/assets";
 import { FolderTabs, PurposePicker } from "./PurposePicker";
 import { assetFile, assetPreviewKind, downloadAssetFile } from "@/lib/asset-file";
-import { DEFAULT_TOKENS, isHex } from "@/lib/brand-tokens";
+import { DEFAULT_TOKENS, isHex, isMaxicareBl, MAXICARE_BL_TOKENS } from "@/lib/brand-tokens";
+import { PaletteSuggest } from "./PaletteSuggest";
 import { downscaleImage, formatBytes, readAsDataUrl, readAsText, timeAgo } from "@/lib/client-utils";
 import { AssetViewer } from "./AssetViewer";
 import { EmptyState, Spinner, useToast } from "./ui";
@@ -74,7 +75,8 @@ export function BrandBooks() {
     [assets],
   );
 
-  const effectiveTarget = books.some((b) => b.id === targetBook) ? targetBook : books[0]?.id ?? NEW_BOOK;
+  const effectiveTarget =
+    targetBook === NEW_BOOK || books.some((b) => b.id === targetBook) ? targetBook : books[0]?.id ?? NEW_BOOK;
 
   const resolveBookId = (): string | null => {
     if (effectiveTarget !== NEW_BOOK) return effectiveTarget;
@@ -338,7 +340,7 @@ export function BrandBooks() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </header>
-                    <TokenEditor book={book} />
+                    <TokenEditor book={book} assets={allBookAssets} />
                     {bookAssets.length === 0 ? (
                       <p className="px-4 py-6 text-center text-sm text-slate-500">
                         {allBookAssets.length === 0
@@ -478,11 +480,14 @@ const TOKEN_FIELDS: { key: Exclude<keyof BrandTokens, "fontFamily">; label: stri
   { key: "primary", label: "Primary", token: "{{BRAND_PRIMARY_COLOR}}" },
   { key: "secondary", label: "Secondary", token: "{{BRAND_SECONDARY_COLOR}}" },
   { key: "accent", label: "Accent", token: "{{BRAND_ACCENT_COLOR}}" },
+  { key: "textColor", label: "Text", token: "{{BRAND_TEXT_COLOR}}" },
+  { key: "mutedColor", label: "Muted text", token: "{{BRAND_MUTED_COLOR}}" },
+  { key: "borderColor", label: "Border", token: "{{BRAND_BORDER_COLOR}}" },
   { key: "canvasBg", label: "Canvas background", token: "{{BRAND_CANVAS_BG}}" },
   { key: "containerBg", label: "Container background", token: "{{BRAND_CONTAINER_BG}}" },
 ];
 
-function TokenEditor({ book }: { book: BrandBook }) {
+function TokenEditor({ book, assets }: { book: BrandBook; assets: BrandAsset[] }) {
   const update = useStore((s) => s.updateBrandTokens);
   const tokens = book.tokens ?? {};
   const value = (k: keyof BrandTokens) => (tokens[k] as string | undefined) ?? "";
@@ -493,7 +498,7 @@ function TokenEditor({ book }: { book: BrandBook }) {
         Brand tokens {Object.keys(tokens).length ? `(${Object.keys(tokens).length} set)` : "(defaults)"}
       </summary>
       <p className="mt-2 text-xs text-slate-500">
-        Resolved into <code className="font-mono">{"{{BRAND_*}}"}</code> placeholders before every compile. Empty fields use the default.
+        Empty fields use the default, so existing designs keep today’s colors until you set a field or apply a palette. Button text uses the default unless a directive sets it.
       </p>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {TOKEN_FIELDS.map((f) => {
@@ -537,6 +542,17 @@ function TokenEditor({ book }: { book: BrandBook }) {
           />
         </div>
       </div>
+      {isMaxicareBl(book.name) && (
+        <div className="mt-3">
+          <button type="button" className="btn-ghost" onClick={() => update(book.id, MAXICARE_BL_TOKENS)}>
+            Apply Maxicare BL colors
+          </button>
+          <p className="mt-1 text-xs text-slate-500">
+            Sets blue #0150C8, orange #E0610C, text, soft backgrounds, border, muted text, and Poppins for this book. Poppins falls back to a similar system font until you upload it. Designs already generated keep their colors.
+          </p>
+        </div>
+      )}
+      <PaletteSuggest assets={assets} onApply={(tokens) => update(book.id, tokens)} />
     </details>
   );
 }

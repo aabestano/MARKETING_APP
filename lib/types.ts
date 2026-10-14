@@ -9,6 +9,9 @@ export interface BrandTokens {
   accent?: string;
   canvasBg?: string;
   containerBg?: string;
+  textColor?: string;
+  mutedColor?: string;
+  borderColor?: string;
   fontFamily?: string;
 }
 
