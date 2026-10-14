@@ -82,7 +82,7 @@ export function IdeaInspectModal({
         )}
         {idea.subjectLines?.length > 0 && (
           <Block title="A/B subject lines">
-            <ul className="list-disc space-y-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 p-3 pl-7 text-indigo-100">
+            <ul className="list-disc space-y-1 rounded-md border border-indigo-500/30 bg-indigo-500/10 p-3 pl-7 text-indigo-300">
               {idea.subjectLines.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}

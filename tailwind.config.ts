@@ -16,6 +16,8 @@ const config: Config = {
         red: scale("red", [200, 300, 400]),
         amber: scale("amber", [200, 300, 400]),
         indigo: scale("indigo", [200, 300, 400]),
+        purple: scale("purple", [300]),
+        fuchsia: scale("fuchsia", [300, 400]),
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],

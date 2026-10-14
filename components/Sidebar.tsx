@@ -27,7 +27,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
   return (
     <aside className="sidebar-scope flex w-full shrink-0 flex-col border-b border-slate-800 bg-slate-950 md:h-screen md:w-64 md:border-b-0 md:border-r">
       <div className="flex items-center gap-2.5 border-b border-slate-800 px-4 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-emerald-500">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gradient-to-br from-blue-700 to-emerald-800">
           <Mail className="h-4 w-4 text-white" />
         </div>
         <div className="min-w-0 flex-1 leading-tight">
@@ -68,7 +68,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
               <Icon className={clsx("h-4 w-4 shrink-0", active ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300")} />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium">
-                  <span className="mr-1.5 text-slate-600">{i + 1}.</span>
+                  <span className="mr-1.5 text-slate-400">{i + 1}.</span>
                   {section.label}
                 </span>
                 <span className="hidden text-[11px] text-slate-500 md:block">{section.hint}</span>

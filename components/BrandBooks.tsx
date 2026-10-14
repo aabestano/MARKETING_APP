@@ -418,7 +418,7 @@ function AssetRow({
               onBlur={(e) => e.target.value.trim() && e.target.value.trim() !== asset.fontFamily && onFamily(e.target.value.trim())}
               aria-label={`Font family name for ${asset.name}`}
             />
-            <span className="text-slate-600">Poster fonts are matched by this name.</span>
+            <span className="text-slate-400">Poster fonts are matched by this name.</span>
           </label>
         )}
         <div className="mt-1">
@@ -431,7 +431,7 @@ function AssetRow({
           </div>
         ) : (
           <button onClick={() => setEditing(true)} className="mt-0.5 text-left text-xs text-slate-400 hover:text-slate-200">
-            {asset.directive ? <>“{asset.directive}”</> : <span className="text-slate-600">+ add usage directive</span>}
+            {asset.directive ? <>“{asset.directive}”</> : <span className="text-slate-400">+ add usage directive</span>}
           </button>
         )}
       </div>

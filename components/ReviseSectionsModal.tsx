@@ -124,7 +124,7 @@ function PromptView({
         {names.map((name) => (
           <div key={name}>
             <label className="label" htmlFor={`rev-${name}`}>
-              {labelFor(name)} <span className="ml-1 normal-case tracking-normal text-slate-600">{name}</span>
+              {labelFor(name)} <span className="ml-1 normal-case tracking-normal text-slate-400">{name}</span>
             </label>
             <textarea
               id={`rev-${name}`}
