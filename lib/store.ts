@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { STORAGE_ERROR_EVENT, createIdbStorage } from "./idb";
 import { normalizePurposes } from "./assets";
 import { applyLabelMigration } from "./label-migration";
+import { ensureGeneratedIdeaIds, mergeGeneratedIdeas, sameGeneratedIdea } from "./idea-rules";
 import { applyImport, type ImportMode, type WorkspaceData } from "./workspace-io";
 import { DEFAULT_SIZE } from "./poster-sizes";
 import { syncLifecycle } from "./pipeline";
@@ -95,6 +96,9 @@ interface AppState {
   deleteResource: (id: string) => void;
   loadSampleResources: (resources: IdeaResource[]) => void;
   setGeneratedIdeas: (ideas: IdeaCard[]) => void;
+  /** Merges a new batch into the saved list and drops the oldest unscheduled ideas past the cap. */
+  addGeneratedIdeas: (ideas: IdeaCard[]) => IdeaCard[];
+  patchGeneratedIdea: (id: string, patch: Partial<IdeaCard>) => void;
   schedule: (idea: IdeaCard, date: string, campaign?: Campaign) => PipelineItem;
   updatePipelineItem: (id: string, patch: Partial<Omit<PipelineItem, "id">>) => void;
   removePipelineItem: (id: string) => void;
@@ -171,10 +175,33 @@ export const useStore = create<AppState>()(
       deleteResource: (id) => set((s) => ({ ideaBase: s.ideaBase.filter((r) => r.id !== id) })),
       loadSampleResources: (resources) =>
         set((s) => ({ ideaBase: [...resources.filter((r) => !s.ideaBase.some((x) => x.id === r.id)), ...s.ideaBase] })),
-      setGeneratedIdeas: (generatedIdeas) => set({ generatedIdeas }),
+      setGeneratedIdeas: (generatedIdeas) => set({ generatedIdeas: ensureGeneratedIdeaIds(generatedIdeas) }),
+      addGeneratedIdeas: (incoming) => {
+        let next: IdeaCard[] = [];
+        set((s) => {
+          const keepIds = new Set(s.pipeline.map((item) => item.ideaData.id).filter((id): id is string => Boolean(id)));
+          next = mergeGeneratedIdeas(s.generatedIdeas, incoming, { keepIds });
+          return { generatedIdeas: next };
+        });
+        return next;
+      },
+      patchGeneratedIdea: (id, patch) =>
+        set((s) => ({
+          generatedIdeas: s.generatedIdeas.map((idea) => (idea.id === id ? { ...idea, ...patch, id: idea.id } : idea)),
+        })),
       schedule: (idea, date, campaign) => {
-        const item: PipelineItem = { id: "pipe_" + uid().slice(0, 8), scheduledDate: date, status: "Scheduled", ideaData: { ...idea }, campaign };
-        set((s) => ({ pipeline: syncLifecycle([...s.pipeline, item]) }));
+        const stamped = ensureGeneratedIdeaIds([idea])[0];
+        const item: PipelineItem = {
+          id: "pipe_" + uid().slice(0, 8),
+          scheduledDate: date,
+          status: "Scheduled",
+          ideaData: { ...stamped },
+          campaign: campaign ?? stamped.campaign,
+        };
+        set((s) => ({
+          pipeline: syncLifecycle([...s.pipeline, item]),
+          generatedIdeas: s.generatedIdeas.filter((saved) => !sameGeneratedIdea(saved, stamped)),
+        }));
         return item;
       },
       updatePipelineItem: (id, patch) => set((s) => ({ pipeline: syncLifecycle(s.pipeline.map((i) => (i.id === id ? { ...i, ...patch } : i))) })),
@@ -327,15 +354,17 @@ export const useStore = create<AppState>()(
     }),
     {
       name: "brand-engine-app2-v1",
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => createIdbStorage()),
       migrate: (persisted) => {
-        const state = (persisted ?? {}) as { assets?: BrandAsset[]; activeTab?: string };
+        const state = (persisted ?? {}) as { assets?: BrandAsset[]; activeTab?: string; generatedIdeas?: IdeaCard[] };
         if (state.activeTab === "generator") state.activeTab = "design-studio";
         if (Array.isArray(state.assets)) {
           state.assets = state.assets.map((a) => ({ ...a, purposes: normalizePurposes(a.purposes) }));
         }
-        return applyLabelMigration(state) as unknown as AppState;
+        const migrated = applyLabelMigration(state) as { generatedIdeas?: IdeaCard[] };
+        if (Array.isArray(migrated.generatedIdeas)) migrated.generatedIdeas = ensureGeneratedIdeaIds(migrated.generatedIdeas);
+        return migrated as unknown as AppState;
       },
       skipHydration: true,
       partialize: (s) => ({

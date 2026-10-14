@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { CalendarPlus, ClipboardCopy } from "lucide-react";
+import { CalendarPlus, ClipboardCopy, FileSearch } from "lucide-react";
 import clsx from "clsx";
 import { cardBadge } from "@/lib/idea-gen";
 import type { IdeaCard } from "@/lib/idea-types";
@@ -32,12 +32,14 @@ export function IdeaInspectModal({
   idea,
   onClose,
   onSchedule,
+  onInspectFull,
   extraFooter,
 }: {
   idea: IdeaCard;
   onClose: () => void;
   /** when provided, shows the scheduling drawer */
   onSchedule?: (date: string) => void;
+  onInspectFull?: () => void;
   extraFooter?: ReactNode;
 }) {
   const toast = useToast();
@@ -54,6 +56,11 @@ export function IdeaInspectModal({
       footer={
         <>
           {extraFooter}
+          {onInspectFull && (
+            <button type="button" className="btn-ghost" onClick={onInspectFull}>
+              <FileSearch className="h-4 w-4" /> Inspect full idea content
+            </button>
+          )}
           <button
             className="btn-ghost"
             onClick={async () => toast((await copyText(ideaAssetText(idea))) ? "Campaign asset copied." : "Clipboard unavailable.", "info")}

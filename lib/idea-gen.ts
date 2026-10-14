@@ -1,5 +1,12 @@
 import { currentCohort, type GenMode, type IdeaCard, type IdeaResource } from "./idea-types";
 
+const GEN_MODE_VALUES: readonly GenMode[] = ["Hybrid", "Idea Base Match", "Pure Random", "Custom Items"];
+
+/** Unknown values stay on Hybrid so older clients keep their previous mode. */
+export function resolveGenMode(mode: unknown): GenMode {
+  return GEN_MODE_VALUES.includes(mode as GenMode) ? (mode as GenMode) : "Hybrid";
+}
+
 export interface Exclusions {
   titles: string[];
   sourceIds: string[];
@@ -22,7 +29,9 @@ export function buildIdeaSystemInstruction(args: {
       ? "\nMODE: Idea Base Match. Every idea MUST be built strictly from one of the AVAILABLE NOTES and set sourceId to that note's ID."
       : args.mode === "Pure Random"
         ? "\nMODE: Pure AI. Brainstorm from scratch; leave sourceId empty."
-        : "\nMODE: Hybrid (Idea Base + AI). Blend AVAILABLE NOTES with fresh creative angles; set sourceId when an idea draws on a note.";
+        : args.mode === "Custom Items"
+          ? "\nMODE: Custom Idea Base Items. Every idea MUST be built only from the AVAILABLE NOTES. Set sourceId to one of those note IDs. Do not use any other source material."
+          : "\nMODE: Hybrid (Idea Base + AI). Blend AVAILABLE NOTES with fresh creative angles; set sourceId when an idea draws on a note.";
   return `You are the Principal Marketing & Health Adherence Strategist for 'The Best Life Program' by Maxicare & MedGrocer (forwardmg.ph).
 Generate an array of exactly ${args.focusTypes.length} campaign initiative objects matching the required schema.
 
@@ -78,6 +87,28 @@ export function sanitizeIdeaCards(raw: unknown, defaults: { cohort: string; focu
     });
   });
   return out;
+}
+
+/**
+ * Offline cards for Custom Idea Base Items. Each card is tied to one selected item,
+ * round-robin, and names that item so the batch is visibly grounded on the selection.
+ */
+export function buildCustomOfflineCards(
+  cohort: string,
+  focusTypes: string[],
+  resources: Pick<IdeaResource, "id" | "name" | "extractedNotes">[],
+): IdeaCard[] {
+  return focusTypes.map((fType, index) => {
+    const source = resources.length ? resources[index % resources.length] : undefined;
+    const card = buildOfflineFallbackCards(cohort, [fType], source?.id)[0];
+    if (!source) return card;
+    const note = source.extractedNotes.replace(/\s+/g, " ").trim().slice(0, 140);
+    return {
+      ...card,
+      sourceId: source.id,
+      topicSummary: `Built only from ${source.name}. ${note || source.name}`,
+    };
+  });
 }
 
 /** Ported from IDEAte: used when no API key is set or the AI call fails. */

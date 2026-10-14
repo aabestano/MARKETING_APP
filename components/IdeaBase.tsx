@@ -7,12 +7,11 @@ import { useStore } from "@/lib/store";
 import { downscaleDataUrl, postJson, readAsDataUrl, readAsText, formatBytes } from "@/lib/client-utils";
 import { MAX_ANALYZE_BYTES, analysisMode, dataUrlBytes } from "@/lib/resource-files";
 import { COHORTS, MAX_RESOURCE_FILE_BYTES, MONTHS, SOURCE_TYPES, type IdeaResource } from "@/lib/idea-types";
+import { needsAnalysis } from "@/lib/idea-rules";
 import { SAMPLE_RESOURCES } from "@/lib/pipeline";
 import { EmptyState, Modal, Segmented, Spinner, useToast } from "./ui";
 import { ImportIdeateModal } from "./ImportIdeateModal";
 import type { ServerStatus } from "./AppShell";
-
-const needsAnalysis = (r: IdeaResource) => r.inputType === "file" && !r.extractedNotes.trim();
 
 const stripHtml = (html: string) =>
   html
@@ -46,6 +45,8 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
   const [typeF, setTypeF] = useState("");
   const [statusF, setStatusF] = useState("");
   const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const hasKey = !!settings.geminiApiKey || !!status?.gemini;
 
@@ -98,6 +99,29 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
   }, [resources, q, cohortF, typeF, statusF]);
 
   const opened = resources.find((r) => r.id === openId) ?? null;
+  const selectedExisting = useMemo(() => [...selected].filter((id) => resources.some((resource) => resource.id === id)), [selected, resources]);
+
+  const toggleSelected = (id: string) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const applyActive = (active: boolean) => {
+    selectedExisting.forEach((id) => updateResource(id, { active }));
+    toast(`Set ${selectedExisting.length} ${selectedExisting.length === 1 ? "idea" : "ideas"} as ${active ? "active" : "inactive"}.`, "success");
+  };
+
+  const deleteSelected = () => {
+    const count = selectedExisting.length;
+    selectedExisting.forEach((id) => deleteResource(id));
+    setSelected(new Set());
+    setConfirmDelete(false);
+    toast(`Deleted ${count} ${count === 1 ? "idea" : "ideas"}.`, "success");
+  };
 
   return (
     <div className="h-full overflow-y-auto">
@@ -159,7 +183,22 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
                 <option value="needs">Needs analysis</option>
                 <option value="ready">Analyzed</option>
               </select>
+              {filtered.length > 0 && (
+                <button type="button" className="btn-ghost" onClick={() => setSelected(new Set(filtered.map((resource) => resource.id)))}>
+                  Select all {filtered.length} {filtered.length === 1 ? "idea" : "ideas"}
+                </button>
+              )}
             </div>
+
+            {selectedExisting.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2">
+                <span className="text-sm text-slate-300">{selectedExisting.length} selected</span>
+                <button type="button" className="btn-ghost py-1.5 text-xs" onClick={() => applyActive(true)}>Set as Active</button>
+                <button type="button" className="btn-ghost py-1.5 text-xs" onClick={() => applyActive(false)}>Set as Inactive</button>
+                <button type="button" className="btn-danger py-1.5 text-xs" onClick={() => setConfirmDelete(true)}>Delete</button>
+                <button type="button" className="btn-ghost py-1.5 text-xs" onClick={() => setSelected(new Set())}>Clear selection</button>
+              </div>
+            )}
 
             {resources.length === 0 ? (
               <EmptyState
@@ -180,7 +219,16 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
                 {filtered.map((r) => (
                   <article key={r.id} className={clsx("card flex flex-col gap-2 p-4", !r.active && "opacity-60")}>
                     <div className="flex items-start justify-between gap-2">
-                      <button className="min-w-0 text-left" onClick={() => setOpenId(r.id)}>
+                      <label className="mt-0.5 flex shrink-0 items-center">
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 accent-blue-500"
+                          checked={selected.has(r.id)}
+                          aria-label={`Select ${r.name}`}
+                          onChange={() => toggleSelected(r.id)}
+                        />
+                      </label>
+                      <button className="min-w-0 flex-1 text-left" onClick={() => setOpenId(r.id)}>
                         <h3 className="line-clamp-2 text-sm font-semibold text-slate-100 hover:text-blue-300">{r.name}</h3>
                       </button>
                       <label className="flex shrink-0 items-center gap-1.5 text-[11px] text-slate-400" title="Active items are used by the Idea Generator">
@@ -236,6 +284,22 @@ export function IdeaBase({ status, onOpenSettings }: { status: ServerStatus | nu
         />
       )}
       {importOpen && <ImportIdeateModal onClose={() => setImportOpen(false)} />}
+      {confirmDelete && (
+        <Modal
+          title="Delete ideas"
+          onClose={() => setConfirmDelete(false)}
+          footer={
+            <>
+              <button type="button" className="btn-ghost" onClick={() => setConfirmDelete(false)}>Cancel</button>
+              <button type="button" className="btn-danger" onClick={deleteSelected}>Delete</button>
+            </>
+          }
+        >
+          <p className="text-sm text-slate-300">
+            Delete {selectedExisting.length} {selectedExisting.length === 1 ? "idea" : "ideas"}? This is permanent and cannot be undone. There is no way to retrieve them.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }
