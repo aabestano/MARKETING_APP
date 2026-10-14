@@ -17,6 +17,9 @@ import { useStore } from "@/lib/store";
 import type { AssetKind, AssetPurpose, BrandAsset, BrandBook, BrandTokens } from "@/lib/types";
 import { parseFontFileName } from "@/lib/fonts";
 import { assetInFolder, assetPurposes, type AssetFolder } from "@/lib/assets";
+import { designsForBook } from "@/lib/brand-scope";
+import { uiCopy } from "@/lib/ui-copy";
+import { openSavedBlast, openSavedPoster } from "@/lib/design-nav";
 import { FolderTabs, PurposePicker } from "./PurposePicker";
 import { assetFile, assetPreviewKind, downloadAssetFile } from "@/lib/asset-file";
 import { DEFAULT_TOKENS, isHex, isMaxicareBl, MAXICARE_BL_TOKENS } from "@/lib/brand-tokens";
@@ -43,6 +46,9 @@ const KIND_META: Record<AssetKind, { label: string; icon: typeof FileText; tone:
 export function BrandBooks() {
   const books = useStore((s) => s.brandBooks);
   const assets = useStore((s) => s.assets);
+  const posters = useStore((s) => s.posters);
+  const blasts = useStore((s) => s.blasts);
+  const copy = useStore((s) => s.settings.copyOverrides);
   const createBrandBook = useStore((s) => s.createBrandBook);
   const deleteBrandBook = useStore((s) => s.deleteBrandBook);
   const addAsset = useStore((s) => s.addAsset);
@@ -320,8 +326,12 @@ export function BrandBooks() {
           ) : (
             <div className="grid gap-4 xl:grid-cols-2">
               {books.map((book) => {
-                const allBookAssets = assets.filter((a) => a.bookId === book.id);
+                const allBookAssets = assets.filter((a) => a.bookId === book.id || (a.sharedWithAll === true && a.bookId !== book.id));
                 const bookAssets = allBookAssets.filter((a) => assetInFolder(a, folder));
+                const savedDesigns = [
+                  ...designsForBook(posters, book.id).map((poster) => ({ id: poster.id, name: poster.name, kind: "poster" as const })),
+                  ...designsForBook(blasts, book.id).map((blast) => ({ id: blast.id, name: blast.name, kind: "email" as const })),
+                ];
                 return (
                   <article key={book.id} className="card overflow-hidden">
                     <header className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
@@ -340,7 +350,34 @@ export function BrandBooks() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </header>
-                    <TokenEditor book={book} assets={allBookAssets} />
+                    <TokenEditor book={book} assets={allBookAssets.filter((a) => a.bookId === book.id)} />
+                    {savedDesigns.length > 0 && (
+                      <ul className="divide-y divide-slate-800 border-b border-slate-800">
+                        {savedDesigns.map((design) => (
+                          <li key={`${design.kind}-${design.id}`} className="flex items-center justify-between gap-3 px-4 py-2">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm text-slate-100">{design.name}</p>
+                              <p className="text-[11px] text-slate-500">{design.kind === "email" ? uiCopy("brand.emailDesign", copy) : uiCopy("brand.posterDesign", copy)}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="btn-ghost py-1 text-xs"
+                              onClick={() => {
+                              if (design.kind === "email") {
+                                const blast = blasts.find((item) => item.id === design.id);
+                                if (blast) openSavedBlast(blast);
+                                return;
+                              }
+                              const poster = posters.find((item) => item.id === design.id);
+                              if (poster) openSavedPoster(poster);
+                            }}
+                            >
+                              Open
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     {bookAssets.length === 0 ? (
                       <p className="px-4 py-6 text-center text-sm text-slate-500">
                         {allBookAssets.length === 0
@@ -356,6 +393,7 @@ export function BrandBooks() {
                             onDelete={() => deleteAsset(a.id)}
                             onDirective={(d) => updateAsset(a.id, { directive: d })}
                             onPurposes={(p) => updateAsset(a.id, { purposes: p })}
+                            onShared={(shared) => updateAsset(a.id, { sharedWithAll: shared })}
                             onFamily={(f) => updateAsset(a.id, { fontFamily: f })}
                             onView={() => setViewing(a)}
                           />
@@ -379,6 +417,7 @@ function AssetRow({
   onDelete,
   onDirective,
   onPurposes,
+  onShared,
   onFamily,
   onView,
 }: {
@@ -386,9 +425,11 @@ function AssetRow({
   onDelete: () => void;
   onDirective: (d: string) => void;
   onPurposes: (p: AssetPurpose[]) => void;
+  onShared: (shared: boolean) => void;
   onFamily: (family: string) => void;
   onView: () => void;
 }) {
+  const copy = useStore((s) => s.settings.copyOverrides);
   const meta = KIND_META[asset.kind];
   const Icon = meta.icon;
   const [editing, setEditing] = useState(false);
@@ -441,6 +482,15 @@ function AssetRow({
         <div className="mt-1">
           <PurposePicker compact idPrefix={`purpose-${asset.id}`} value={assetPurposes(asset)} onChange={onPurposes} />
         </div>
+        <label className="mt-1.5 flex items-center gap-2 text-[11px] text-slate-400">
+          <input
+            type="checkbox"
+            className="h-3.5 w-3.5 accent-blue-500"
+            checked={asset.sharedWithAll !== false}
+            onChange={(e) => onShared(e.target.checked)}
+          />
+          {uiCopy("brand.availableAll", copy)}
+        </label>
         {editing ? (
           <div className="mt-1.5 flex gap-2">
             <input autoFocus className="input py-1 text-xs" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Usage directive" />

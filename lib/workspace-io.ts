@@ -1,7 +1,8 @@
 import { APP_NAME, APP_NAME_LIMIT } from "./app-name";
 import { normalizePurposes } from "./assets";
 import { applyLabelMigration } from "./label-migration";
-import { SECTIONS, orderedTabIds } from "./nav";
+import { SECTIONS, orderedSectionIds, orderedTabIds } from "./nav";
+import { UI_COPY, cleanCopyText, type CopyKey } from "./ui-copy";
 import type { BrandAsset, BrandBook, SavedBlast, SectionId, Settings, TabId, Theme } from "./types";
 import type { IdeaResource, PipelineItem } from "./idea-types";
 import type { SavedPoster } from "./poster-types";
@@ -92,6 +93,24 @@ function cleanTabOrder(value: unknown): Settings["tabOrder"] | undefined {
   return Object.keys(out).length ? out : undefined;
 }
 
+function cleanSectionOrder(value: unknown): SectionId[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids = value.filter((id): id is SectionId => id === "plan" || id === "create" || id === "library");
+  return ids.length ? orderedSectionIds(ids) : undefined;
+}
+
+function cleanCopyOverrides(value: unknown): Settings["copyOverrides"] | undefined {
+  if (!isObj(value)) return undefined;
+  const out: Partial<Record<CopyKey, string>> = {};
+  for (const key of Object.keys(UI_COPY) as CopyKey[]) {
+    const raw = value[key];
+    if (typeof raw !== "string") continue;
+    const text = cleanCopyText(raw, UI_COPY[key].limit);
+    if (text) out[key] = text;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 function cleanSettings(value: unknown): WorkspaceData["settings"] {
   const settings: Partial<Settings> = isObj(value) ? { ...(value as Partial<Settings>) } : {};
   delete settings.geminiApiKey;
@@ -103,6 +122,19 @@ function cleanSettings(value: unknown): WorkspaceData["settings"] {
   const tabOrder = cleanTabOrder(settings.tabOrder);
   if (tabOrder) settings.tabOrder = tabOrder;
   else delete settings.tabOrder;
+  const sectionOrder = cleanSectionOrder(settings.sectionOrder);
+  if (sectionOrder) settings.sectionOrder = sectionOrder;
+  else delete settings.sectionOrder;
+  if (settings.createBrandBookId === null) {
+    settings.createBrandBookId = null;
+  } else if (typeof settings.createBrandBookId === "string" && settings.createBrandBookId.trim()) {
+    settings.createBrandBookId = settings.createBrandBookId.trim();
+  } else {
+    delete settings.createBrandBookId;
+  }
+  const copyOverrides = cleanCopyOverrides(settings.copyOverrides);
+  if (copyOverrides) settings.copyOverrides = copyOverrides;
+  else delete settings.copyOverrides;
   return settings as WorkspaceData["settings"];
 }
 

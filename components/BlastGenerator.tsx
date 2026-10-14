@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { assetInFolder } from "@/lib/assets";
+import { assetForBook } from "@/lib/brand-scope";
 import { useStore } from "@/lib/store";
 import { copyText, openHtmlInNewTab, postJson, slimAssetsForRequest } from "@/lib/client-utils";
 import { mailchimpReady } from "@/lib/html";
@@ -25,8 +26,11 @@ import { EmptyState, Segmented, Spinner, useToast } from "./ui";
 import { EmailPreview } from "./EmailPreview";
 import { SaveBlastModal, SendTestModal } from "./BlastModals";
 import { EmailBlockEditor, EmailPromptEditor } from "./EmailSectionEditors";
+import { EmailColorControls } from "./EmailColorControls";
+import { chooseBrandBook } from "./CreateBrandSelect";
 import { ReferenceScreenshots } from "./ReferenceScreenshots";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
+import { uiCopy } from "@/lib/ui-copy";
 import type { ServerStatus } from "./AppShell";
 
 const SAMPLE_BLUEPRINT = `# Your Health, Delivered: Save 20% on Maintenance Meds
@@ -112,7 +116,7 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
   const lastCompiled = useRef(workspace.mjml);
 
   const book = books.find((b) => b.id === workspace.brandBookId) ?? null;
-  const bookAssets = useMemo(() => (book ? allAssets.filter((a) => a.bookId === book.id && assetInFolder(a, "email")) : []), [allAssets, book]);
+  const bookAssets = useMemo(() => (book ? allAssets.filter((a) => assetForBook(a, book.id) && assetInFolder(a, "email")) : []), [allAssets, book]);
   const cdnCount = bookAssets.filter((a) => a.kind === "cdn-url").length;
   const tokens = useMemo(
     () => resolveBrandTokens({ tokens: book?.tokens, directives: workspace.directives, assets: bookAssets }),
@@ -236,6 +240,15 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
     return () => clearTimeout(t);
   }, [workspace.mjml, transpile]);
 
+  const tokenKey = JSON.stringify(book?.tokens ?? {});
+  const transpileRef = useRef(transpile);
+  transpileRef.current = transpile;
+  useEffect(() => {
+    if (!workspace.mjml.trim()) return;
+    const t = setTimeout(() => void transpileRef.current(workspace.mjml), 400);
+    return () => clearTimeout(t);
+  }, [tokenKey, workspace.mjml]);
+
   const copyForMailchimp = async () => {
     if (!hasOutput) return;
     const ok = await copyText(mailchimpReady(workspace.html));
@@ -280,7 +293,10 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
             <EmailPromptEditor mjml={workspace.mjml} busy={busy} error={error} onSubmit={(revisions) => void generate(revisions)} />
           )}
           {panel === "manual" && (
-            <EmailBlockEditor key={manualKey} mjml={workspace.mjml} tokens={tokens} bannerSrc={bannerSrc} onApply={applyBlocks} />
+            <>
+              <EmailColorControls book={book} />
+              <EmailBlockEditor key={manualKey} mjml={workspace.mjml} tokens={tokens} bannerSrc={bannerSrc} onApply={applyBlocks} />
+            </>
           )}
           {panel === "brief" && (
           <>
@@ -308,8 +324,8 @@ export function BlastGenerator({ status, onOpenSettings }: { status: ServerStatu
 
           <div>
             <label className="label" htmlFor="brand-select">Brand book</label>
-            <select id="brand-select" className="input" value={workspace.brandBookId ?? ""} onChange={(e) => update({ brandBookId: e.target.value || null })}>
-              <option value="">No brand book</option>
+            <select id="brand-select" className="input" value={workspace.brandBookId ?? ""} onChange={(e) => chooseBrandBook(e.target.value || null)}>
+              <option value="">{uiCopy("brand.all", settings.copyOverrides)}</option>
               {books.map((b) => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}

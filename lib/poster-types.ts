@@ -96,6 +96,8 @@ export interface PosterWorkspace {
   size: PosterSize;
   /** Share of the poster height given to the picture. Defaults to medium. */
   heroSize?: HeroSize;
+  /** Opt-in. Clears an edge-connected white background. Off leaves the picture as it was. */
+  removeBackground?: boolean;
   illustrationMode: IllustrationMode;
   source: "gemini" | "fallback" | "manual" | null;
   warnings: string[];
@@ -113,6 +115,10 @@ export interface SavedPoster {
   spec: PosterSpec;
   size: PosterSize;
   prompt: string;
+  /** Opt-in background removal, restored when the poster is opened again. */
+  removeBackground?: boolean;
+  /** Brand books this saved poster is listed under. Empty means it is only in the Design Repository. */
+  sharedBookIds?: string[];
   /** small PNG preview captured at save time */
   thumbnail?: string;
   createdAt: number;

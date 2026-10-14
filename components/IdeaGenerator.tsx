@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, CalendarCheck, Eye, FileSearch, Lightbulb, Sparkles } from "lucide-react";
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
+import { matchesBrandBook, selectedCreateBookId } from "@/lib/brand-scope";
 import { postJson } from "@/lib/client-utils";
 import { COHORTS, FOCUS_TYPES, GEN_MODES, TONES, type Campaign, type GenMode, type IdeaCard } from "@/lib/idea-types";
 import { isCustomSelectable, UNSCHEDULED_IDEA_LIMIT } from "@/lib/idea-rules";
@@ -28,6 +29,8 @@ export function IdeaGenerator({ status, onOpenSettings }: { status: ServerStatus
   const patchGeneratedIdea = useStore((s) => s.patchGeneratedIdea);
   const schedule = useStore((s) => s.schedule);
   const settings = useStore((s) => s.settings);
+  const workspaceBookId = useStore((s) => s.workspace.brandBookId);
+  const brandBooks = useStore((s) => s.brandBooks);
   const setTab = useStore((s) => s.setTab);
   const setStudio = useStore((s) => s.setStudio);
   const toast = useToast();
@@ -45,7 +48,16 @@ export function IdeaGenerator({ status, onOpenSettings }: { status: ServerStatus
 
   const hasKey = !!settings.geminiApiKey || !!status?.gemini;
   const exclusions = useMemo(() => getExclusions(pipeline), [pipeline]);
-  const activeResources = useMemo(() => ideaBase.filter((r) => r.active && r.extractedNotes.trim() && !exclusions.sourceIds.includes(r.id)), [ideaBase, exclusions]);
+  const createBookId = useMemo(() => {
+    const known = new Set(brandBooks.map((book) => book.id));
+    const raw = selectedCreateBookId(settings.createBrandBookId, workspaceBookId);
+    return raw && known.has(raw) ? raw : null;
+  }, [brandBooks, settings.createBrandBookId, workspaceBookId]);
+  const scopedResources = useMemo(() => ideaBase.filter((r) => matchesBrandBook(r.brandBookId, createBookId)), [ideaBase, createBookId]);
+  const activeResources = useMemo(
+    () => scopedResources.filter((r) => r.active && r.extractedNotes.trim() && !exclusions.sourceIds.includes(r.id)),
+    [scopedResources, exclusions],
+  );
   const scheduledIds = useMemo(() => new Set(pipeline.flatMap((item) => (item.ideaData.id ? [item.ideaData.id] : []))), [pipeline]);
   const visibleIdeas = useMemo(
     () => ideas.filter((idea) => !idea.id || !scheduledIds.has(idea.id)).slice(0, UNSCHEDULED_IDEA_LIMIT),
@@ -54,10 +66,10 @@ export function IdeaGenerator({ status, onOpenSettings }: { status: ServerStatus
   const selectedResources = useMemo(
     () =>
       selectedIds.flatMap((id) => {
-        const resource = ideaBase.find((item) => item.id === id);
+        const resource = scopedResources.find((item) => item.id === id);
         return resource && isCustomSelectable(resource) ? [resource] : [];
       }),
-    [selectedIds, ideaBase],
+    [selectedIds, scopedResources],
   );
 
   const generate = async () => {
@@ -146,7 +158,7 @@ export function IdeaGenerator({ status, onOpenSettings }: { status: ServerStatus
             </div>
             {mode === "Custom Items" ? (
               <div className="mt-3">
-                <CustomIdeaPicker resources={ideaBase} selectedIds={selectedIds} onChange={setSelectedIds} />
+                <CustomIdeaPicker resources={scopedResources} selectedIds={selectedIds} onChange={setSelectedIds} />
               </div>
             ) : mode !== "Pure Random" ? (
               <p className="mt-2 text-xs text-slate-500">

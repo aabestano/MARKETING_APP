@@ -205,7 +205,7 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
     if (!copy) return null;
     return (
       <div key={`${key}-${slot}`} data-poster-block={key} data-layer={posterLayerName(spec, key)} style={slotStyle(slot)}>
-        {copy.primary && <div style={{ whiteSpace: "pre-line" }}>{copy.primary}</div>}
+        {copy.primary && <div style={{ whiteSpace: "pre-line", textWrap: key === "headline" ? "balance" : undefined }}>{copy.primary}</div>}
         {copy.secondary && (
           <div style={{ whiteSpace: "pre-line", marginTop: copy.primary ? gap(0.35) : 0, fontWeight: 400, fontSize: slot === 0 ? fs(fine(1.3)) : undefined, opacity: 0.94 }}>
             {copy.secondary}
@@ -220,7 +220,12 @@ export const PosterCanvas = forwardRef<HTMLDivElement, PosterCanvasProps>(functi
       return shell(key, isFirst, isLast, brandLockup(false));
     }
     if (key === "headline") {
-      return shell(key, isFirst, isLast, <h1 style={{ margin: 0, fontWeight: 800, fontSize: fs(4.6), lineHeight: 1.06, letterSpacing: "-0.01em", color: t.text }}>{spec.headline}</h1>);
+      return shell(
+        key,
+        isFirst,
+        isLast,
+        <h1 style={{ margin: 0, fontWeight: 800, fontSize: fs(4.6), lineHeight: 1.06, letterSpacing: "-0.01em", color: t.text, textWrap: "balance" }}>{spec.headline}</h1>,
+      );
     }
     if (key === "subheading") {
       return shell(key, isFirst, isLast, <p style={{ margin: 0, fontSize: fs(1.9), lineHeight: 1.28, color: t.text }}>{spec.subheading}</p>);

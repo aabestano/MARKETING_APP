@@ -5,7 +5,16 @@ import type { SavedPoster } from "./poster-types";
 /** Loads a saved poster into the Poster Illustrator for further editing. */
 export function openSavedPoster(p: SavedPoster) {
   const s = useStore.getState();
-  s.updatePoster({ prompt: p.prompt, spec: p.spec, size: p.size, source: "manual", warnings: [], savedId: p.id, pipelineId: null });
+  s.updatePoster({
+    prompt: p.prompt,
+    spec: p.spec,
+    size: p.size,
+    source: "manual",
+    warnings: [],
+    savedId: p.id,
+    pipelineId: null,
+    removeBackground: !!p.removeBackground,
+  });
   if (p.brandBookId) s.updateWorkspace({ brandBookId: p.brandBookId });
   s.setDesignMode("poster");
   s.setTab("design-studio");

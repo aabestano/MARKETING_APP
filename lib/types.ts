@@ -1,3 +1,5 @@
+import type { CopyKey } from "./ui-copy";
+
 export type AssetKind = "pdf" | "image" | "template" | "cdn-url" | "font";
 
 /** Which generator an asset is available to. Every asset has at least one. */
@@ -55,6 +57,11 @@ export interface BrandAsset {
   fontStyle?: "normal" | "italic";
   /** Where this asset is used: Email Design, Poster Illustration, or both (never empty) */
   purposes: AssetPurpose[];
+  /**
+   * Available to every brand book. Missing means the asset was saved before tagging and stays available to every book.
+   * False limits it to bookId.
+   */
+  sharedWithAll?: boolean;
   createdAt: number;
 }
 
@@ -72,6 +79,8 @@ export interface SavedBlast {
   mjml: string;
   html: string;
   blueprint: string;
+  /** Brand books this saved email is listed under. Empty means it is only in the Design Repository. */
+  sharedBookIds?: string[];
   createdAt: number;
   updatedAt: number;
 }
@@ -97,6 +106,15 @@ export interface Settings {
   displayName?: string;
   /** Subtab order inside each section. Tabs never move between Plan, Create, and Library. */
   tabOrder?: Partial<Record<SectionId, TabId[]>>;
+  /** Order of Plan, Create, and Library. Subtabs stay inside their section. */
+  sectionOrder?: SectionId[];
+  /**
+   * Brand book used by Idea Generator, Idea Studio, and Design Studio.
+   * Null is an explicit All brand books choice. Missing follows the design workspace.
+   */
+  createBrandBookId?: string | null;
+  /** Replacement wording for interface labels. Blank values use the built-in text. */
+  copyOverrides?: Partial<Record<CopyKey, string>>;
 }
 
 export type ViewMode = "preview" | "mjml" | "html";

@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { CATEGORY_STYLES, useStore } from "@/lib/store";
+import { toggleSharedBook } from "@/lib/brand-scope";
+import { uiCopy } from "@/lib/ui-copy";
 import { BLAST_CATEGORIES, type BlastCategory, type SavedBlast } from "@/lib/types";
 import type { SavedPoster } from "@/lib/poster-types";
 import { describeSize } from "@/lib/poster-sizes";
@@ -33,6 +35,9 @@ export function DesignRepository() {
   const posters = useStore((s) => s.posters);
   const deleteBlast = useStore((s) => s.deleteBlast);
   const deletePoster = useStore((s) => s.deletePoster);
+  const patchSavedPoster = useStore((s) => s.patchSavedPoster);
+  const updateBlast = useStore((s) => s.updateBlast);
+  const copy = useStore((s) => s.settings.copyOverrides);
   const setTab = useStore((s) => s.setTab);
   const setDesignMode = useStore((s) => s.setDesignMode);
   const [kind, setKind] = useState<Kind>("all");
@@ -57,8 +62,8 @@ export function DesignRepository() {
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
         <header>
-          <h1 className="text-xl font-semibold text-slate-100">Design Repository</h1>
-          <p className="mt-1 text-sm text-slate-400">Everything you saved from the Design Studio. Open a poster to keep editing, or inspect an email to tweak its HTML.</p>
+          <h1 className="text-xl font-semibold text-slate-100">{uiCopy("repo.title", copy)}</h1>
+          <p className="mt-1 text-sm text-slate-400">{uiCopy("repo.hint", copy)}</p>
         </header>
 
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -117,6 +122,7 @@ export function DesignRepository() {
                   key={p.id}
                   poster={p}
                   onOpen={() => openSavedPoster(p)}
+                  onBooks={(ids) => patchSavedPoster(p.id, { sharedBookIds: ids })}
                   onDelete={() => {
                     if (window.confirm(`Delete “${p.name}”?`)) deletePoster(p.id);
                   }}
@@ -128,6 +134,7 @@ export function DesignRepository() {
                   key={b.id}
                   blast={b}
                   onOpen={() => setOpenId(b.id)}
+                  onBooks={(ids) => updateBlast(b.id, { sharedBookIds: ids })}
                   onDelete={() => {
                     if (window.confirm(`Delete “${b.name}”?`)) deleteBlast(b.id);
                   }}
@@ -141,7 +148,29 @@ export function DesignRepository() {
   );
 }
 
-function PosterCard({ poster, onOpen, onDelete }: { poster: SavedPoster; onOpen: () => void; onDelete: () => void }) {
+function BookTags({ ids, onChange }: { ids?: string[]; onChange: (ids: string[]) => void }) {
+  const books = useStore((s) => s.brandBooks);
+  const copy = useStore((s) => s.settings.copyOverrides);
+  if (books.length === 0) return null;
+  return (
+    <fieldset className="space-y-1">
+      <legend className="text-[11px] font-medium text-slate-400">{uiCopy("brand.addDesign", copy)}</legend>
+      {books.map((book) => (
+        <label key={book.id} className="flex items-center gap-2 text-[11px] text-slate-300">
+          <input
+            type="checkbox"
+            className="h-3.5 w-3.5 accent-blue-500"
+            checked={!!ids?.includes(book.id)}
+            onChange={(e) => onChange(toggleSharedBook(ids, book.id, e.target.checked))}
+          />
+          {book.name}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
+
+function PosterCard({ poster, onOpen, onDelete, onBooks }: { poster: SavedPoster; onOpen: () => void; onDelete: () => void; onBooks: (ids: string[]) => void }) {
   return (
     <article className="card group flex flex-col overflow-hidden transition hover:border-slate-700">
       <button onClick={onOpen} className="relative flex h-48 items-center justify-center overflow-hidden border-b border-slate-800 bg-[#e2e8f0] text-left" aria-label={`Open ${poster.name}`}>
@@ -161,6 +190,7 @@ function PosterCard({ poster, onOpen, onDelete }: { poster: SavedPoster; onOpen:
         <p className="text-xs text-slate-500">
           {poster.brandBookName} · updated {timeAgo(poster.updatedAt)}
         </p>
+        <BookTags ids={poster.sharedBookIds} onChange={onBooks} />
         <div className="mt-auto flex gap-2 pt-2">
           <button className="btn-ghost flex-1 py-1.5 text-xs" onClick={onOpen}>
             <Pencil className="h-3.5 w-3.5" /> Open in Design Studio
@@ -174,7 +204,7 @@ function PosterCard({ poster, onOpen, onDelete }: { poster: SavedPoster; onOpen:
   );
 }
 
-function BlastCard({ blast, onOpen, onDelete }: { blast: SavedBlast; onOpen: () => void; onDelete: () => void }) {
+function BlastCard({ blast, onOpen, onDelete, onBooks }: { blast: SavedBlast; onOpen: () => void; onDelete: () => void; onBooks: (ids: string[]) => void }) {
   return (
     <article className="card group flex flex-col overflow-hidden transition hover:border-slate-700">
       <button onClick={onOpen} className="relative block h-48 overflow-hidden border-b border-slate-800 bg-[#e2e8f0] text-left" aria-label={`Open ${blast.name}`}>
@@ -196,6 +226,7 @@ function BlastCard({ blast, onOpen, onDelete }: { blast: SavedBlast; onOpen: () 
         <p className="text-xs text-slate-500">
           {blast.brandBookName} · updated {timeAgo(blast.updatedAt)}
         </p>
+        <BookTags ids={blast.sharedBookIds} onChange={onBooks} />
         <div className="mt-auto flex gap-2 pt-2">
           <button className="btn-ghost flex-1 py-1.5 text-xs" onClick={onOpen}>
             <Pencil className="h-3.5 w-3.5" /> Inspect
