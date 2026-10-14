@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { friendlyGeminiError, generateJsonText, resolveGeminiKey, resolveModel } from "@/lib/gemini";
 import { buildIdeaSystemInstruction, buildOfflineFallbackCards, sanitizeIdeaCards } from "@/lib/idea-gen";
 import { extractJsonObject } from "@/lib/poster-prompt";
-import { COHORTS, FOCUS_TYPES, type GenMode, type IdeaCard } from "@/lib/idea-types";
+import { COHORTS, currentCohort, FOCUS_TYPES, type GenMode, type IdeaCard } from "@/lib/idea-types";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
   if (!focusTypes.length) return NextResponse.json({ error: "Select at least 1 focus type." }, { status: 400 });
 
   const mode: GenMode = body.mode === "Idea Base Match" || body.mode === "Pure Random" ? body.mode : "Hybrid";
-  const cohort = body.cohort && (COHORTS as readonly string[]).includes(body.cohort) ? body.cohort : COHORTS[0];
+  const requestedCohort = currentCohort(body.cohort ?? "");
+  const cohort = (COHORTS as readonly string[]).includes(requestedCohort) ? requestedCohort : COHORTS[0];
   const tone = (body.tone ?? "Empathetic & Supportive").slice(0, 80);
   const exclusions = {
     titles: (body.exclusions?.titles ?? []).slice(0, 80).map((t) => String(t).slice(0, 160)),

@@ -1,5 +1,6 @@
 import { APP_NAME } from "./app-name";
 import { normalizePurposes } from "./assets";
+import { applyLabelMigration } from "./label-migration";
 import type { BrandAsset, BrandBook, SavedBlast, Settings, Theme } from "./types";
 import type { IdeaResource, PipelineItem } from "./idea-types";
 import type { SavedPoster } from "./poster-types";
@@ -96,11 +97,12 @@ export function parseWorkspaceExport(text: string): WorkspaceExport {
   const pipeline = list<PipelineItem>(d.pipeline, (p) => typeof p.id === "string" && typeof p.scheduledDate === "string" && isObj(p.ideaData));
   const settings = isObj(d.settings) ? (d.settings as unknown as WorkspaceData["settings"]) : ({} as WorkspaceData["settings"]);
   const theme: Theme = d.theme === "light" ? "light" : "dark";
+  const labels = applyLabelMigration({ ideaBase, pipeline });
   return {
     app: EXPORT_APP,
     version: typeof raw.version === "number" ? raw.version : EXPORT_VERSION,
     exportedAt: typeof raw.exportedAt === "string" ? raw.exportedAt : "",
-    data: { brandBooks, assets, blasts, posters, ideaBase, pipeline, settings, theme },
+    data: { brandBooks, assets, blasts, posters, ideaBase: labels.ideaBase, pipeline: labels.pipeline, settings, theme },
   };
 }
 
