@@ -11,6 +11,7 @@ import { IdeaGenerator } from "./IdeaGenerator";
 import { IdeaStudio } from "./IdeaStudio";
 import { Calendar } from "./Calendar";
 import { SubTabs } from "./SubTabs";
+import { displayAppName } from "@/lib/app-name";
 import { buildFontFaceCss } from "@/lib/fonts";
 import { ToastProvider } from "./ui";
 import { useStore } from "@/lib/store";
@@ -29,6 +30,11 @@ export function AppShell() {
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const activeTab = useStore((s) => s.activeTab);
   const theme = useStore((s) => s.theme);
+  const displayName = useStore((s) => s.settings.displayName);
+
+  useEffect(() => {
+    document.title = `${displayAppName(displayName)} · Ideas to designs`;
+  }, [displayName]);
 
   useEffect(() => {
     document.documentElement.className = theme === "light" ? "light" : "dark";

@@ -93,6 +93,10 @@ export interface Settings {
   /** fal.ai key for FLUX image generation */
   fluxApiKey?: string;
   fluxModel?: string;
+  /** Name shown in the sidebar, browser tab, and calendar export. Blank uses IDEAte. */
+  displayName?: string;
+  /** Subtab order inside each section. Tabs never move between Plan, Create, and Library. */
+  tabOrder?: Partial<Record<SectionId, TabId[]>>;
 }
 
 export type ViewMode = "preview" | "mjml" | "html";

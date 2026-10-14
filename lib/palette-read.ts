@@ -88,7 +88,7 @@ let pdfjsPromise: Promise<typeof import("pdfjs-dist")> | undefined;
 function loadPdfjs() {
   pdfjsPromise ??= import("pdfjs-dist").then((pdfjs) => {
     if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+      pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
     }
     return pdfjs;
   });

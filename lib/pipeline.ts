@@ -66,8 +66,9 @@ export function pipelineToCsv(items: PipelineItem[]): string {
 
 const icsEscape = (v: string) => v.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 
-export function pipelineToIcs(items: PipelineItem[]): string {
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${APP_NAME}//Best Life Pipeline//EN`];
+export function pipelineToIcs(items: PipelineItem[], appName = APP_NAME): string {
+  const label = appName.replace(/[\r\n]+/g, " ").trim() || APP_NAME;
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${label}//Best Life Pipeline//EN`];
   for (const i of items) {
     const d = i.scheduledDate.replace(/-/g, "");
     lines.push(

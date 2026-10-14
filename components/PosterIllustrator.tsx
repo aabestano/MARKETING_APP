@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeftRight, ChevronDown, Download, FileDown, ImageIcon, Printer, RefreshCw, Save, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, ChevronDown, Download, FileDown, ImageIcon, Layers, Printer, RefreshCw, Save, Sparkles, Wand2 } from "lucide-react";
 import clsx from "clsx";
 import { assetInFolder } from "@/lib/assets";
 import { resolveBrandTokens } from "@/lib/brand-tokens";
@@ -12,6 +12,7 @@ import { layoutOf, preservePosterEdits, type HeroSize } from "@/lib/poster-block
 import { missingFromPoster } from "@/lib/poster-check";
 import { trimIllustrationUrl } from "@/lib/poster-trim";
 import { describeExport, downloadBlob, exportPdf, exportPng, makeThumbnail, openVectorPrint, qrDataUrl } from "@/lib/poster-export";
+import { posterToSvg } from "@/lib/poster-svg";
 import { drawsOnGenerate, orientationOf, posterRevisionInstruction, posterRevisionTargets, usesLibraryOnGenerate, type PosterAssetSummary } from "@/lib/poster-prompt";
 import { CUSTOM_PRESET_ID, SIZE_PRESETS, describeSize, isPrintSize, sanitizeSize, sizeFromPreset, swapOrientation, trimPx } from "@/lib/poster-sizes";
 import { brandSwatches } from "@/lib/poster-colors";
@@ -133,7 +134,7 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
   const [busy, setBusy] = useState(false);
   const [illBusy, setIllBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [exporting, setExporting] = useState<null | "png" | "pdf" | "vector" | "save">(null);
+  const [exporting, setExporting] = useState<null | "png" | "pdf" | "vector" | "svg" | "save">(null);
   const [showGuides, setShowGuides] = useState(true);
   const [printDpi, setPrintDpi] = useState(300);
   const [pxScale, setPxScale] = useState(2);
@@ -345,11 +346,18 @@ export function PosterIllustrator({ status, onOpenSettings }: { status: ServerSt
 
   const filename = (ext: string) => `${slugify(spec?.headline ?? "poster").slice(0, 48) || "poster"}-${describeSize(size).replace(/[^a-z0-9]+/gi, "")}.${ext}`;
 
-  const doExport = async (kind: "png" | "pdf" | "vector") => {
+  const doExport = async (kind: "png" | "pdf" | "vector" | "svg") => {
     const node = needNode();
     if (!node) return;
     setExporting(kind);
     try {
+      if (kind === "svg") {
+        if (document.fonts?.ready) await document.fonts.ready;
+        const svg = posterToSvg(node);
+        downloadBlob(new Blob([svg], { type: "image/svg+xml" }), filename("svg"));
+        toast("Figma SVG downloaded. Drag it into Figma. Text stays editable, and fonts need to be installed there.", "success");
+        return;
+      }
       if (kind === "vector") {
         const ok = openVectorPrint(node, size, { includeBleed, cropMarks, fontCss, title: spec?.headline ?? "Poster" });
         if (!ok) toast("Pop-up blocked. Allow pop-ups for this site, then try again.", "error");
@@ -964,12 +972,13 @@ function IllustrationControls({
   );
 }
 
-function DownloadMenu({ disabled, busy, onPick }: { disabled: boolean; busy: boolean; onPick: (kind: "pdf" | "png" | "vector") => void }) {
+function DownloadMenu({ disabled, busy, onPick }: { disabled: boolean; busy: boolean; onPick: (kind: "pdf" | "png" | "vector" | "svg") => void }) {
   const [open, setOpen] = useState(false);
-  const items: { kind: "pdf" | "png" | "vector"; label: string; hint: string; icon: ReactNode }[] = [
+  const items: { kind: "pdf" | "png" | "vector" | "svg"; label: string; hint: string; icon: ReactNode }[] = [
     { kind: "pdf", label: "PDF", hint: "Print-ready file", icon: <FileDown className="h-4 w-4" /> },
     { kind: "png", label: "PNG", hint: "Image file", icon: <Download className="h-4 w-4" /> },
     { kind: "vector", label: "Vector PDF", hint: "Opens the print dialog. Choose Save as PDF for live text.", icon: <Printer className="h-4 w-4" /> },
+    { kind: "svg", label: "Figma SVG", hint: "Layered file to drag into Figma. Text stays editable.", icon: <Layers className="h-4 w-4" /> },
   ];
   return (
     <div className="relative">

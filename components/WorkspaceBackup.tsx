@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Download, Upload } from "lucide-react";
+import { displayAppName } from "@/lib/app-name";
 import { useStore } from "@/lib/store";
 import {
   buildExport,
@@ -49,7 +50,7 @@ export function WorkspaceBackup() {
   const onFile = async (file: File) => {
     setError(null);
     try {
-      const payload = parseWorkspaceExport(await file.text());
+      const payload = parseWorkspaceExport(await file.text(), displayAppName(useStore.getState().settings.displayName));
       setPending({ file: file.name, size: file.size, payload });
     } catch (err) {
       setPending(null);

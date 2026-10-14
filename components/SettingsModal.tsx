@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Image as ImageIcon, KeyRound } from "lucide-react";
+import { APP_NAME, APP_NAME_LIMIT } from "@/lib/app-name";
 import { DEFAULT_FLUX_MODEL, FLUX_MODELS } from "@/lib/flux";
 import { Modal } from "./ui";
 import { WorkspaceBackup } from "./WorkspaceBackup";
@@ -60,7 +61,8 @@ export function SettingsModal({ status, onClose }: { status: ServerStatus | null
           <button
             className="btn-primary"
             onClick={() => {
-              update(draft);
+              const displayName = (draft.displayName ?? "").trim().replace(/\s+/g, " ").slice(0, APP_NAME_LIMIT).trim();
+              update({ ...draft, displayName });
               onClose();
             }}
           >
@@ -70,6 +72,19 @@ export function SettingsModal({ status, onClose }: { status: ServerStatus | null
       }
     >
       <div className="space-y-6">
+        <section className="space-y-2">
+          <label className="label" htmlFor="settings-app-name">App name</label>
+          <input
+            id="settings-app-name"
+            className="input"
+            value={draft.displayName ?? ""}
+            maxLength={APP_NAME_LIMIT}
+            placeholder={APP_NAME}
+            onChange={(e) => set("displayName", e.target.value)}
+          />
+          <p className="text-xs text-slate-500">This is the name in the sidebar, the browser tab, and calendar exports. Leave it blank to use {APP_NAME}.</p>
+        </section>
+
         <section className="space-y-3">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <KeyRound className="h-4 w-4 text-blue-400" /> Gemini

@@ -1,7 +1,8 @@
-import { APP_NAME } from "./app-name";
+import { APP_NAME, APP_NAME_LIMIT } from "./app-name";
 import { normalizePurposes } from "./assets";
 import { applyLabelMigration } from "./label-migration";
-import type { BrandAsset, BrandBook, SavedBlast, Settings, Theme } from "./types";
+import { SECTIONS, orderedTabIds } from "./nav";
+import type { BrandAsset, BrandBook, SavedBlast, SectionId, Settings, TabId, Theme } from "./types";
 import type { IdeaResource, PipelineItem } from "./idea-types";
 import type { SavedPoster } from "./poster-types";
 
@@ -72,8 +73,41 @@ function list<T>(value: unknown, valid: (item: Record<string, unknown>) => boole
   return value.filter((item): item is Record<string, unknown> => isObj(item) && valid(item)) as unknown as T[];
 }
 
+function cleanDisplayName(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const name = value.trim().replace(/\s+/g, " ").slice(0, APP_NAME_LIMIT).trim();
+  return name || undefined;
+}
+
+/** Keeps only real tabs, and only inside the section they belong to. */
+function cleanTabOrder(value: unknown): Settings["tabOrder"] | undefined {
+  if (!isObj(value)) return undefined;
+  const out: Partial<Record<SectionId, TabId[]>> = {};
+  for (const section of SECTIONS) {
+    const raw = value[section.id];
+    if (!Array.isArray(raw)) continue;
+    const ids = raw.filter((id): id is TabId => typeof id === "string");
+    out[section.id] = orderedTabIds(section.id, { [section.id]: ids });
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function cleanSettings(value: unknown): WorkspaceData["settings"] {
+  const settings: Partial<Settings> = isObj(value) ? { ...(value as Partial<Settings>) } : {};
+  delete settings.geminiApiKey;
+  delete settings.mailerApiKey;
+  delete settings.fluxApiKey;
+  const displayName = cleanDisplayName(settings.displayName);
+  if (displayName) settings.displayName = displayName;
+  else delete settings.displayName;
+  const tabOrder = cleanTabOrder(settings.tabOrder);
+  if (tabOrder) settings.tabOrder = tabOrder;
+  else delete settings.tabOrder;
+  return settings as WorkspaceData["settings"];
+}
+
 /** Parses and validates an export file. Throws an Error with a user-readable message on bad input. */
-export function parseWorkspaceExport(text: string): WorkspaceExport {
+export function parseWorkspaceExport(text: string, appName = APP_NAME): WorkspaceExport {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
@@ -81,7 +115,7 @@ export function parseWorkspaceExport(text: string): WorkspaceExport {
     throw new Error("That file isn't valid JSON. Choose a workspace file exported from this app.");
   }
   if (!isObj(raw) || raw.app !== EXPORT_APP || !isObj(raw.data)) {
-    throw new Error(`That file isn't an ${APP_NAME} workspace export.`);
+    throw new Error(`That file isn't an ${appName} workspace export.`);
   }
   if (typeof raw.version === "number" && raw.version > EXPORT_VERSION) {
     throw new Error("This export was made by a newer version of the app. Update the app and try again.");
@@ -95,7 +129,7 @@ export function parseWorkspaceExport(text: string): WorkspaceExport {
   const posters = list<SavedPoster>(d.posters, (p) => typeof p.id === "string" && isObj(p.spec) && isObj(p.size));
   const ideaBase = list<IdeaResource>(d.ideaBase, (r) => typeof r.id === "string" && typeof r.name === "string");
   const pipeline = list<PipelineItem>(d.pipeline, (p) => typeof p.id === "string" && typeof p.scheduledDate === "string" && isObj(p.ideaData));
-  const settings = isObj(d.settings) ? (d.settings as unknown as WorkspaceData["settings"]) : ({} as WorkspaceData["settings"]);
+  const settings = cleanSettings(d.settings);
   const theme: Theme = d.theme === "light" ? "light" : "dark";
   const labels = applyLabelMigration({ ideaBase, pipeline });
   return {
