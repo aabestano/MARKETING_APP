@@ -15,8 +15,8 @@ export function HowToGuide({ onOpenSettings }: { onOpenSettings: () => void }) {
   };
 
   return (
-    <div ref={scroller} className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 border-b border-slate-800 bg-slate-950">
         <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-3 px-4 pt-4 md:px-8">
           <div className="min-w-0">
             <h1 className="flex items-center gap-2 text-xl font-semibold text-slate-100">
@@ -48,6 +48,7 @@ export function HowToGuide({ onOpenSettings }: { onOpenSettings: () => void }) {
         </nav>
       </div>
 
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
       <div
         role="tabpanel"
         id={`guide-panel-${current.id}`}
@@ -101,6 +102,7 @@ export function HowToGuide({ onOpenSettings }: { onOpenSettings: () => void }) {
             )}
           </article>
         ))}
+      </div>
       </div>
     </div>
   );
