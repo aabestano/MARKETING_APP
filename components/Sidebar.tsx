@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Boxes, CalendarDays, Library, Mail, Moon, Settings2, Sparkles, Sun, Zap } from "lucide-react";
 import clsx from "clsx";
 import { useStore } from "@/lib/store";
 import { modelLabel, type SectionId } from "@/lib/types";
@@ -11,7 +11,19 @@ import type { ServerStatus } from "./AppShell";
 
 const SECTION_ICONS: Record<SectionId, typeof Boxes> = { plan: CalendarDays, create: Sparkles, library: Library };
 
-export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | null; onOpenSettings: () => void }) {
+export function Sidebar({
+  status,
+  guideOpen,
+  onOpenGuide,
+  onCloseGuide,
+  onOpenSettings,
+}: {
+  status: ServerStatus | null;
+  guideOpen: boolean;
+  onOpenGuide: () => void;
+  onCloseGuide: () => void;
+  onOpenSettings: () => void;
+}) {
   const activeTab = useStore((s) => s.activeTab);
   const setTab = useStore((s) => s.setTab);
   const settings = useStore((s) => s.settings);
@@ -60,7 +72,7 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
       <nav className="flex gap-1 overflow-x-auto p-2 md:flex-1 md:flex-col md:overflow-visible" aria-label="Primary">
         {sections.map((section, i) => {
           const Icon = SECTION_ICONS[section.id];
-          const active = activeSection === section.id;
+          const active = !guideOpen && activeSection === section.id;
           const count = section.id === "plan" ? upcoming : section.id === "library" ? bookCount : null;
           const label = uiCopy(section.labelKey, settings.copyOverrides);
           const hint = uiCopy(section.hintKey, settings.copyOverrides);
@@ -76,7 +88,8 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
             >
               <button
                 onClick={() => {
-                  if (active) return;
+                  onCloseGuide();
+                  if (activeSection === section.id) return;
                   const first = orderedTabs(section.id, settings.tabOrder)[0];
                   if (first) setTab(first.id);
                 }}
@@ -124,7 +137,21 @@ export function Sidebar({ status, onOpenSettings }: { status: ServerStatus | nul
         })}
       </nav>
 
-      <div className="border-t border-slate-800 p-3">
+      <div className="space-y-2 border-t border-slate-800 p-3">
+        <button
+          type="button"
+          onClick={onOpenGuide}
+          aria-pressed={guideOpen}
+          className={clsx(
+            "w-full rounded-md border p-3 text-left transition",
+            guideOpen ? "border-blue-500/40 bg-blue-500/10 text-white" : "border-slate-800 bg-slate-900 text-slate-200 hover:border-slate-700 hover:bg-slate-800/70",
+          )}
+        >
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <BookOpen className={clsx("h-4 w-4", guideOpen ? "text-blue-400" : "text-slate-400")} /> How to Use IDEAte
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500">First-time setup and the three sections.</p>
+        </button>
         <button
           onClick={onOpenSettings}
           className="w-full rounded-md border border-slate-800 bg-slate-900 p-3 text-left transition hover:border-slate-700 hover:bg-slate-800/70"

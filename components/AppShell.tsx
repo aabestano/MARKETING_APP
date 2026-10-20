@@ -10,6 +10,7 @@ import { IdeaBase } from "./IdeaBase";
 import { IdeaGenerator } from "./IdeaGenerator";
 import { IdeaStudio } from "./IdeaStudio";
 import { Calendar } from "./Calendar";
+import { HowToGuide } from "./HowToGuide";
 import { SubTabs } from "./SubTabs";
 import { displayAppName } from "@/lib/app-name";
 import { buildFontFaceCss } from "@/lib/fonts";
@@ -27,6 +28,7 @@ export interface ServerStatus {
 export function AppShell() {
   const [hydrated, setHydrated] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const activeTab = useStore((s) => s.activeTab);
   const theme = useStore((s) => s.theme);
@@ -72,24 +74,36 @@ export function AppShell() {
   return (
     <ToastProvider>
       <div className="flex min-h-screen flex-col bg-slate-950 md:h-screen md:flex-row md:overflow-hidden">
-        <Sidebar status={status} onOpenSettings={() => setSettingsOpen(true)} />
+        <Sidebar
+          status={status}
+          guideOpen={guideOpen}
+          onOpenGuide={() => setGuideOpen(true)}
+          onCloseGuide={() => setGuideOpen(false)}
+          onOpenSettings={() => setSettingsOpen(true)}
+        />
         <main className="flex min-w-0 flex-1 flex-col md:h-screen md:overflow-hidden">
-          <SubTabs />
-          <div className="min-h-0 flex-1">
-            {!hydrated ? (
-              <div className="flex h-full items-center justify-center p-10 text-sm text-slate-500">Loading workspace…</div>
-            ) : (
-              <>
-                {activeTab === "idea-base" && <IdeaBase status={status} onOpenSettings={() => setSettingsOpen(true)} />}
-                {activeTab === "brands" && <BrandBooks />}
-                {activeTab === "idea-generator" && <IdeaGenerator status={status} onOpenSettings={() => setSettingsOpen(true)} />}
-                {activeTab === "idea-studio" && <IdeaStudio />}
-                {activeTab === "design-studio" && <DesignStudio status={status} onOpenSettings={() => setSettingsOpen(true)} />}
-                {activeTab === "calendar" && <Calendar />}
-                {activeTab === "repository" && <DesignRepository />}
-              </>
-            )}
-          </div>
+          {guideOpen ? (
+            <HowToGuide onOpenSettings={() => setSettingsOpen(true)} />
+          ) : (
+            <>
+              <SubTabs />
+              <div className="min-h-0 flex-1">
+                {!hydrated ? (
+                  <div className="flex h-full items-center justify-center p-10 text-sm text-slate-500">Loading workspace…</div>
+                ) : (
+                  <>
+                    {activeTab === "idea-base" && <IdeaBase status={status} onOpenSettings={() => setSettingsOpen(true)} />}
+                    {activeTab === "brands" && <BrandBooks />}
+                    {activeTab === "idea-generator" && <IdeaGenerator status={status} onOpenSettings={() => setSettingsOpen(true)} />}
+                    {activeTab === "idea-studio" && <IdeaStudio />}
+                    {activeTab === "design-studio" && <DesignStudio status={status} onOpenSettings={() => setSettingsOpen(true)} />}
+                    {activeTab === "calendar" && <Calendar />}
+                    {activeTab === "repository" && <DesignRepository />}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </main>
       </div>
       {settingsOpen && <SettingsModal status={status} onClose={() => setSettingsOpen(false)} />}
