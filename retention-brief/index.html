@@ -1438,7 +1438,7 @@ var CONFIG = {
     watchTitle: 'Watch list'
   },
   gemini: {
-    model: 'gemini-2.0-flash',
+    model: 'gemini-3.8-flash',
     endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
     batchSize: 40,
     parallel: 4,
@@ -2510,7 +2510,7 @@ async function geminiBatch(items, key, attempt) {
     'Comments:',
     items.map(function (item) { return JSON.stringify({ id: item.id, text: scrub(item.text).slice(0, 500) }); }).join('\n')
   ].join('\n\n');
-  var generation = { temperature: 0, maxOutputTokens: 8192 };
+  var generation = { maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: 'low' } };
   if (useJsonMime) generation.responseMimeType = 'application/json';
   var response = await fetch(CONFIG.gemini.endpoint + '/' + encodeURIComponent(CONFIG.gemini.model) + ':generateContent?key=' + encodeURIComponent(key), {
     method: 'POST',
@@ -2532,8 +2532,10 @@ async function geminiBatch(items, key, attempt) {
   if (!response.ok) throw new Error(safeError(await response.text()));
   var json = await response.json();
   var parts = (((json.candidates || [])[0] || {}).content || {}).parts || [];
+  var answer = parts.filter(function (part) { return part && !part.thought; });
+  if (!answer.length) answer = parts;
   try {
-    return parseLabels(parts.map(function (part) { return part.text || ''; }).join('\n'));
+    return parseLabels(answer.map(function (part) { return part.text || ''; }).join('\n'));
   } catch (error) {
     if ((attempt || 0) < CONFIG.gemini.retries) {
       await new Promise(function (resolve) { setTimeout(resolve, 400 * Math.pow(2, attempt || 0)); });
@@ -2597,6 +2599,7 @@ async function improveWithGemini() {
   var cursor = 0;
   var done = 0;
   var failed = 0;
+  var lastError = '';
   async function pump() {
     while (cursor < batches.length) {
       var batch = batches[cursor++];
@@ -2609,7 +2612,8 @@ async function improveWithGemini() {
       } catch (error) {
         if (error && error.name === 'AbortError') throw error;
         failed += batch.length;
-        setStatus(safeError(error.message));
+        lastError = safeError(error.message);
+        setStatus(lastError);
       }
     }
   }
@@ -2619,7 +2623,7 @@ async function improveWithGemini() {
     await Promise.all(pumps);
     state.meta.mode = 'rules+gemini';
     setRunning(false);
-    setStatus(failed ? 'Gemini finished with ' + num(failed) + ' comments still unlabeled. ' + safeError('') : 'Gemini relabeled comments that were labeled other. The key was not saved.');
+    setStatus(failed ? 'Gemini finished with ' + num(failed) + ' comments still unlabeled. ' + (lastError || safeError('')) : 'Gemini relabeled comments that were labeled other. The key was not saved.');
     renderCurrent(false);
   } catch (error) {
     setRunning(false);
