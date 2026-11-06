@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Best Life Retention Brief</title>
+  <style>
+    :root {
+      --paper: #f3efe6;
+      --card: #fffdf8;
+      --ink: #1c1915;
+      --muted: #5e564c;
+      --line: #e2d8c8;
+      --teal: #0e5c56;
+      --teal-soft: #e5f2f0;
+      --rust: #8a3d32;
+      --warn: #8a5a12;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+    header, main { width: min(1040px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 32px 0 8px; }
+    .eyebrow { margin: 0 0 6px; color: var(--teal); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    h1 { margin: 0; font-family: Georgia, "Iowan Old Style", Palatino, serif; font-size: clamp(36px, 5vw, 56px); line-height: 1.05; font-weight: 700; }
+    .kicker { margin: 10px 0 0; font-family: Georgia, Palatino, serif; font-size: 22px; color: var(--rust); }
+    .lede { max-width: 68ch; color: var(--muted); }
+    h2 { font-family: Georgia, Palatino, serif; font-size: 30px; line-height: 1.2; margin: 28px 0 10px; }
+    h3 { font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--teal); margin: 22px 0 8px; }
+    p { margin: 0 0 12px; }
+    .panel, .block, .filters, .gemini { background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+    .panel { padding: 18px; margin: 18px 0; }
+    .zones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .zone { display: flex; flex-direction: column; gap: 6px; min-height: 132px; padding: 14px; border: 1.5px dashed #c9bfb0; border-radius: 14px; background: #faf7f1; cursor: pointer; }
+    .zone:hover, .zone.hot, .zone:focus-within { border-color: var(--teal); background: var(--teal-soft); }
+    .zone strong { font-size: 16px; }
+    .zone span { color: var(--muted); font-size: 14px; }
+    .zone input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .actions, .filters, .export-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+    button, .btn {
+      appearance: none; border: 0; border-radius: 999px; padding: 10px 16px; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer;
+      background: var(--teal); color: white;
+    }
+    button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.text-btn { background: transparent; color: var(--rust); border: 0; padding: 0 0 0 8px; font-size: 14px; }
+    #queue { list-style: none; padding: 0; margin: 12px 0 0; }
+    #queue li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    #status { min-height: 1.4em; color: var(--teal); font-weight: 650; }
+    .filters { position: sticky; top: 0; z-index: 2; padding: 12px; margin: 12px 0; display: flex; gap: 12px; align-items: end; justify-content: space-between; }
+    label.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 650; }
+    select, input[type="password"] { font: inherit; font-size: 15px; color: var(--ink); background: white; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; min-width: 160px; }
+    .gemini { padding: 14px 16px; margin-bottom: 18px; }
+    .gemini p { color: var(--muted); font-size: 14px; }
+    #brief { padding-bottom: 64px; }
+    #brief .kicker { font-size: 20px; }
+    #brief .filter-line { color: var(--muted); font-size: 14px; }
+    #brief .headline { font-size: clamp(26px, 3vw, 34px); }
+    #brief .lead { font-size: 18px; }
+    .block { padding: 8px 22px 18px; margin: 14px 0; }
+    .note { color: var(--muted); font-size: 15px; }
+    .table-wrap { overflow-x: auto; margin: 8px 0 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.35; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 8px; border-bottom: 1px solid var(--line); }
+    th { font-size: 12px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+    td.quotes { background: #faf7f1; color: var(--ink); }
+    blockquote { margin: 6px 0; padding-left: 12px; border-left: 3px solid var(--teal); font-family: Georgia, Palatino, serif; }
+    figure.quote { margin: 8px 0 16px; }
+    figcaption { font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    ul { margin: 0 0 12px; padding-left: 18px; }
+    details.notes > summary { cursor: pointer; font-family: Georgia, Palatino, serif; font-size: 30px; padding: 16px 0 8px; }
+    details.notes { padding: 4px 22px 16px; }
+    .hint { color: var(--muted); }
+    @media (max-width: 800px) {
+      .zones, .filters { grid-template-columns: 1fr; display: grid; }
+      .filters { position: static; }
+    }
+    @media print {
+      body { background: white; font-size: 12pt; }
+      .noprint { display: none !important; }
+      header, main { width: auto; }
+      .block, .panel, details.notes { border: 0; border-radius: 0; }
+      h1 { font-size: 28pt; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">MedGrocer · Philippines</p>
+    <h1>Best Life Retention Brief</h1>
+    <p class="kicker">These are patterns, not proof.</p>
+    <p class="lede">Best Life is a medicine benefit. This page reads member surveys and a dropout list, then shows where members get stuck while getting started and while staying on the benefit. Use it to decide what the two infographics should explain.</p>
+  </header>
+  <main>
+    <section class="panel noprint">
+      <div class="zones">
+        <label class="zone" id="zoneA">
+          <input type="file" accept=".csv,text/csv,text/plain" multiple />
+          <strong>Survey A</strong>
+          <span>Airtable table 1. Drop one or more CSV files. Column names decide the file type.</span>
+        </label>
+        <label class="zone" id="zoneB">
+          <input type="file" accept=".csv,text/csv,text/plain" multiple />
+          <strong>Survey B</strong>
+          <span>Airtable table 2. A file dropped on the wrong box is still recognized.</span>
+        </label>
+        <label class="zone" id="zoneD">
+          <input type="file" accept=".csv,text/csv,text/plain" multiple />
+          <strong>Dropout list</strong>
+          <span>Patient code and dropout date. A blank date means the member is still active.</span>
+        </label>
+      </div>
+      <ul id="queue"></ul>
+      <div class="actions">
+        <button type="button" id="buildBtn">Build the brief</button>
+        <button type="button" id="sampleBtn" class="secondary">Load sample data</button>
+        <button type="button" id="largeBtn" class="secondary">Load large sample (100,000 rows)</button>
+        <button type="button" id="cancelBtn" class="secondary" hidden>Cancel</button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="filters noprint" aria-label="Filters">
+      <label class="field">Survey
+        <select id="surveyFilter">
+          <option value="all">All</option>
+          <option value="A">Survey A</option>
+          <option value="B">Survey B</option>
+        </select>
+      </label>
+      <label class="field">Medicine benefit member type
+        <select id="typeFilter"><option value="all">All</option></select>
+      </label>
+      <label class="field">Vertical
+        <select id="verticalFilter"><option value="all">All</option></select>
+      </label>
+      <div class="export-row">
+        <button type="button" id="copyBtn" class="secondary">Copy page as text</button>
+        <button type="button" id="downloadBtn" class="secondary">Download .md</button>
+        <button type="button" id="printBtn" class="secondary">Print / Save as PDF</button>
+      </div>
+    </section>
+
+    <section class="gemini noprint">
+      <div class="actions">
+        <label class="field">Gemini key
+          <input id="geminiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Paste a key, it is not saved" />
+        </label>
+        <button type="button" id="geminiBtn" class="secondary">Improve accuracy with Gemini</button>
+      </div>
+      <p id="geminiNote"></p>
+    </section>
+
+    <article id="brief">
+      <p class="hint">Load the sample, or add the three CSV exports and build the brief. The result is one page: availment, then adherence.</p>
+    </article>
+  </main>
+  <script type="text/plain" id="papa-src">/* @license
+Papa Parse
+v5.4.1
+https://github.com/mholt/PapaParse
+License: MIT
+*/
+!function(e,t){"function"==typeof define&&define.amd?define([],t):"object"==typeof module&&"undefined"!=typeof exports?module.exports=t():e.Papa=t()}(this,function s(){"use strict";var f="undefined"!=typeof self?self:"undefined"!=typeof window?window:void 0!==f?f:{};var n=!f.document&&!!f.postMessage,o=f.IS_PAPA_WORKER||!1,a={},u=0,b={parse:function(e,t){var r=(t=t||{}).dynamicTyping||!1;J(r)&&(t.dynamicTypingFunction=r,r={});if(t.dynamicTyping=r,t.transform=!!J(t.transform)&&t.transform,t.worker&&b.WORKERS_SUPPORTED){var i=function(){if(!b.WORKERS_SUPPORTED)return!1;var e=(r=f.URL||f.webkitURL||null,i=s.toString(),b.BLOB_URL||(b.BLOB_URL=r.createObjectURL(new Blob(["var global = (function() { if (typeof self !== 'undefined') { return self; } if (typeof window !== 'undefined') { return window; } if (typeof global !== 'undefined') { return global; } return {}; })(); global.IS_PAPA_WORKER=true; ","(",i,")();"],{type:"text/javascript"})))),t=new f.Worker(e);var r,i;return t.onmessage=_,t.id=u++,a[t.id]=t}();return i.userStep=t.step,i.userChunk=t.chunk,i.userComplete=t.complete,i.userError=t.error,t.step=J(t.step),t.chunk=J(t.chunk),t.complete=J(t.complete),t.error=J(t.error),delete t.worker,void i.postMessage({input:e,config:t,workerId:i.id})}var n=null;b.NODE_STREAM_INPUT,"string"==typeof e?(e=function(e){if(65279===e.charCodeAt(0))return e.slice(1);return e}(e),n=t.download?new l(t):new p(t)):!0===e.readable&&J(e.read)&&J(e.on)?n=new g(t):(f.File&&e instanceof File||e instanceof Object)&&(n=new c(t));return n.stream(e)},unparse:function(e,t){var n=!1,_=!0,m=",",y="\r\n",s='"',a=s+s,r=!1,i=null,o=!1;!function(){if("object"!=typeof t)return;"string"!=typeof t.delimiter||b.BAD_DELIMITERS.filter(function(e){return-1!==t.delimiter.indexOf(e)}).length||(m=t.delimiter);("boolean"==typeof t.quotes||"function"==typeof t.quotes||Array.isArray(t.quotes))&&(n=t.quotes);"boolean"!=typeof t.skipEmptyLines&&"string"!=typeof t.skipEmptyLines||(r=t.skipEmptyLines);"string"==typeof t.newline&&(y=t.newline);"string"==typeof t.quoteChar&&(s=t.quoteChar);"boolean"==typeof t.header&&(_=t.header);if(Array.isArray(t.columns)){if(0===t.columns.length)throw new Error("Option columns is empty");i=t.columns}void 0!==t.escapeChar&&(a=t.escapeChar+s);("boolean"==typeof t.escapeFormulae||t.escapeFormulae instanceof RegExp)&&(o=t.escapeFormulae instanceof RegExp?t.escapeFormulae:/^[=+\-@\t\r].*$/)}();var u=new RegExp(Q(s),"g");"string"==typeof e&&(e=JSON.parse(e));if(Array.isArray(e)){if(!e.length||Array.isArray(e[0]))return h(null,e,r);if("object"==typeof e[0])return h(i||Object.keys(e[0]),e,r)}else if("object"==typeof e)return"string"==typeof e.data&&(e.data=JSON.parse(e.data)),Array.isArray(e.data)&&(e.fields||(e.fields=e.meta&&e.meta.fields||i),e.fields||(e.fields=Array.isArray(e.data[0])?e.fields:"object"==typeof e.data[0]?Object.keys(e.data[0]):[]),Array.isArray(e.data[0])||"object"==typeof e.data[0]||(e.data=[e.data])),h(e.fields||[],e.data||[],r);throw new Error("Unable to serialize unrecognized input");function h(e,t,r){var i="";"string"==typeof e&&(e=JSON.parse(e)),"string"==typeof t&&(t=JSON.parse(t));var n=Array.isArray(e)&&0<e.length,s=!Array.isArray(t[0]);if(n&&_){for(var a=0;a<e.length;a++)0<a&&(i+=m),i+=v(e[a],a);0<t.length&&(i+=y)}for(var o=0;o<t.length;o++){var u=n?e.length:t[o].length,h=!1,f=n?0===Object.keys(t[o]).length:0===t[o].length;if(r&&!n&&(h="greedy"===r?""===t[o].join("").trim():1===t[o].length&&0===t[o][0].length),"greedy"===r&&n){for(var d=[],l=0;l<u;l++){var c=s?e[l]:l;d.push(t[o][c])}h=""===d.join("").trim()}if(!h){for(var p=0;p<u;p++){0<p&&!f&&(i+=m);var g=n&&s?e[p]:p;i+=v(t[o][g],p)}o<t.length-1&&(!r||0<u&&!f)&&(i+=y)}}return i}function v(e,t){if(null==e)return"";if(e.constructor===Date)return JSON.stringify(e).slice(1,25);var r=!1;o&&"string"==typeof e&&o.test(e)&&(e="'"+e,r=!0);var i=e.toString().replace(u,a);return(r=r||!0===n||"function"==typeof n&&n(e,t)||Array.isArray(n)&&n[t]||function(e,t){for(var r=0;r<t.length;r++)if(-1<e.indexOf(t[r]))return!0;return!1}(i,b.BAD_DELIMITERS)||-1<i.indexOf(m)||" "===i.charAt(0)||" "===i.charAt(i.length-1))?s+i+s:i}}};if(b.RECORD_SEP=String.fromCharCode(30),b.UNIT_SEP=String.fromCharCode(31),b.BYTE_ORDER_MARK="\ufeff",b.BAD_DELIMITERS=["\r","\n",'"',b.BYTE_ORDER_MARK],b.WORKERS_SUPPORTED=!n&&!!f.Worker,b.NODE_STREAM_INPUT=1,b.LocalChunkSize=10485760,b.RemoteChunkSize=5242880,b.DefaultDelimiter=",",b.Parser=E,b.ParserHandle=r,b.NetworkStreamer=l,b.FileStreamer=c,b.StringStreamer=p,b.ReadableStreamStreamer=g,f.jQuery){var d=f.jQuery;d.fn.parse=function(o){var r=o.config||{},u=[];return this.each(function(e){if(!("INPUT"===d(this).prop("tagName").toUpperCase()&&"file"===d(this).attr("type").toLowerCase()&&f.FileReader)||!this.files||0===this.files.length)return!0;for(var t=0;t<this.files.length;t++)u.push({file:this.files[t],inputElem:this,instanceConfig:d.extend({},r)})}),e(),this;function e(){if(0!==u.length){var e,t,r,i,n=u[0];if(J(o.before)){var s=o.before(n.file,n.inputElem);if("object"==typeof s){if("abort"===s.action)return e="AbortError",t=n.file,r=n.inputElem,i=s.reason,void(J(o.error)&&o.error({name:e},t,r,i));if("skip"===s.action)return void h();"object"==typeof s.config&&(n.instanceConfig=d.extend(n.instanceConfig,s.config))}else if("skip"===s)return void h()}var a=n.instanceConfig.complete;n.instanceConfig.complete=function(e){J(a)&&a(e,n.file,n.inputElem),h()},b.parse(n.file,n.instanceConfig)}else J(o.complete)&&o.complete()}function h(){u.splice(0,1),e()}}}function h(e){this._handle=null,this._finished=!1,this._completed=!1,this._halted=!1,this._input=null,this._baseIndex=0,this._partialLine="",this._rowCount=0,this._start=0,this._nextChunk=null,this.isFirstChunk=!0,this._completeResults={data:[],errors:[],meta:{}},function(e){var t=w(e);t.chunkSize=parseInt(t.chunkSize),e.step||e.chunk||(t.chunkSize=null);this._handle=new r(t),(this._handle.streamer=this)._config=t}.call(this,e),this.parseChunk=function(e,t){if(this.isFirstChunk&&J(this._config.beforeFirstChunk)){var r=this._config.beforeFirstChunk(e);void 0!==r&&(e=r)}this.isFirstChunk=!1,this._halted=!1;var i=this._partialLine+e;this._partialLine="";var n=this._handle.parse(i,this._baseIndex,!this._finished);if(!this._handle.paused()&&!this._handle.aborted()){var s=n.meta.cursor;this._finished||(this._partialLine=i.substring(s-this._baseIndex),this._baseIndex=s),n&&n.data&&(this._rowCount+=n.data.length);var a=this._finished||this._config.preview&&this._rowCount>=this._config.preview;if(o)f.postMessage({results:n,workerId:b.WORKER_ID,finished:a});else if(J(this._config.chunk)&&!t){if(this._config.chunk(n,this._handle),this._handle.paused()||this._handle.aborted())return void(this._halted=!0);n=void 0,this._completeResults=void 0}return this._config.step||this._config.chunk||(this._completeResults.data=this._completeResults.data.concat(n.data),this._completeResults.errors=this._completeResults.errors.concat(n.errors),this._completeResults.meta=n.meta),this._completed||!a||!J(this._config.complete)||n&&n.meta.aborted||(this._config.complete(this._completeResults,this._input),this._completed=!0),a||n&&n.meta.paused||this._nextChunk(),n}this._halted=!0},this._sendError=function(e){J(this._config.error)?this._config.error(e):o&&this._config.error&&f.postMessage({workerId:b.WORKER_ID,error:e,finished:!1})}}function l(e){var i;(e=e||{}).chunkSize||(e.chunkSize=b.RemoteChunkSize),h.call(this,e),this._nextChunk=n?function(){this._readChunk(),this._chunkLoaded()}:function(){this._readChunk()},this.stream=function(e){this._input=e,this._nextChunk()},this._readChunk=function(){if(this._finished)this._chunkLoaded();else{if(i=new XMLHttpRequest,this._config.withCredentials&&(i.withCredentials=this._config.withCredentials),n||(i.onload=v(this._chunkLoaded,this),i.onerror=v(this._chunkError,this)),i.open(this._config.downloadRequestBody?"POST":"GET",this._input,!n),this._config.downloadRequestHeaders){var e=this._config.downloadRequestHeaders;for(var t in e)i.setRequestHeader(t,e[t])}if(this._config.chunkSize){var r=this._start+this._config.chunkSize-1;i.setRequestHeader("Range","bytes="+this._start+"-"+r)}try{i.send(this._config.downloadRequestBody)}catch(e){this._chunkError(e.message)}n&&0===i.status&&this._chunkError()}},this._chunkLoaded=function(){4===i.readyState&&(i.status<200||400<=i.status?this._chunkError():(this._start+=this._config.chunkSize?this._config.chunkSize:i.responseText.length,this._finished=!this._config.chunkSize||this._start>=function(e){var t=e.getResponseHeader("Content-Range");if(null===t)return-1;return parseInt(t.substring(t.lastIndexOf("/")+1))}(i),this.parseChunk(i.responseText)))},this._chunkError=function(e){var t=i.statusText||e;this._sendError(new Error(t))}}function c(e){var i,n;(e=e||{}).chunkSize||(e.chunkSize=b.LocalChunkSize),h.call(this,e);var s="undefined"!=typeof FileReader;this.stream=function(e){this._input=e,n=e.slice||e.webkitSlice||e.mozSlice,s?((i=new FileReader).onload=v(this._chunkLoaded,this),i.onerror=v(this._chunkError,this)):i=new FileReaderSync,this._nextChunk()},this._nextChunk=function(){this._finished||this._config.preview&&!(this._rowCount<this._config.preview)||this._readChunk()},this._readChunk=function(){var e=this._input;if(this._config.chunkSize){var t=Math.min(this._start+this._config.chunkSize,this._input.size);e=n.call(e,this._start,t)}var r=i.readAsText(e,this._config.encoding);s||this._chunkLoaded({target:{result:r}})},this._chunkLoaded=function(e){this._start+=this._config.chunkSize,this._finished=!this._config.chunkSize||this._start>=this._input.size,this.parseChunk(e.target.result)},this._chunkError=function(){this._sendError(i.error)}}function p(e){var r;h.call(this,e=e||{}),this.stream=function(e){return r=e,this._nextChunk()},this._nextChunk=function(){if(!this._finished){var e,t=this._config.chunkSize;return t?(e=r.substring(0,t),r=r.substring(t)):(e=r,r=""),this._finished=!r,this.parseChunk(e)}}}function g(e){h.call(this,e=e||{});var t=[],r=!0,i=!1;this.pause=function(){h.prototype.pause.apply(this,arguments),this._input.pause()},this.resume=function(){h.prototype.resume.apply(this,arguments),this._input.resume()},this.stream=function(e){this._input=e,this._input.on("data",this._streamData),this._input.on("end",this._streamEnd),this._input.on("error",this._streamError)},this._checkIsFinished=function(){i&&1===t.length&&(this._finished=!0)},this._nextChunk=function(){this._checkIsFinished(),t.length?this.parseChunk(t.shift()):r=!0},this._streamData=v(function(e){try{t.push("string"==typeof e?e:e.toString(this._config.encoding)),r&&(r=!1,this._checkIsFinished(),this.parseChunk(t.shift()))}catch(e){this._streamError(e)}},this),this._streamError=v(function(e){this._streamCleanUp(),this._sendError(e)},this),this._streamEnd=v(function(){this._streamCleanUp(),i=!0,this._streamData("")},this),this._streamCleanUp=v(function(){this._input.removeListener("data",this._streamData),this._input.removeListener("end",this._streamEnd),this._input.removeListener("error",this._streamError)},this)}function r(m){var a,o,u,i=Math.pow(2,53),n=-i,s=/^\s*-?(\d+\.?|\.\d+|\d+\.\d+)([eE][-+]?\d+)?\s*$/,h=/^((\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z)))$/,t=this,r=0,f=0,d=!1,e=!1,l=[],c={data:[],errors:[],meta:{}};if(J(m.step)){var p=m.step;m.step=function(e){if(c=e,_())g();else{if(g(),0===c.data.length)return;r+=e.data.length,m.preview&&r>m.preview?o.abort():(c.data=c.data[0],p(c,t))}}}function y(e){return"greedy"===m.skipEmptyLines?""===e.join("").trim():1===e.length&&0===e[0].length}function g(){return c&&u&&(k("Delimiter","UndetectableDelimiter","Unable to auto-detect delimiting character; defaulted to '"+b.DefaultDelimiter+"'"),u=!1),m.skipEmptyLines&&(c.data=c.data.filter(function(e){return!y(e)})),_()&&function(){if(!c)return;function e(e,t){J(m.transformHeader)&&(e=m.transformHeader(e,t)),l.push(e)}if(Array.isArray(c.data[0])){for(var t=0;_()&&t<c.data.length;t++)c.data[t].forEach(e);c.data.splice(0,1)}else c.data.forEach(e)}(),function(){if(!c||!m.header&&!m.dynamicTyping&&!m.transform)return c;function e(e,t){var r,i=m.header?{}:[];for(r=0;r<e.length;r++){var n=r,s=e[r];m.header&&(n=r>=l.length?"__parsed_extra":l[r]),m.transform&&(s=m.transform(s,n)),s=v(n,s),"__parsed_extra"===n?(i[n]=i[n]||[],i[n].push(s)):i[n]=s}return m.header&&(r>l.length?k("FieldMismatch","TooManyFields","Too many fields: expected "+l.length+" fields but parsed "+r,f+t):r<l.length&&k("FieldMismatch","TooFewFields","Too few fields: expected "+l.length+" fields but parsed "+r,f+t)),i}var t=1;!c.data.length||Array.isArray(c.data[0])?(c.data=c.data.map(e),t=c.data.length):c.data=e(c.data,0);m.header&&c.meta&&(c.meta.fields=l);return f+=t,c}()}function _(){return m.header&&0===l.length}function v(e,t){return r=e,m.dynamicTypingFunction&&void 0===m.dynamicTyping[r]&&(m.dynamicTyping[r]=m.dynamicTypingFunction(r)),!0===(m.dynamicTyping[r]||m.dynamicTyping)?"true"===t||"TRUE"===t||"false"!==t&&"FALSE"!==t&&(function(e){if(s.test(e)){var t=parseFloat(e);if(n<t&&t<i)return!0}return!1}(t)?parseFloat(t):h.test(t)?new Date(t):""===t?null:t):t;var r}function k(e,t,r,i){var n={type:e,code:t,message:r};void 0!==i&&(n.row=i),c.errors.push(n)}this.parse=function(e,t,r){var i=m.quoteChar||'"';if(m.newline||(m.newline=function(e,t){e=e.substring(0,1048576);var r=new RegExp(Q(t)+"([^]*?)"+Q(t),"gm"),i=(e=e.replace(r,"")).split("\r"),n=e.split("\n"),s=1<n.length&&n[0].length<i[0].length;if(1===i.length||s)return"\n";for(var a=0,o=0;o<i.length;o++)"\n"===i[o][0]&&a++;return a>=i.length/2?"\r\n":"\r"}(e,i)),u=!1,m.delimiter)J(m.delimiter)&&(m.delimiter=m.delimiter(e),c.meta.delimiter=m.delimiter);else{var n=function(e,t,r,i,n){var s,a,o,u;n=n||[",","\t","|",";",b.RECORD_SEP,b.UNIT_SEP];for(var h=0;h<n.length;h++){var f=n[h],d=0,l=0,c=0;o=void 0;for(var p=new E({comments:i,delimiter:f,newline:t,preview:10}).parse(e),g=0;g<p.data.length;g++)if(r&&y(p.data[g]))c++;else{var _=p.data[g].length;l+=_,void 0!==o?0<_&&(d+=Math.abs(_-o),o=_):o=_}0<p.data.length&&(l/=p.data.length-c),(void 0===a||d<=a)&&(void 0===u||u<l)&&1.99<l&&(a=d,s=f,u=l)}return{successful:!!(m.delimiter=s),bestDelimiter:s}}(e,m.newline,m.skipEmptyLines,m.comments,m.delimitersToGuess);n.successful?m.delimiter=n.bestDelimiter:(u=!0,m.delimiter=b.DefaultDelimiter),c.meta.delimiter=m.delimiter}var s=w(m);return m.preview&&m.header&&s.preview++,a=e,o=new E(s),c=o.parse(a,t,r),g(),d?{meta:{paused:!0}}:c||{meta:{paused:!1}}},this.paused=function(){return d},this.pause=function(){d=!0,o.abort(),a=J(m.chunk)?"":a.substring(o.getCharIndex())},this.resume=function(){t.streamer._halted?(d=!1,t.streamer.parseChunk(a,!0)):setTimeout(t.resume,3)},this.aborted=function(){return e},this.abort=function(){e=!0,o.abort(),c.meta.aborted=!0,J(m.complete)&&m.complete(c),a=""}}function Q(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function E(j){var z,M=(j=j||{}).delimiter,P=j.newline,U=j.comments,q=j.step,N=j.preview,B=j.fastMode,K=z=void 0===j.quoteChar||null===j.quoteChar?'"':j.quoteChar;if(void 0!==j.escapeChar&&(K=j.escapeChar),("string"!=typeof M||-1<b.BAD_DELIMITERS.indexOf(M))&&(M=","),U===M)throw new Error("Comment character same as delimiter");!0===U?U="#":("string"!=typeof U||-1<b.BAD_DELIMITERS.indexOf(U))&&(U=!1),"\n"!==P&&"\r"!==P&&"\r\n"!==P&&(P="\n");var W=0,H=!1;this.parse=function(i,t,r){if("string"!=typeof i)throw new Error("Input must be a string");var n=i.length,e=M.length,s=P.length,a=U.length,o=J(q),u=[],h=[],f=[],d=W=0;if(!i)return L();if(j.header&&!t){var l=i.split(P)[0].split(M),c=[],p={},g=!1;for(var _ in l){var m=l[_];J(j.transformHeader)&&(m=j.transformHeader(m,_));var y=m,v=p[m]||0;for(0<v&&(g=!0,y=m+"_"+v),p[m]=v+1;c.includes(y);)y=y+"_"+v;c.push(y)}if(g){var k=i.split(P);k[0]=c.join(M),i=k.join(P)}}if(B||!1!==B&&-1===i.indexOf(z)){for(var b=i.split(P),E=0;E<b.length;E++){if(f=b[E],W+=f.length,E!==b.length-1)W+=P.length;else if(r)return L();if(!U||f.substring(0,a)!==U){if(o){if(u=[],I(f.split(M)),F(),H)return L()}else I(f.split(M));if(N&&N<=E)return u=u.slice(0,N),L(!0)}}return L()}for(var w=i.indexOf(M,W),R=i.indexOf(P,W),C=new RegExp(Q(K)+Q(z),"g"),S=i.indexOf(z,W);;)if(i[W]!==z)if(U&&0===f.length&&i.substring(W,W+a)===U){if(-1===R)return L();W=R+s,R=i.indexOf(P,W),w=i.indexOf(M,W)}else if(-1!==w&&(w<R||-1===R))f.push(i.substring(W,w)),W=w+e,w=i.indexOf(M,W);else{if(-1===R)break;if(f.push(i.substring(W,R)),D(R+s),o&&(F(),H))return L();if(N&&u.length>=N)return L(!0)}else for(S=W,W++;;){if(-1===(S=i.indexOf(z,S+1)))return r||h.push({type:"Quotes",code:"MissingQuotes",message:"Quoted field unterminated",row:u.length,index:W}),T();if(S===n-1)return T(i.substring(W,S).replace(C,z));if(z!==K||i[S+1]!==K){if(z===K||0===S||i[S-1]!==K){-1!==w&&w<S+1&&(w=i.indexOf(M,S+1)),-1!==R&&R<S+1&&(R=i.indexOf(P,S+1));var O=A(-1===R?w:Math.min(w,R));if(i.substr(S+1+O,e)===M){f.push(i.substring(W,S).replace(C,z)),i[W=S+1+O+e]!==z&&(S=i.indexOf(z,W)),w=i.indexOf(M,W),R=i.indexOf(P,W);break}var x=A(R);if(i.substring(S+1+x,S+1+x+s)===P){if(f.push(i.substring(W,S).replace(C,z)),D(S+1+x+s),w=i.indexOf(M,W),S=i.indexOf(z,W),o&&(F(),H))return L();if(N&&u.length>=N)return L(!0);break}h.push({type:"Quotes",code:"InvalidQuotes",message:"Trailing quote on quoted field is malformed",row:u.length,index:W}),S++}}else S++}return T();function I(e){u.push(e),d=W}function A(e){var t=0;if(-1!==e){var r=i.substring(S+1,e);r&&""===r.trim()&&(t=r.length)}return t}function T(e){return r||(void 0===e&&(e=i.substring(W)),f.push(e),W=n,I(f),o&&F()),L()}function D(e){W=e,I(f),f=[],R=i.indexOf(P,W)}function L(e){return{data:u,errors:h,meta:{delimiter:M,linebreak:P,aborted:H,truncated:!!e,cursor:d+(t||0)}}}function F(){q(L()),u=[],h=[]}},this.abort=function(){H=!0},this.getCharIndex=function(){return W}}function _(e){var t=e.data,r=a[t.workerId],i=!1;if(t.error)r.userError(t.error,t.file);else if(t.results&&t.results.data){var n={abort:function(){i=!0,m(t.workerId,{data:[],errors:[],meta:{aborted:!0}})},pause:y,resume:y};if(J(r.userStep)){for(var s=0;s<t.results.data.length&&(r.userStep({data:t.results.data[s],errors:t.results.errors,meta:t.results.meta},n),!i);s++);delete t.results}else J(r.userChunk)&&(r.userChunk(t.results,n,t.file),delete t.results)}t.finished&&!i&&m(t.workerId,t.results)}function m(e,t){var r=a[e];J(r.userComplete)&&r.userComplete(t),r.terminate(),delete a[e]}function y(){throw new Error("Not implemented.")}function w(e){if("object"!=typeof e||null===e)return e;var t=Array.isArray(e)?[]:{};for(var r in e)t[r]=w(e[r]);return t}function v(e,t){return function(){e.apply(t,arguments)}}function J(e){return"function"==typeof e}return o&&(f.onmessage=function(e){var t=e.data;void 0===b.WORKER_ID&&t&&(b.WORKER_ID=t.workerId);if("string"==typeof t.input)f.postMessage({workerId:b.WORKER_ID,results:b.parse(t.input,t.config),finished:!0});else if(f.File&&t.input instanceof File||t.input instanceof Object){var r=b.parse(t.input,t.config);r&&f.postMessage({workerId:b.WORKER_ID,results:r,finished:!0})}}),(l.prototype=Object.create(h.prototype)).constructor=l,(c.prototype=Object.create(h.prototype)).constructor=c,(p.prototype=Object.create(p.prototype)).constructor=p,(g.prototype=Object.create(h.prototype)).constructor=g,b});</script>
+  <script type="text/plain" id="worker-src">/* Best Life Retention Brief — parser and classifier.
+   Runs inside a worker. Reads CONFIG from each job message.
+   Patient codes, names, emails, phones, and card numbers stay here
+   and are never posted back, except as redacted quotes. */
+'use strict';
+
+var cancelled = false;
+var activeParser = null;
+
+var issues = [];
+var idToIndex = new Map();
+var otherIndex = -1;
+var lexicon = new Map();
+var verticalMap = [];
+var effectTable = [];
+var fillerExact = new Set();
+var fillerToken = new Set();
+var negation = new Set();
+var stopwords = new Set();
+var protectedWords = new Set();
+var nameParticles = new Set(['dela', 'delos', 'del', 'san', 'santa', 'sto', 'jr', 'sr']);
+
+var membersByKey = new Map();
+var dropoutByCode = new Map();
+var typeList = [''];
+var typeIndex = new Map([['', 0]]);
+var verticalList = [''];
+var verticalIndex = new Map([['', 0]]);
+var classCache = new Map();
+var nameSet = new Set();
+var quoteBuckets = [];
+var otherMap = new Map();
+var wordFreq = new Map();
+
+var commentsAnalyzed = 0;
+var commentsOther = 0;
+var distinctComments = 0;
+var fillerSkipped = 0;
+var repeatsSkipped = 0;
+var fileStats = [];
+var hasEnrollment = false;
+var hasOrdersCol = false;
+var sawDropoutFile = false;
+var geminiCap = 2000;
+
+var FLAG_MR_ANY = 1;
+var FLAG_MR_PAIN = 2;
+var FLAG_RF_ANY = 4;
+var FLAG_RF_PAIN = 8;
+
+function post(msg) { self.postMessage(msg); }
+
+function resetState() {
+  cancelled = false;
+  activeParser = null;
+  membersByKey = new Map();
+  dropoutByCode = new Map();
+  typeList = [''];
+  typeIndex = new Map([['', 0]]);
+  verticalList = [''];
+  verticalIndex = new Map([['', 0]]);
+  classCache = new Map();
+  nameSet = new Set();
+  quoteBuckets = issues.map(function () { return []; });
+  otherMap = new Map();
+  wordFreq = new Map();
+  commentsAnalyzed = 0;
+  commentsOther = 0;
+  distinctComments = 0;
+  fillerSkipped = 0;
+  repeatsSkipped = 0;
+  fileStats = [];
+  hasEnrollment = false;
+  hasOrdersCol = false;
+  sawDropoutFile = false;
+}
+
+function normHeader(value) {
+  return String(value || '')
+    .replace(/^\uFEFF/, '')
+    .toLowerCase()
+    .replace(/[_/]+/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/['’‘]/g, '')
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isWordChar(ch) {
+  return !!ch && ch >= 'a' && ch <= 'z' || !!ch && ch >= '0' && ch <= '9';
+}
+
+function applyConfig(config) {
+  issues = (config.issues || []).map(function (issue, index) {
+    return {
+      id: issue.id,
+      index: index,
+      stage: issue.stage || 'cross',
+      bucket: issue.bucket || '',
+      label: issue.label || issue.id,
+      explain: issue.explain || '',
+      value: issue.value || '',
+      pain: issue.pain || [],
+      strength: issue.strength || [],
+      topics: issue.topics || [],
+      categories: issue.categories || [],
+      catNorms: (issue.categories || []).map(normText).filter(Boolean).sort(function (a, b) { return b.length - a.length; })
+    };
+  });
+  if (!issues.some(function (issue) { return issue.bucket === 'other' || issue.id === 'other'; })) {
+    issues.push({
+      id: 'other', index: issues.length, stage: 'cross', bucket: 'other', label: 'Other',
+      explain: 'the concern in the member’s own words', value: 'being heard',
+      pain: [], strength: [], topics: [], categories: ['other', 'others'], catNorms: ['other', 'others']
+    });
+  }
+  if (issues.length > 30) throw new Error('Settings can list up to 30 issues.');
+  idToIndex = new Map(issues.map(function (issue) { return [issue.id, issue.index]; }));
+  otherIndex = issues.findIndex(function (issue) { return issue.bucket === 'other' || issue.id === 'other'; });
+  lexicon = new Map();
+  protectedWords = new Set();
+  function addLex(raw, entry) {
+    var text = normText(raw);
+    if (!text) return;
+    entry.text = text;
+    var first = text.split(' ')[0];
+    entry.skipNeg = negation.has(first) || text.indexOf('do not ') === 0 || text.indexOf('did not ') === 0;
+    var bucket = lexicon.get(text[0]);
+    if (!bucket) { bucket = []; lexicon.set(text[0], bucket); }
+    bucket.push(entry);
+    text.split(' ').forEach(function (word) { if (word.length >= 4) protectedWords.add(word); });
+  }
+  fillerExact = new Set((config.filler || []).map(function (item) { return String(item).toLowerCase().trim(); }));
+  ['', '-', '--', '—', 'n/a', 'na', 'n.a', 'n.a.', 'none', 'none.', 'no', 'wala', 'wla', 'nil', 'nothing', 'nope', 'null', 'blank', 'no comment', 'no comments'].forEach(function (item) { fillerExact.add(item); });
+  fillerToken = new Set((config.fillerTokens || ['wala', 'wla', 'po', 'naman', 'lang', 'none', 'na', 'n', 'a', 'no', 'nil', 'nothing', 'nope', 'null', 'blank', 'comment', 'comments']).map(normText));
+  negation = new Set((config.negation || ['hindi', 'di', 'wala', 'walang', 'not', 'no', 'never', 'dont', 'didnt', 'cannot', 'cant', 'huwag', 'ayaw']).map(normText));
+  stopwords = new Set((config.stopwords || []).map(normText));
+  defaultStopwords().forEach(function (word) { stopwords.add(word); });
+  issues.forEach(function (issue) {
+    issue.pain.forEach(function (phrase) { addLex(phrase, { index: issue.index, polarity: 'pain', kind: 'phrase' }); });
+    issue.strength.forEach(function (phrase) { addLex(phrase, { index: issue.index, polarity: 'strength', kind: 'phrase' }); });
+    issue.topics.forEach(function (phrase) { addLex(phrase, { index: issue.index, kind: 'topic' }); });
+    issue.catNorms.forEach(function (phrase) { protectedWords.add(phrase); });
+  });
+  lexicon.forEach(function (list) {
+    list.sort(function (a, b) { return b.text.length - a.text.length; });
+  });
+  verticalMap = (config.verticalMap || []).map(function (row) {
+    return { includes: normText(row.includes || row.match || ''), issue: row.issue };
+  }).filter(function (row) { return row.includes && idToIndex.has(row.issue); })
+    .sort(function (a, b) { return b.includes.length - a.includes.length; });
+  effectTable = (config.effectivenessMap || [
+    ['very ineffective', 1],
+    ['not at all effective', 1],
+    ['not effective', 1],
+    ['hindi effective', 1],
+    ['ineffective', 1],
+    ['very effective', 5],
+    ['highly effective', 5],
+    ['napaka effective', 5],
+    ['effective', 4],
+    ['neutral', 3],
+    ['okay', 3],
+    ['ok', 3]
+  ]).map(function (row) { return [normText(row[0]), row[1]]; })
+    .sort(function (a, b) { return b[0].length - a[0].length; });
+  geminiCap = (config.gemini && config.gemini.cap) || 2000;
+  quoteBuckets = issues.map(function () { return []; });
+}
+
+function defaultStopwords() {
+  return 'the and for with that this from have were they them your about please thank thanks hello there their would could should when what where which while just very much more than then into over also only some any been being because kasi naman lang yung para kung nang ngunit sina mga ang ito iyan yun nya niya ako ikaw tayo namin ninyo siya its not but you are was his her she him our out all can had has did does will onto per via said contact reach code card phone email name member patient'.split(/\s+/);
+}
+
+function isFiller(raw) {
+  var light = String(raw || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!light) return true;
+  if (fillerExact.has(light)) return true;
+  var norm = normText(raw);
+  if (!norm) return true;
+  if (fillerExact.has(norm)) return true;
+  var parts = norm.split(' ');
+  if (parts.length && parts.every(function (part) { return fillerToken.has(part); })) return true;
+  return false;
+}
+
+function isSubstantive(norm) {
+  if (!norm) return false;
+  if (norm.length >= 8) return true;
+  return norm.split(' ').some(function (word) { return word.length >= 4; });
+}
+
+function overlaps(taken, start, end) {
+  for (var i = start; i < end; i++) if (taken[i]) return true;
+  return false;
+}
+
+function negatedAt(norm, index) {
+  var before = norm.slice(Math.max(0, index - 28), index).trim().split(' ').slice(-3);
+  return before.some(function (word) { return negation.has(word); });
+}
+
+function scanLexicon(norm) {
+  var taken = new Uint8Array(norm.length);
+  var pairs = [];
+  var topics = [];
+  var seenTopic = new Set();
+  for (var i = 0; i < norm.length; i++) {
+    if (i > 0 && isWordChar(norm[i - 1])) continue;
+    var list = lexicon.get(norm[i]);
+    if (!list) continue;
+    for (var p = 0; p < list.length; p++) {
+      var entry = list[p];
+      var len = entry.text.length;
+      if (i + len > norm.length) continue;
+      if (norm.slice(i, i + len) !== entry.text) continue;
+      var after = i + len;
+      if (after < norm.length && isWordChar(norm[after])) continue;
+      if (overlaps(taken, i, after)) continue;
+      for (var t = i; t < after; t++) taken[t] = 1;
+      if (entry.kind === 'topic') {
+        if (!seenTopic.has(entry.index)) {
+          seenTopic.add(entry.index);
+          topics.push(entry.index);
+        }
+      } else {
+        var polarity = entry.polarity;
+        if (!entry.skipNeg && negatedAt(norm, i)) polarity = polarity === 'pain' ? 'strength' : 'pain';
+        pairs.push({ index: entry.index, polarity: polarity });
+      }
+      break;
+    }
+  }
+  return { pairs: pairs, topics: topics };
+}
+
+function polarityFromRating(rating) {
+  if (!rating || !isFinite(rating.value)) return null;
+  if (rating.value <= rating.low) return 'pain';
+  if (rating.value >= rating.high) return 'strength';
+  return null;
+}
+
+function classify(raw, ctx) {
+  ctx = ctx || {};
+  if (isFiller(raw)) return { skip: true };
+  var norm = normText(raw);
+  if (!norm || isFiller(norm)) return { skip: true };
+  var base = classCache.get(norm);
+  if (!base) {
+    base = scanLexicon(norm);
+    classCache.set(norm, base);
+    distinctComments += 1;
+  }
+  return decide(base, ctx, norm);
+}
+
+function decide(base, ctx, norm) {
+  var found = new Map();
+  if (base.pairs.length) {
+    var score = new Map();
+    base.pairs.forEach(function (pair) {
+      var polarity = ctx.force || pair.polarity;
+      score.set(pair.index, (score.get(pair.index) || 0) + (polarity === 'pain' ? 1 : -1));
+    });
+    score.forEach(function (value, index) {
+      if (value > 0) found.set(index, 'pain');
+      else if (value < 0) found.set(index, 'strength');
+      else {
+        var tie = ctx.force || polarityFromRating(ctx.rating);
+        if (tie) found.set(index, tie);
+      }
+    });
+  }
+  var topicPolarity = ctx.force || polarityFromRating(ctx.rating);
+  if (topicPolarity) {
+    base.topics.forEach(function (index) {
+      if (!found.has(index)) found.set(index, topicPolarity);
+    });
+  }
+  if (!found.size) {
+    var fallback = ctx.force || polarityFromRating(ctx.rating);
+    if (fallback && ctx.defaultIssue != null) found.set(ctx.defaultIssue, fallback);
+    else if (isSubstantive(norm)) found.set(otherIndex, ctx.force === 'strength' ? 'strength' : 'pain');
+    else return { skip: true };
+  }
+  if ([...found.keys()].some(function (index) { return index !== otherIndex; })) found.delete(otherIndex);
+  var items = [...found.entries()].map(function (entry) { return { index: entry[0], polarity: entry[1] }; });
+  return {
+    skip: false,
+    items: items,
+    otherOnly: items.length === 1 && items[0].index === otherIndex
+  };
+}
+
+function classifyCategory(raw) {
+  if (isFiller(raw)) return { skip: true };
+  var parts = String(raw).split(/[,;/|]/).map(function (part) { return part.trim(); }).filter(Boolean);
+  var found = new Map();
+  parts.forEach(function (part) {
+    if (isFiller(part)) return;
+    var norm = normText(part);
+    var best = null;
+    var bestLen = 0;
+    issues.forEach(function (issue) {
+      issue.catNorms.forEach(function (cat) {
+        if (cat && (norm === cat || norm.indexOf(cat) !== -1) && cat.length > bestLen) {
+          best = issue.index;
+          bestLen = cat.length;
+        }
+      });
+    });
+    if (best == null) {
+      var res = classify(part, { force: 'pain', defaultIssue: null, rating: null });
+      if (!res.skip) res.items.forEach(function (item) { found.set(item.index, 'pain'); });
+    } else found.set(best, 'pain');
+  });
+  if (!found.size) {
+    if (isSubstantive(normText(raw))) return { skip: false, items: [{ index: otherIndex, polarity: 'pain' }], otherOnly: true };
+    return { skip: true };
+  }
+  if ([...found.keys()].some(function (index) { return index !== otherIndex; })) found.delete(otherIndex);
+  var items = [...found.entries()].map(function (entry) { return { index: entry[0], polarity: 'pain' }; });
+  return { skip: false, items: items, otherOnly: items.length === 1 && items[0].index === otherIndex };
+}
+
+function findHeader(fields, aliases) {
+  var map = new Map();
+  fields.forEach(function (field) {
+    var key = normHeader(field);
+    if (key && !map.has(key)) map.set(key, field);
+  });
+  var list = aliases.map(normHeader).filter(Boolean).sort(function (a, b) { return b.length - a.length; });
+  for (var i = 0; i < list.length; i++) if (map.has(list[i])) return map.get(list[i]);
+  var entries = [...map.entries()];
+  for (var a = 0; a < list.length; a++) {
+    if (list[a].length < 8) continue;
+    for (var e = 0; e < entries.length; e++) {
+      if (entries[e][0].indexOf(list[a]) !== -1) return entries[e][1];
+    }
+  }
+  return null;
+}
+
+function headerSet(fields) {
+  return fields.map(normHeader).filter(Boolean);
+}
+
+function detect(fields) {
+  var set = new Set(headerSet(fields));
+  function has(name) {
+    var key = normHeader(name);
+    if (set.has(key)) return true;
+    return [...set].some(function (header) { return header.indexOf(key) !== -1; });
+  }
+  var scoreB = 0;
+  var scoreA = 0;
+  ['vertical positives', 'vertical negatives', 'mr requirements feedback', 'refill requirements feedback', 'program requirements rating', 'likelihood to recommend program', 'combined feedback', 'vertical satisfaction rating', 'final patient code from all members'].forEach(function (name) { if (has(name)) scoreB += 2; });
+  if (has('vertical')) scoreB += 1;
+  ['nps feedback', 'suggested improvements category', 'service feedback', 'member base', 'requested date', 'patient code final'].forEach(function (name) { if (has(name)) scoreA += 2; });
+  var code = findHeader(fields, ['final patient code from all members', 'patient code final', 'final patient code', 'patient code', 'member code', 'patient id']);
+  var drop = findHeader(fields, ['dropout date', 'drop off date', 'dropoff date', 'date dropped', 'dropped date', 'date of dropout', 'inactive date', 'churn date', 'drop date', 'dropout']);
+  var scoreD = 0;
+  if (code && drop) scoreD += 6;
+  if (findHeader(fields, ['number of orders', 'number of refills', 'enrollment date', 'enrolment date'])) scoreD += 2;
+  if (scoreB >= 4 || scoreA >= 4) scoreD = 0;
+  if (scoreB >= 4 && scoreB >= scoreA && scoreB >= scoreD) return 'B';
+  if (scoreA >= 4 && scoreA > scoreB && scoreA >= scoreD) return 'A';
+  if (scoreD >= 6) return 'D';
+  if (scoreB >= 4) return 'B';
+  if (scoreA >= 4) return 'A';
+  return null;
+}
+
+function privacyKind(header) {
+  var key = normHeader(header);
+  if (!key || key.indexOf('member type') !== -1) return '';
+  if (/\b(email|e mail)\b/.test(key)) return 'drop';
+  if (/\b(phone|mobile|cellphone|cell number|tel)\b/.test(key)) return 'drop';
+  if (/\bcard\b/.test(key)) return 'drop';
+  if (/\bname\b/.test(key)) return 'name';
+  return '';
+}
+
+function mapColumns(fields, kind) {
+  var cols = { kind: kind, code: null, type: null, vertical: null, dropDate: null, orders: null, enrollment: null, names: [], texts: [] };
+  if (kind === 'A') {
+    cols.code = findHeader(fields, ['patient code final', 'final patient code', 'patient code', 'member code']);
+  } else if (kind === 'B') {
+    cols.code = findHeader(fields, ['final patient code from all members', 'final patient code', 'patient code final', 'patient code', 'member code']);
+  } else {
+    cols.code = findHeader(fields, ['patient code', 'final patient code', 'patient code final', 'member code', 'patient id', 'member id']);
+    cols.dropDate = findHeader(fields, ['dropout date', 'drop off date', 'dropoff date', 'date dropped', 'dropped date', 'date of dropout', 'inactive date', 'churn date', 'drop date', 'dropout']);
+    cols.orders = findHeader(fields, ['number of orders or refills', 'number of orders', 'no of orders', 'order count', 'orders before dropping', 'orders before drop', 'total orders', 'number of refills', 'no of refills', 'refill count', 'refills before dropping', 'total refills', 'orders', 'refills']);
+    cols.enrollment = findHeader(fields, ['enrollment date', 'enrolment date', 'date enrolled', 'enrolled date', 'date of enrollment']);
+  }
+  cols.type = findHeader(fields, ['medicine benefit member type from all members', 'medicine benefit member type', 'member type']);
+  cols.vertical = findHeader(fields, ['vertical']);
+  var roles = [
+    ['vertical positives', 'vpos'],
+    ['vertical negatives', 'vneg'],
+    ['suggested improvements category', 'category'],
+    ['service feedback', 'text'],
+    ['nps feedback', 'text'],
+    ['mr requirements feedback', 'mr'],
+    ['refill requirements feedback', 'refill'],
+    ['combined feedback', 'combined'],
+    ['program effectiveness', 'effect'],
+    ['program requirements rating', 'req'],
+    ['vertical satisfaction rating', 'vsat'],
+    ['likelihood to recommend program', 'ltr'],
+    ['likelihood to recommend', 'ltr']
+  ];
+  var used = new Set();
+  roles.forEach(function (role) {
+    var header = findHeader(fields, [role[0]]);
+    if (!header || used.has(header)) return;
+    used.add(header);
+    cols.texts.push({ header: header, role: role[1] });
+  });
+  fields.forEach(function (field) {
+    if (privacyKind(field) === 'name') cols.names.push(field);
+  });
+  return cols;
+}
+
+function intern(list, map, value) {
+  var text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text || text.length > 80) return 0;
+  var existing = map.get(text);
+  if (existing != null) return existing;
+  if (list.length >= 4000) return 0;
+  var index = list.length;
+  list.push(text);
+  map.set(text, index);
+  return index;
+}
+
+function splitCodes(raw) {
+  if (raw == null) return [];
+  return String(raw).split(/[,;|]/).map(function (part) { return part.trim().toUpperCase(); }).filter(function (part) {
+    if (!part) return false;
+    var lower = part.toLowerCase();
+    return lower !== 'n/a' && lower !== 'na' && lower !== 'null' && lower !== '-' && lower !== 'none';
+  });
+}
+
+function parseNum(value) {
+  if (value == null) return null;
+  var text = String(value).trim();
+  if (!text) return null;
+  var lower = text.toLowerCase();
+  if (lower === '-' || lower === 'n/a' || lower === 'na' || lower === 'null' || lower === 'none') return null;
+  var num = Number(text.replace(/,/g, ''));
+  return isFinite(num) ? num : null;
+}
+
+function parseEffect(value) {
+  var numeric = parseNum(value);
+  if (numeric != null) return numeric;
+  var norm = normText(value);
+  if (!norm) return null;
+  for (var i = 0; i < effectTable.length; i++) {
+    if (norm === effectTable[i][0] || norm.indexOf(effectTable[i][0]) !== -1) return effectTable[i][1];
+  }
+  return null;
+}
+
+function isShortEffect(value) {
+  var numeric = parseNum(value);
+  if (numeric != null) return true;
+  var norm = normText(value);
+  if (!norm) return true;
+  for (var i = 0; i < effectTable.length; i++) if (norm === effectTable[i][0]) return true;
+  return norm.length < 28 && effectTable.some(function (row) { return norm.indexOf(row[0]) !== -1; });
+}
+
+function isDroppedDate(value) {
+  var text = String(value || '').trim();
+  if (!text) return false;
+  var lower = text.toLowerCase();
+  if (['-', '--', 'n/a', 'na', 'n.a', 'n.a.', 'null', 'none', 'blank', 'active', 'ongoing', 'retained', 'current', '0'].indexOf(lower) !== -1) return false;
+  return true;
+}
+
+function parseOrders(value) {
+  if (value == null) return null;
+  var text = String(value).trim();
+  if (!text) return null;
+  var lower = text.toLowerCase();
+  if (['-', 'n/a', 'na', 'null', 'none', 'blank'].indexOf(lower) !== -1) return null;
+  var num = Number(text.replace(/,/g, ''));
+  if (!isFinite(num) || num < 0) return null;
+  return Math.max(0, Math.round(num));
+}
+
+function harvestName(value) {
+  String(value || '').toLowerCase().split(/[^a-z]+/).forEach(function (word) {
+    if (word.length < 4) return;
+    if (stopwords.has(word) || nameParticles.has(word) || protectedWords.has(word)) return;
+    nameSet.add(word);
+  });
+}
+
+function ratingBundle(value, low, high) {
+  if (value == null || !isFinite(value)) return null;
+  return { value: value, low: low, high: high };
+}
+
+function ratingFor(config, member, role) {
+  var ratings = (config && config.ratings) || {};
+  function pack(value, key) {
+    var cfg = ratings[key] || {};
+    if (value == null || !isFinite(value)) return null;
+    return ratingBundle(value, cfg.low != null ? cfg.low : 2, cfg.high != null ? cfg.high : 4);
+  }
+  if (role === 'mr') return pack(member.req, 'requirements') || pack(member.eff, 'effectiveness');
+  if (role === 'refill') return pack(member.ltr, 'likelihood') || pack(member.eff, 'effectiveness');
+  if (role === 'vertical') return pack(member.vsat, 'satisfaction');
+  return pack(member.vsat, 'satisfaction') || pack(member.req, 'requirements') || pack(member.ltr, 'likelihood') || pack(member.eff, 'effectiveness');
+}
+
+function verticalIssueIndex(label) {
+  var norm = normText(label);
+  if (!norm) return null;
+  for (var i = 0; i < verticalMap.length; i++) {
+    if (norm.indexOf(verticalMap[i].includes) !== -1) return idToIndex.get(verticalMap[i].issue);
+  }
+  return null;
+}
+
+function defaultIssueFor(role, verticalIdx) {
+  if (role === 'mr' && idToIndex.has('avail_mr')) return idToIndex.get('avail_mr');
+  if (role === 'refill' && idToIndex.has('adh_refill')) return idToIndex.get('adh_refill');
+  if (role === 'vpos' || role === 'vneg' || role === 'vertical') return verticalIdx;
+  return null;
+}
+
+function clipQuote(raw, index) {
+  var parts = String(raw || '').split(/(?<=[.!?])\s+/).map(function (part) { return part.trim(); }).filter(Boolean);
+  var chosen = '';
+  for (var i = 0; i < parts.length; i++) {
+    var norm = normText(parts[i]);
+    if (!norm) continue;
+    var base = classCache.get(norm);
+    if (!base) base = scanLexicon(norm);
+    var hit = base.pairs.some(function (pair) { return pair.index === index; }) || base.topics.indexOf(index) !== -1;
+    if (!hit) continue;
+    chosen = parts[i];
+    break;
+  }
+  if (!chosen) chosen = String(raw || '');
+  chosen = chosen.replace(/\s+/g, ' ').trim();
+  if (chosen.length > 180) chosen = chosen.slice(0, 177).replace(/\s+\S*$/, '').trim() + '…';
+  return chosen;
+}
+
+function rememberQuote(index, raw, member) {
+  if (!raw || isFiller(raw)) return;
+  var text = clipQuote(raw, index);
+  if (text.length < 8) return;
+  var bucket = quoteBuckets[index];
+  var key = normText(text).slice(0, 90);
+  if (bucket.some(function (quote) { return quote.key === key; })) return;
+  var letters = (text.match(/[a-z]/gi) || []).length;
+  var penalty = /@/.test(text) || /\d{6,}/.test(text) ? 50 : 0;
+  bucket.push({ key: key, raw: text, member: member, score: Math.min(letters, 170) - penalty });
+  if (bucket.length > 12) {
+    bucket.sort(function (a, b) { return b.score - a.score; });
+    bucket.length = 8;
+  }
+}
+
+function noteOther(raw, member) {
+  var norm = normText(raw);
+  if (norm) {
+    var entry = otherMap.get(norm);
+    if (!entry && otherMap.size < geminiCap) {
+      entry = { raw: String(raw), counts: new Map() };
+      otherMap.set(norm, entry);
+    }
+    if (entry) entry.counts.set(member, (entry.counts.get(member) || 0) + 1);
+  }
+  addWords(raw);
+  member.otherOpen += 1;
+}
+
+function addWords(raw) {
+  var text = String(raw || '').toLowerCase();
+  text = text.replace(/\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/g, ' ');
+  text = text.replace(/(?:\+63|63|0)[\s.-]*9\d{2}[\s.-]*\d{3}[\s.-]*\d{4}/g, ' ');
+  text = text.replace(/\d+/g, ' ');
+  normText(text).split(' ').forEach(function (word) {
+    if (word.length < 4 || word.length > 18) return;
+    if (stopwords.has(word) || fillerToken.has(word)) return;
+    wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+  });
+}
+
+function applyItems(member, result, raw, role) {
+  if (!result || result.skip) {
+    if (result && result.skip) fillerSkipped += 1;
+    return;
+  }
+  commentsAnalyzed += 1;
+  if (result.otherOnly) {
+    commentsOther += 1;
+    noteOther(raw, member);
+  }
+  result.items.forEach(function (item) {
+    if (item.polarity === 'strength') member.strength |= (1 << item.index);
+    else member.pain |= (1 << item.index);
+    if (!result.otherOnly && item.polarity === 'pain' && role !== 'category') rememberQuote(item.index, raw, member);
+  });
+  if (role === 'mr') {
+    member.flags |= FLAG_MR_ANY;
+    if (result.items.some(function (item) { return item.polarity === 'pain'; })) member.flags |= FLAG_MR_PAIN;
+  }
+  if (role === 'refill') {
+    member.flags |= FLAG_RF_ANY;
+    if (result.items.some(function (item) { return item.polarity === 'pain'; })) member.flags |= FLAG_RF_PAIN;
+  }
+}
+
+function blankMember(survey) {
+  return {
+    survey: survey === 'B' ? 1 : 0,
+    type: 0,
+    vertical: 0,
+    eff: NaN,
+    req: NaN,
+    ltr: NaN,
+    pain: 0,
+    strength: 0,
+    flags: 0,
+    otherOpen: 0,
+    orders: -1,
+    status: 0
+  };
+}
+
+function setFirst(member, key, value) {
+  if (value == null || !isFinite(value)) return;
+  if (!isFinite(member[key])) member[key] = value;
+}
+
+function cell(row, header) {
+  if (!header) return '';
+  var value = row[header];
+  return value == null ? '' : value;
+}
+
+function ingestSurveyRow(row, cols, config) {
+  var codes = splitCodes(cell(row, cols.code));
+  if (!codes.length) return 0;
+  cols.names.forEach(function (header) { harvestName(cell(row, header)); });
+  var typeIdx = intern(typeList, typeIndex, cell(row, cols.type));
+  var verticalLabel = cell(row, cols.vertical);
+  var verticalIdx = intern(verticalList, verticalIndex, verticalLabel);
+  var vIssue = verticalIssueIndex(verticalLabel);
+  codes.forEach(function (code) {
+    var key = (cols.kind === 'B' ? 'B' : 'A') + '\t' + code;
+    var member = membersByKey.get(key);
+    if (!member) {
+      member = blankMember(cols.kind);
+      membersByKey.set(key, member);
+    }
+    if (!member.type && typeIdx) member.type = typeIdx;
+    if (!member.vertical && verticalIdx) member.vertical = verticalIdx;
+    var pending = [];
+    var combined = '';
+    var others = [];
+    cols.texts.forEach(function (spec) {
+      var value = cell(row, spec.header);
+      if (spec.role === 'req') setFirst(member, 'req', parseNum(value));
+      else if (spec.role === 'vsat') setFirst(member, 'vsat', parseNum(value));
+      else if (spec.role === 'ltr') setFirst(member, 'ltr', parseNum(value));
+      else if (spec.role === 'effect') {
+        setFirst(member, 'eff', parseEffect(value));
+        if (!isShortEffect(value) && String(value || '').trim()) pending.push({ role: 'text', value: value });
+      } else if (spec.role === 'combined') combined = value;
+      else if (String(value || '').trim()) {
+        pending.push({ role: spec.role, value: value });
+        if (spec.role !== 'category') others.push(value);
+      }
+    });
+    pending.forEach(function (item) {
+      var ctx = {
+        force: item.role === 'vpos' ? 'strength' : item.role === 'vneg' ? 'pain' : null,
+        defaultIssue: defaultIssueFor(item.role, vIssue),
+        rating: ratingFor(config, member, item.role === 'vpos' || item.role === 'vneg' ? 'vertical' : item.role)
+      };
+      var result = item.role === 'category' ? classifyCategory(item.value) : classify(item.value, ctx);
+      applyItems(member, result, item.value, item.role);
+    });
+    if (String(combined || '').trim()) {
+      if (isRepeat(combined, others)) repeatsSkipped += 1;
+      else {
+        var result = classify(combined, {
+          force: null,
+          defaultIssue: vIssue,
+          rating: ratingFor(config, member, 'text')
+        });
+        applyItems(member, result, combined, 'text');
+      }
+    }
+  });
+  return codes.length ? 1 : 0;
+}
+
+function isRepeat(combined, others) {
+  var norm = normText(combined);
+  if (!norm) return true;
+  var parts = others.map(normText).filter(Boolean);
+  if (parts.some(function (part) { return part === norm; })) return true;
+  if (parts.some(function (part) { return part.length > 24 && (norm.indexOf(part) !== -1 || part.indexOf(norm) !== -1); })) return true;
+  var joined = normText(parts.join(' '));
+  return !!joined && joined === norm;
+}
+
+function ingestDropoutRow(row, cols) {
+  var codes = splitCodes(cell(row, cols.code));
+  if (!codes.length) return 0;
+  cols.names.forEach(function (header) { harvestName(cell(row, header)); });
+  var dropped = isDroppedDate(cell(row, cols.dropDate));
+  var orders = cols.orders ? parseOrders(cell(row, cols.orders)) : null;
+  if (cols.enrollment) hasEnrollment = true;
+  if (cols.orders) hasOrdersCol = true;
+  codes.forEach(function (code) {
+    var prev = dropoutByCode.get(code);
+    if (!prev) dropoutByCode.set(code, { dropped: dropped, orders: orders });
+    else {
+      prev.dropped = prev.dropped || dropped;
+      if (orders != null) prev.orders = prev.orders == null ? orders : Math.max(prev.orders, orders);
+    }
+  });
+  return 1;
+}
+
+function ingestRows(rows, cols, config) {
+  var used = 0;
+  for (var i = 0; i < rows.length; i++) {
+    if (cols.kind === 'D') used += ingestDropoutRow(rows[i], cols) ? 1 : 0;
+    else used += ingestSurveyRow(rows[i], cols, config) ? 1 : 0;
+  }
+  return used;
+}
+
+function redact(raw, code) {
+  var text = String(raw || '');
+  var email = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+  var phone = /(?:\+63|63|0)[\s.-]*9\d{2}[\s.-]*\d{3}[\s.-]*\d{4}\b/g;
+  var phone2 = /\b09\d{9}\b/g;
+  var card = /\b(?:\d[ -]?){13,19}\b/g;
+  var longDigits = /\b\d{6,}\b/g;
+  var codeLike = /\b[A-Za-z]{1,8}-?\d{4,}\b/g;
+  for (var pass = 0; pass < 2; pass++) {
+    text = text.replace(email, '[email]').replace(phone, '[phone]').replace(phone2, '[phone]').replace(card, '[number]').replace(longDigits, '[number]').replace(codeLike, '[code]');
+  }
+  if (code && String(code).length >= 3) {
+    var safe = String(code).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    text = text.replace(new RegExp(safe, 'ig'), '[code]');
+  }
+  text = text.replace(/\b[A-Za-z][A-Za-z'.-]{3,}\b/g, function (word) {
+    var key = word.toLowerCase().replace(/[^a-z]/g, '');
+    return nameSet.has(key) ? '[name]' : word;
+  });
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function finish(config, started) {
+  var members = [...membersByKey.entries()];
+  var n = members.length;
+  var survey = new Uint8Array(n);
+  var type = new Uint16Array(n);
+  var vertical = new Uint16Array(n);
+  var status = new Uint8Array(n);
+  var orders = new Int16Array(n);
+  var eff = new Float32Array(n);
+  var req = new Float32Array(n);
+  var ltr = new Float32Array(n);
+  var pain = new Uint32Array(n);
+  var strength = new Uint32Array(n);
+  var flags = new Uint8Array(n);
+  var otherOpen = new Uint16Array(n);
+  var dropped = 0;
+  var active = 0;
+  var unknown = 0;
+  var matched = 0;
+  for (var i = 0; i < n; i++) {
+    var entry = members[i];
+    var key = entry[0];
+    var member = entry[1];
+    var code = key.slice(key.indexOf('\t') + 1);
+    var info = dropoutByCode.get(code);
+    if (!info) {
+      member.status = 0;
+      member.orders = -1;
+      unknown += 1;
+    } else {
+      matched += 1;
+      member.status = info.dropped ? 2 : 1;
+      member.orders = info.orders == null ? -1 : Math.min(32767, info.orders);
+      if (info.dropped) dropped += 1;
+      else active += 1;
+    }
+    survey[i] = member.survey;
+    type[i] = member.type;
+    vertical[i] = member.vertical;
+    status[i] = member.status;
+    orders[i] = member.orders;
+    eff[i] = member.eff;
+    req[i] = member.req;
+    ltr[i] = member.ltr;
+    pain[i] = member.pain;
+    strength[i] = member.strength;
+    flags[i] = member.flags;
+    otherOpen[i] = Math.min(65535, member.otherOpen);
+    member._index = i;
+  }
+  var quotes = [];
+  quoteBuckets.forEach(function (bucket, index) {
+    bucket.sort(function (a, b) { return b.score - a.score; });
+    bucket.slice(0, 8).forEach(function (quote) {
+      quotes.push({
+        issue: index,
+        text: redact(quote.raw),
+        survey: quote.member.survey,
+        type: quote.member.type,
+        vertical: quote.member.vertical
+      });
+    });
+  });
+  var geminiQueue = [];
+  var serial = 0;
+  otherMap.forEach(function (entry) {
+    var hits = [];
+    entry.counts.forEach(function (count, member) {
+      if (member._index != null) hits.push({ i: member._index, n: count });
+    });
+    geminiQueue.push({ id: 'c' + serial, text: redact(entry.raw), hits: hits });
+    serial += 1;
+  });
+  nameSet.forEach(function (word) { wordFreq.delete(word); });
+  var otherWords = [...wordFreq.entries()].sort(function (a, b) { return b[1] - a[1] || a[0].localeCompare(b[0]); }).slice(0, 15).map(function (entry) { return { word: entry[0], n: entry[1] }; });
+  var typeCounts = new Uint32Array(typeList.length);
+  var verticalCounts = new Uint32Array(verticalList.length);
+  for (var c = 0; c < n; c++) { typeCounts[type[c]] += 1; verticalCounts[vertical[c]] += 1; }
+  var meta = {
+    files: fileStats,
+    commentsAnalyzed: commentsAnalyzed,
+    commentsOther: commentsOther,
+    distinctComments: distinctComments,
+    fillerSkipped: fillerSkipped,
+    repeatsSkipped: repeatsSkipped,
+    matched: matched,
+    unknown: unknown,
+    dropped: dropped,
+    active: active,
+    members: n,
+    hasDropout: sawDropoutFile && matched > 0,
+    dropoutFileLoaded: sawDropoutFile,
+    hasOrders: hasOrdersCol,
+    hasEnrollment: hasEnrollment,
+    mode: 'rules',
+    geminiRelabeled: 0,
+    geminiReviewed: 0,
+    elapsedMs: Math.round(performance.now() - started),
+    otherWords: otherWords,
+    geminiCap: geminiCap,
+    otherQueueCount: geminiQueue.length
+  };
+  membersByKey.clear();
+  dropoutByCode.clear();
+  nameSet.clear();
+  otherMap.clear();
+  post({
+    type: 'done',
+    meta: meta,
+    types: typeList,
+    verticals: verticalList,
+    typeCounts: Array.from(typeCounts),
+    verticalCounts: Array.from(verticalCounts),
+    survey: survey,
+    memberType: type,
+    vertical: vertical,
+    status: status,
+    orders: orders,
+    eff: eff,
+    req: req,
+    ltr: ltr,
+    pain: pain,
+    strength: strength,
+    flags: flags,
+    otherOpen: otherOpen,
+    quotes: quotes,
+    geminiQueue: geminiQueue
+  });
+}
+
+function parseFile(file, name, slot, index, total, config) {
+  return new Promise(function (resolve) {
+    var ready = false;
+    var cols = null;
+    var rows = 0;
+    var used = 0;
+    var fileError = '';
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: 'greedy',
+      dynamicTyping: false,
+      chunkSize: 256 * 1024,
+      transformHeader: function (header) { return String(header || '').replace(/^\uFEFF/, '').trim(); },
+      chunk: function (results, parser) {
+        activeParser = parser;
+        if (cancelled) { parser.abort(); return; }
+        if (!ready) {
+          var fields = results.meta.fields || [];
+          var kind = detect(fields) || (slot === 'A' || slot === 'B' || slot === 'D' ? slot : null);
+          if (!kind) {
+            fileError = '“' + name + '” does not look like Survey A, Survey B, or a dropout list. Columns found: ' + fields.slice(0, 12).join(', ');
+            parser.abort();
+            return;
+          }
+          cols = mapColumns(fields, kind);
+          if (!cols.code || (kind === 'D' && !cols.dropDate)) {
+            fileError = '“' + name + '” is missing a patient code' + (kind === 'D' ? ' or a dropout date' : '') + ' column.';
+            parser.abort();
+            return;
+          }
+          if (kind === 'D') sawDropoutFile = true;
+          ready = true;
+          post({ type: 'progress', phase: 'read', name: name, kind: kind, rows: 0, fileIndex: index + 1, fileCount: total });
+        }
+        var data = results.data || [];
+        used += ingestRows(data, cols, config);
+        rows += data.length;
+        data.length = 0;
+        post({ type: 'progress', phase: 'read', name: name, kind: cols.kind, rows: rows, fileIndex: index + 1, fileCount: total });
+      },
+      complete: function () {
+        if (fileError) fileStats.push({ name: name, kind: '?', rows: rows, used: 0, error: fileError });
+        else if (ready) fileStats.push({ name: name, kind: cols.kind, rows: rows, used: used, error: '' });
+        else fileStats.push({ name: name, kind: '?', rows: 0, used: 0, error: '“' + name + '” had no readable rows.' });
+        resolve();
+      },
+      error: function (error) {
+        fileStats.push({ name: name, kind: '?', rows: rows, used: used, error: (error && error.message) || 'Could not read ' + name });
+        resolve();
+      }
+    });
+  });
+}
+
+function csvEscape(value) {
+  var text = String(value == null ? '' : value);
+  if (/[",\n\r]/.test(text)) return '"' + text.replace(/"/g, '""') + '"';
+  return text;
+}
+
+function mulberry32(seed) {
+  var a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function issueById(id) {
+  return issues[idToIndex.get(id)];
+}
+
+function pickPhrase(id, polarity, rng) {
+  var issue = issueById(id);
+  var list = issue && (polarity === 'pain' ? issue.pain : issue.strength);
+  if (!list || !list.length) return issue ? issue.label : id;
+  return list[Math.floor(rng() * list.length)];
+}
+
+function capitalize(text) {
+  var value = String(text || '');
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+}
+
+async function runSample(config, size) {
+  var started = performance.now();
+  resetState();
+  applyConfig(config);
+  var large = size === 'large';
+  var countA = large ? 50000 : 160;
+  var countB = large ? 100000 : 240;
+  var rng = mulberry32(large ? 20260315 : 20260314);
+  var plans = [];
+  var otherLines = [
+    'The branch is far from my house.',
+    'I wish the receipt used bigger print.',
+    'Sana may weekend schedule for pickup.',
+    'The waiting area needs more chairs.'
+  ];
+  var names = ['Maria Santos', 'Juan Reyes', 'Liza Gomez', 'Paolo Navarro'];
+  function profile(type) {
+    var pains = [];
+    var strengths = [];
+    function maybe(id, prob) { if (rng() < prob) pains.push(id); }
+    maybe('avail_mr', type === 'Dependent' ? 0.56 : 0.22);
+    maybe('avail_how', 0.11);
+    maybe('avail_cost', 0.09);
+    maybe('avail_consult', 0.06);
+    maybe('avail_lab', large ? 0.04 : 0.015);
+    maybe('avail_platform', 0.08);
+    maybe('adh_delivery', type === 'Corporate' ? 0.52 : 0.18);
+    maybe('adh_stock', type === 'Senior' ? 0.28 : 0.1);
+    maybe('adh_refill', 0.11);
+    maybe('adh_cs', 0.08);
+    maybe('staff', 0.045);
+    function addStrength(id, prob) { if (rng() < prob && pains.indexOf(id) === -1) strengths.push(id); }
+    addStrength('adh_refill', 0.16);
+    addStrength('avail_how', 0.09);
+    addStrength('avail_mr', 0.07);
+    addStrength('adh_delivery', 0.07);
+    addStrength('staff', 0.06);
+    var dropP = 0.12;
+    if (pains.indexOf('avail_mr') !== -1) dropP += 0.46;
+    if (pains.indexOf('adh_delivery') !== -1) dropP += 0.34;
+    if (pains.some(function (id) { return id.indexOf('avail_') === 0 && id !== 'avail_mr'; })) dropP += 0.07;
+    if (pains.some(function (id) { return id.indexOf('adh_') === 0 && id !== 'adh_delivery'; })) dropP += 0.06;
+    if (strengths.indexOf('adh_refill') !== -1) dropP -= 0.1;
+    dropP = Math.max(0.04, Math.min(0.92, dropP));
+    return { pains: pains, strengths: strengths, dropped: rng() < dropP, unknown: rng() < 0.12 };
+  }
+  function typeName() {
+    var roll = rng();
+    if (roll < 0.42) return 'Principal';
+    if (roll < 0.64) return 'Dependent';
+    if (roll < 0.82) return 'Senior';
+    return 'Corporate';
+  }
+  var verticalName = {
+    avail_how: 'Availment',
+    avail_mr: 'MR Requirements',
+    avail_cost: 'Cost and Co-pay',
+    avail_consult: 'Teleconsult',
+    avail_lab: 'Laboratory',
+    avail_platform: 'Mobile App',
+    adh_stock: 'Medicine Stock',
+    adh_delivery: 'Delivery',
+    adh_refill: 'Refill',
+    adh_cs: 'Customer Service',
+    staff: 'Customer Service'
+  };
+  var headersA = ['Patient Code - Final', 'NPS Feedback', 'Suggested Improvements Category', 'Service Feedback', 'Requested Date', 'Member Base', 'Medicine Benefit Member Type', 'Program effectiveness', 'Patient Name', 'Email', 'Phone', 'Card Number'];
+  var headersB = ['Vertical', 'Vertical satisfaction rating', 'Vertical Positives', 'Vertical Negatives', 'MR Requirements Feedback', 'Program Requirements Rating', 'Refill Requirements Feedback', 'Likelihood to recommend program', 'Program effectiveness', 'Combined Feedback', 'Final Patient Code (from All Members)', 'Medicine Benefit Member Type (from All Members)', 'Created', 'Patient Name', 'Email Address', 'Mobile'];
+  var headersD = ['Patient Code', 'Dropout Date', 'Enrollment Date', 'Number of Orders', 'Member Name', 'Email', 'Phone'];
+  function sentences(ids, polarity) {
+    return ids.map(function (id) { return capitalize(pickPhrase(id, polarity, rng)) + '.'; }).join(' ');
+  }
+  function effectiveness(dropped, pains) {
+    if (dropped && pains.length) return rng() < 0.7 ? 'Not effective' : 'Neutral';
+    if (dropped) return 'Neutral';
+    return rng() < 0.35 ? 'Very effective' : 'Effective';
+  }
+  async function runKind(kind, count, headers) {
+    var cols = mapColumns(headers, kind);
+    var rows = 0;
+    var used = 0;
+    var batch = [headers.map(csvEscape).join(',')];
+    post({ type: 'progress', phase: 'read', name: kind === 'A' ? 'survey-a-sample.csv' : 'survey-b-sample.csv', kind: kind, rows: 0, fileIndex: kind === 'A' ? 1 : 2, fileCount: 3 });
+    for (var i = 0; i < count; i++) {
+      if (cancelled) return false;
+      var type = typeName();
+      var prof = profile(type);
+      var serial = kind === 'A' ? i + 1 : countA + i + 1;
+      var code = 'BL' + String(serial).padStart(8, '0');
+      if (!large && i === count - 1 && kind === 'A') code = 'BL900001, BL900002';
+      var focus = prof.pains[0] || prof.strengths[0] || 'adh_refill';
+      var vertical = verticalName[focus] || 'Refill';
+      var service = sentences(prof.pains, 'pain');
+      var positive = prof.strengths.length ? sentences(prof.strengths, 'strength') : 'wala';
+      var negative = prof.pains.length ? service : 'none';
+      if (!prof.pains.length && kind === 'A' && rng() < 0.7) {
+        service = otherLines[Math.floor(rng() * otherLines.length)];
+      } else if (rng() < 0.04) {
+        var extraLine = otherLines[Math.floor(rng() * otherLines.length)];
+        if (kind === 'A') service = service ? service + ' ' + extraLine : extraLine;
+        else negative = negative && negative !== 'none' ? negative + ' ' + extraLine : extraLine;
+      }
+      if (!large && kind === 'A' && i === 7) {
+        if (prof.pains.indexOf('adh_delivery') === -1) prof.pains.unshift('adh_delivery');
+        service = 'Ang tagal ng delivery bago dumating. Please contact Maria Santos at maria.santos@email.com or 09171234567. Card 4111111111111111. Code BL000099.';
+        negative = service;
+      }
+      var category = prof.pains.length ? (issueById(prof.pains[0]).categories[0] || issueById(prof.pains[0]).label) : '';
+      var eff = effectiveness(prof.dropped, prof.pains);
+      var req = prof.pains.indexOf('avail_mr') !== -1 ? (1 + Math.floor(rng() * 2)) : (prof.strengths.indexOf('avail_mr') !== -1 ? 5 : 4);
+      var ltr = prof.dropped ? (2 + Math.floor(rng() * 5)) : (7 + Math.floor(rng() * 4));
+      var vsat = prof.pains.indexOf(focus) !== -1 ? (1 + Math.floor(rng() * 2)) : 5;
+      var mrText = prof.pains.indexOf('avail_mr') !== -1 ? capitalize(pickPhrase('avail_mr', 'pain', rng)) + '.' : (prof.strengths.indexOf('avail_mr') !== -1 ? capitalize(pickPhrase('avail_mr', 'strength', rng)) + '.' : 'wala');
+      var refillText = prof.pains.indexOf('adh_refill') !== -1 ? capitalize(pickPhrase('adh_refill', 'pain', rng)) + '.' : (prof.strengths.indexOf('adh_refill') !== -1 ? capitalize(pickPhrase('adh_refill', 'strength', rng)) + '.' : '');
+      var name = names[i % names.length];
+      var email = 'member' + serial + '@example.com';
+      var phone = '0917' + String(1000000 + (serial % 9000000)).slice(0, 7);
+      var values;
+      if (kind === 'A') {
+        values = [code, '', category, service, '2025-06-15', 'NCR', type, eff, name, email, phone, '4111111111111111'];
+      } else {
+        var combined = rng() < 0.55 ? negative : '';
+        values = [vertical, vsat, positive, negative, mrText, req, refillText, ltr, eff, combined, code, type, '2025-06', name, email, phone];
+      }
+      batch.push(values.map(csvEscape).join(','));
+      var primaryCodes = splitCodes(code);
+      primaryCodes.forEach(function (one) {
+        var hasAvail = prof.pains.some(function (id) { var issue = issueById(id); return issue && issue.stage === 'availment'; });
+        var hasAdh = prof.pains.some(function (id) { var issue = issueById(id); return issue && issue.stage === 'adherence'; });
+        var orders = '';
+        if (!prof.unknown) {
+          if (prof.dropped) {
+            if (hasAvail && !hasAdh) orders = rng() < 0.85 ? 0 : 1;
+            else if (hasAdh) orders = 1 + Math.floor(rng() * 5);
+            else orders = rng() < 0.4 ? 0 : 2;
+          } else if (rng() < 0.75) orders = 1 + Math.floor(rng() * 4);
+        }
+        plans.push({ code: one, dropped: prof.dropped, unknown: prof.unknown, orders: orders, name: name, email: email, phone: phone });
+      });
+      if (batch.length >= 4001) {
+        var parsed = Papa.parse(batch.join('\n'), { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+        used += ingestRows(parsed.data, cols, config);
+        rows += parsed.data.length;
+        batch = [headers.map(csvEscape).join(',')];
+        post({ type: 'progress', phase: 'read', name: kind === 'A' ? 'survey-a-sample.csv' : 'survey-b-sample.csv', kind: kind, rows: rows, fileIndex: kind === 'A' ? 1 : 2, fileCount: 3 });
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+      }
+    }
+    if (batch.length > 1) {
+      var tail = Papa.parse(batch.join('\n'), { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+      used += ingestRows(tail.data, cols, config);
+      rows += tail.data.length;
+    }
+    fileStats.push({ name: kind === 'A' ? 'survey-a-sample.csv' : 'survey-b-sample.csv', kind: kind, rows: rows, used: used, error: '' });
+    return true;
+  }
+  if (!(await runKind('A', countA, headersA))) { post({ type: 'cancelled' }); return; }
+  if (!(await runKind('B', countB, headersB))) { post({ type: 'cancelled' }); return; }
+  sawDropoutFile = true;
+  hasOrdersCol = true;
+  hasEnrollment = true;
+  var dropCols = mapColumns(headersD, 'D');
+  var dropRows = 0;
+  var dropUsed = 0;
+  var batchD = [headersD.map(csvEscape).join(',')];
+  post({ type: 'progress', phase: 'read', name: 'dropout-list-sample.csv', kind: 'D', rows: 0, fileIndex: 3, fileCount: 3 });
+  for (var p = 0; p < plans.length; p++) {
+    if (cancelled) { post({ type: 'cancelled' }); return; }
+    var plan = plans[p];
+    if (plan.unknown) continue;
+    var date = plan.dropped ? '2025-08-15' : '';
+    batchD.push([plan.code, date, '2024-11-02', plan.orders, plan.name, plan.email, plan.phone].map(csvEscape).join(','));
+    if (!large && p < 15) {
+      batchD.push(['ZZ' + String(p).padStart(6, '0'), '2025-01-01', '2024-01-01', 1, 'Extra Person', 'extra' + p + '@example.com', '09170000000'].map(csvEscape).join(','));
+    }
+    if (batchD.length >= 4001) {
+      var parsedD = Papa.parse(batchD.join('\n'), { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+      dropUsed += ingestRows(parsedD.data, dropCols, config);
+      dropRows += parsedD.data.length;
+      batchD = [headersD.map(csvEscape).join(',')];
+      post({ type: 'progress', phase: 'read', name: 'dropout-list-sample.csv', kind: 'D', rows: dropRows, fileIndex: 3, fileCount: 3 });
+      await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    }
+  }
+  if (batchD.length > 1) {
+    var tailD = Papa.parse(batchD.join('\n'), { header: true, skipEmptyLines: 'greedy', dynamicTyping: false });
+    dropUsed += ingestRows(tailD.data, dropCols, config);
+    dropRows += tailD.data.length;
+  }
+  fileStats.push({ name: 'dropout-list-sample.csv', kind: 'D', rows: dropRows, used: dropUsed, error: '' });
+  post({ type: 'progress', phase: 'join', name: '', kind: '', rows: dropRows, fileIndex: 3, fileCount: 3 });
+  finish(config, started);
+}
+
+async function runParse(files, config) {
+  var started = performance.now();
+  resetState();
+  applyConfig(config);
+  for (var i = 0; i < files.length; i++) {
+    if (cancelled) { post({ type: 'cancelled' }); return; }
+    var item = files[i];
+    await parseFile(item.file, item.name || item.file.name || ('file-' + (i + 1)), item.slot || '', i, files.length, config);
+  }
+  if (cancelled) { post({ type: 'cancelled' }); return; }
+  var usable = fileStats.some(function (file) { return !file.error && file.rows > 0; });
+  if (!usable) {
+    var why = fileStats.map(function (file) { return file.error || file.name; }).filter(Boolean).join(' ');
+    post({ type: 'error', message: why || 'No readable CSV rows were found.' });
+    return;
+  }
+  post({ type: 'progress', phase: 'join', name: '', kind: '', rows: 0, fileIndex: files.length, fileCount: files.length });
+  finish(config, started);
+}
+
+self.onmessage = function (event) {
+  var msg = event.data || {};
+  if (msg.type === 'cancel') {
+    cancelled = true;
+    if (activeParser) {
+      try { activeParser.abort(); } catch (error) { /* already stopped */ }
+    }
+    return;
+  }
+  if (msg.type === 'detect') {
+    post({ type: 'detect', kind: detect(msg.headers || []) });
+    return;
+  }
+  if (msg.type === 'probe') {
+    try {
+      resetState();
+      applyConfig(msg.config || {});
+      var out = (msg.items || []).map(function (item) {
+        var result = item.category
+          ? classifyCategory(item.text)
+          : classify(item.text, {
+            force: item.force || null,
+            defaultIssue: item.defaultIssue && idToIndex.has(item.defaultIssue) ? idToIndex.get(item.defaultIssue) : null,
+            rating: item.rating || null
+          });
+        return {
+          skip: !!result.skip,
+          otherOnly: !!result.otherOnly,
+          items: (result.items || []).map(function (hit) { return { id: issues[hit.index].id, polarity: hit.polarity }; })
+        };
+      });
+      post({ type: 'probe', out: out });
+    } catch (error) {
+      post({ type: 'error', message: error.message || String(error) });
+    }
+    return;
+  }
+  var job = msg.type === 'sample'
+    ? runSample(msg.config || {}, msg.size)
+    : runParse(msg.files || [], msg.config || {});
+  Promise.resolve(job).catch(function (error) {
+    post({ type: 'error', message: error && error.message ? error.message : String(error) });
+  });
+};
+</script>
+  <script>
+/* Best Life Retention Brief
+   Edit CONFIG to change issues, stages, keywords, thresholds, and wording.
+   The rest of the page only reads CONFIG. */
+'use strict';
+
+var CONFIG = {
+  signal: {
+    strongAt: 30,
+    earlyAt: 10,
+    labels: { strong: 'Strong', early: 'Early', few: 'Too few to tell' },
+    watchTitle: 'Watch list'
+  },
+  gemini: {
+    model: 'gemini-3.8-flash',
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
+    batchSize: 40,
+    parallel: 4,
+    cap: 2000,
+    retries: 3
+  },
+  ratings: {
+    requirements: { low: 2, high: 4 },
+    satisfaction: { low: 2, high: 4 },
+    likelihood: { low: 6, high: 9 },
+    effectiveness: { low: 2, high: 4 }
+  },
+  filler: ['wala', 'wala po', 'wala naman', 'wala naman po', 'none', 'none.', 'n/a', 'na', 'n.a', 'n.a.', '-', 'no', 'nil', 'nothing', 'nope', 'null', 'blank', 'no comment', 'no comments', 'wla'],
+  fillerTokens: ['wala', 'wla', 'po', 'naman', 'lang', 'none', 'na', 'n', 'a', 'no', 'nil', 'nothing', 'nope', 'null', 'blank', 'comment', 'comments'],
+  negation: ['hindi', 'di', 'wala', 'walang', 'not', 'no', 'never', 'dont', 'didnt', 'cannot', 'cant', 'huwag', 'ayaw'],
+  stopwords: ['this', 'that', 'with', 'from', 'have', 'were', 'they', 'them', 'your', 'about', 'please', 'thank', 'thanks', 'hello', 'there', 'their', 'would', 'could', 'should', 'when', 'what', 'where', 'which', 'while', 'just', 'very', 'much', 'more', 'than', 'then', 'into', 'over', 'also', 'only', 'some', 'been', 'being', 'kasi', 'naman', 'lang', 'yung', 'para', 'kung', 'sina', 'mga', 'dito', 'doon', 'niya', 'niyo', 'namin', 'ninyo'],
+  effectivenessMap: [
+    ['very ineffective', 1],
+    ['not at all effective', 1],
+    ['not effective', 1],
+    ['hindi effective', 1],
+    ['ineffective', 1],
+    ['very effective', 5],
+    ['highly effective', 5],
+    ['napaka effective', 5],
+    ['effective', 4],
+    ['neutral', 3]
+  ],
+  verticalMap: [
+    { includes: 'mr requirements', issue: 'avail_mr' },
+    { includes: 'mobile app', issue: 'avail_platform' },
+    { includes: 'customer service', issue: 'adh_cs' },
+    { includes: 'health check', issue: 'avail_lab' },
+    { includes: 'teleconsult', issue: 'avail_consult' },
+    { includes: 'nutritionist', issue: 'avail_consult' },
+    { includes: 'laboratory', issue: 'avail_lab' },
+    { includes: 'co-pay', issue: 'avail_cost' },
+    { includes: 'copay', issue: 'avail_cost' },
+    { includes: 'paperwork', issue: 'avail_mr' },
+    { includes: 'requirement', issue: 'avail_mr' },
+    { includes: 'availment', issue: 'avail_how' },
+    { includes: 'delivery', issue: 'adh_delivery' },
+    { includes: 'courier', issue: 'adh_delivery' },
+    { includes: 'refill', issue: 'adh_refill' },
+    { includes: 'stock', issue: 'adh_stock' },
+    { includes: 'doctor', issue: 'avail_consult' },
+    { includes: 'platform', issue: 'avail_platform' },
+    { includes: 'cost', issue: 'avail_cost' },
+    { includes: 'price', issue: 'avail_cost' },
+    { includes: 'reminder', issue: 'adh_cs' },
+    { includes: 'staff', issue: 'staff' },
+    { includes: 'app', issue: 'avail_platform' },
+    { includes: 'lab', issue: 'avail_lab' }
+  ],
+  wording: {
+    kicker: 'These are patterns, not proof.',
+    extraNote: 'Estimated extra dropouts are the dropped members who raised the issue, minus the number expected at the overall dropout rate. The table ranks issues above that rate. Issues raised by fewer than 10 members sit in the watch list.',
+    needList: 'Dropout numbers need the dropout list. Issues below are ranked by how many members raised them.'
+  },
+  issues: [
+    {
+      id: 'avail_how', stage: 'availment', label: 'How to start and use the benefit',
+      explain: 'how a member starts the benefit, from sign-up through the first order',
+      value: 'steps that are easy to follow from sign-up to the first order',
+      categories: ['how to avail', 'availment process', 'unclear process'],
+      pain: ['hindi malinaw', 'di malinaw', 'not clear how', 'dont know how', 'do not know how', 'nalilito', 'nalito', 'nakakalito', 'paano mag avail', 'pano mag avail', 'how to avail', 'how do i avail', 'hindi ko alam paano', 'di ko alam paano', 'anong process', 'complicated process', 'mahirap intindihin', 'hard to understand the benefit', 'confusing process', 'hindi ko gets', 'di ko gets', 'ang gulo ng process'],
+      strength: ['malinaw ang instructions', 'clear instructions', 'easy to understand', 'madaling intindihin', 'simple process', 'well explained', 'naexplain nang maayos', 'alam ko na ang process'],
+      topics: ['availment', 'orientation', 'how to start']
+    },
+    {
+      id: 'avail_mr', stage: 'availment', label: 'Requirements and paperwork',
+      explain: 'which documents to prepare and how to submit them',
+      value: 'paperwork that is short and clearly explained',
+      categories: ['requirements and paperwork', 'paperwork', 'documents'],
+      pain: ['dami ng paperwork', 'daming paperwork', 'too much paperwork', 'requirements are confusing', 'requirements not clear', 'hindi malinaw ang requirements', 'di malinaw ang requirements', 'hard to submit', 'kulang ang documents', 'incomplete documents', 'anong documents', 'what documents', 'ang gulo ng requirements', 'magulo ang paperwork', 'pahirapan ang requirements'],
+      strength: ['madali ang requirements', 'requirements were easy', 'paperwork was easy', 'madaling mag submit', 'documents were simple', 'mabilis ang paperwork', 'requirements were clear'],
+      topics: ['paperwork', 'documents', 'dokumento', 'requirements', 'requirement']
+    },
+    {
+      id: 'avail_cost', stage: 'availment', label: 'Cost and co-pay',
+      explain: 'what the member pays, what the benefit covers, and how co-pay works',
+      value: 'a co-pay that matches what they were told',
+      categories: ['cost and co-pay', 'co-pay', 'price'],
+      pain: ['ang mahal ng co-pay', 'ang mahal', 'sobrang mahal', 'too expensive', 'co-pay was higher', 'copay was higher', 'unexpected co-pay', 'hindi nasabi ang co-pay', 'not covered', 'hindi covered', 'hidden charge', 'mataas ang bayad', 'mahal ang bayad'],
+      strength: ['abot kaya', 'affordable', 'co-pay was fair', 'walang bayad', 'fully covered', 'murang co-pay', 'the cost was clear'],
+      topics: ['co-pay', 'copay', 'co pay', 'mahal', 'price']
+    },
+    {
+      id: 'avail_consult', stage: 'availment', label: 'Consult with a doctor or nutritionist',
+      explain: 'how to book a doctor or nutritionist consult and what it is for',
+      value: 'a consult that is easy to book and explains the medicine',
+      categories: ['teleconsult', 'doctor consult', 'nutritionist'],
+      pain: ['hindi maka-book', 'cannot book a consult', 'doctor was not available', 'walang doctor', 'no doctor slot', 'teleconsult failed', 'mahirap magpa-schedule', 'nutritionist was unavailable', 'consult was rushed', 'hindi maka schedule ng teleconsult'],
+      strength: ['doctor explained', 'teleconsult was easy', 'madali mag-book ng consult', 'nutritionist helped', 'helpful consult', 'the doctor explained the medicine'],
+      topics: ['teleconsult', 'nutritionist', 'doctor', 'consult']
+    },
+    {
+      id: 'avail_lab', stage: 'availment', label: 'Lab and health check',
+      explain: 'when a lab or health check is needed and how to get it',
+      value: 'a lab step that is clearly required, or clearly not required',
+      categories: ['laboratory', 'health check', 'lab test'],
+      pain: ['lab test delayed', 'lab result was slow', 'hindi ko alam kung kailangan ng lab', 'lab was confusing', 'health check was confusing', 'lab delayed my order', 'unclear if lab is required'],
+      strength: ['lab was easy', 'health check was smooth', 'mabilis ang lab', 'lab was clearly explained'],
+      topics: ['laboratory', 'lab test', 'health check', 'lab']
+    },
+    {
+      id: 'avail_platform', stage: 'availment', label: 'Ordering on the app',
+      explain: 'how to place the first order on the app',
+      value: 'an app that lets them place the first order without trouble',
+      categories: ['ordering app', 'mobile app', 'platform'],
+      pain: ['app keeps crashing', 'hindi gumagana ang app', 'cannot order on the app', 'hindi maka-order', 'login issue', 'app error', 'website was down', 'platform error', 'di makapasok sa app', 'the app would not let me order'],
+      strength: ['app is easy', 'madali sa app', 'easy to order on the app', 'app was simple', 'madaling gamitin ang app'],
+      topics: ['mobile app', 'the app', 'ordering platform', 'login']
+    },
+    {
+      id: 'adh_stock', stage: 'adherence', label: 'Medicine stock',
+      explain: 'what to do when a medicine is out of stock and when it will be back',
+      value: 'medicines that are in stock when they need a refill',
+      categories: ['medicine stock', 'out of stock', 'inventory'],
+      pain: ['walang stock', 'wala sa stock', 'out of stock', 'no stock', 'nauubusan', 'medicine is unavailable', 'hinintay ang stock', 'back order', 'laging walang stock', 'the medicine is out of stock'],
+      strength: ['in stock', 'may stock', 'always available', 'stock was ready', 'the medicine was available'],
+      topics: ['stock', 'inventory', 'nauubos']
+    },
+    {
+      id: 'adh_delivery', stage: 'adherence', label: 'Delivery and delays',
+      explain: 'how delivery works, how long it usually takes, and what to do if it is late',
+      value: 'delivery that arrives when expected',
+      categories: ['delivery delay', 'delivery', 'courier'],
+      pain: ['ang tagal ng delivery', 'delivery was delayed', 'delivery was late', 'hindi dumating', 'sobrang tagal', 'parcel came late', 'took weeks to arrive', 'mabagal ang delivery', 'ang tagal bago dumating', 'late delivery', 'delayed', 'mabagal'],
+      strength: ['mabilis dumating', 'delivery was on time', 'on time delivery', 'dumating agad', 'fast delivery', 'delivery arrived on time', 'not delayed', 'hindi delayed', 'not late'],
+      topics: ['delivery', 'courier', 'padala']
+    },
+    {
+      id: 'adh_refill', stage: 'adherence', label: 'Refill process',
+      explain: 'when and how to order the next refill',
+      value: 'a refill they can order without starting over',
+      categories: ['refill process', 'refill'],
+      pain: ['mahirap mag-refill', 'mahirap mag refill', 'refill process is confusing', 'hindi maka-refill', 'hindi maka refill', 'missed refill', 'refill was rejected', 'ang hirap mag refill', 'di ko alam paano mag refill'],
+      strength: ['madali mag-refill', 'madali mag refill', 'easy refill', 'smooth refill', 'refill was simple', 'madaling mag refill'],
+      topics: ['refill', 'refills']
+    },
+    {
+      id: 'adh_cs', stage: 'adherence', label: 'Follow-up and reminders',
+      explain: 'how reminders work and who to contact when nobody follows up',
+      value: 'a reminder before they run out, and a reply when they ask for help',
+      categories: ['follow-up and reminders', 'customer service', 'reminders'],
+      pain: ['walang reminder', 'no reminder', 'no follow-up', 'no follow up', 'nobody called', 'hindi nag-follow up', 'hindi nag follow up', 'no one replied', 'did not call back', 'walang update', 'walang sumagot', 'nobody followed up'],
+      strength: ['may reminder', 'they reminded me', 'nag-follow up', 'nag follow up', 'quick reply', 'they called me back', 'may sumagot agad'],
+      topics: ['reminder', 'follow-up', 'follow up', 'customer service']
+    },
+    {
+      id: 'staff', stage: 'cross', label: 'Staff attitude',
+      explain: 'how members should be treated, and how to raise a concern about staff',
+      value: 'staff who are kind and take the time to help',
+      categories: ['staff attitude', 'staff'],
+      pain: ['masungit', 'rude staff', 'staff was rude', 'not helpful', 'hindi tumulong', 'dismissive', 'bastos', 'the staff was rude'],
+      strength: ['mabait', 'staff was kind', 'polite staff', 'magalang', 'helpful staff', 'accommodating', 'mabait ang staff'],
+      topics: ['staff', 'agent']
+    },
+    {
+      id: 'other', stage: 'cross', bucket: 'other', label: 'Other',
+      explain: 'the concern in the member’s own words',
+      value: 'being heard on the concern they actually wrote',
+      categories: ['other', 'others', 'misc'],
+      pain: [],
+      strength: [],
+      topics: []
+    }
+  ]
+};
+
+var workerUrl = null;
+var worker = null;
+var state = null;
+var lastModel = null;
+var running = false;
+var geminiAbort = null;
+var useJsonMime = true;
+var probeWait = null;
+var queue = [];
+
+var briefEl = document.getElementById('brief');
+var statusEl = document.getElementById('status');
+var queueEl = document.getElementById('queue');
+var surveySelect = document.getElementById('surveyFilter');
+var typeSelect = document.getElementById('typeFilter');
+var verticalSelect = document.getElementById('verticalFilter');
+var cancelBtn = document.getElementById('cancelBtn');
+var buildBtn = document.getElementById('buildBtn');
+var sampleBtn = document.getElementById('sampleBtn');
+var largeBtn = document.getElementById('largeBtn');
+var copyBtn = document.getElementById('copyBtn');
+var downloadBtn = document.getElementById('downloadBtn');
+var printBtn = document.getElementById('printBtn');
+var geminiBtn = document.getElementById('geminiBtn');
+var geminiKey = document.getElementById('geminiKey');
+var geminiNote = document.getElementById('geminiNote');
+
+function el(tag, cls, text) {
+  var node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function people(n) {
+  return num(n) + (Number(n) === 1 ? ' member' : ' members');
+}
+
+function sentence(text) {
+  var value = String(text || '');
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+}
+
+function num(value) {
+  return String(Math.round(Number(value) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function pct(part, whole) {
+  if (!whole || part <= 0) return '0%';
+  var value = (100 * part) / whole;
+  if (value < 0.5) return '<1%';
+  return Math.round(value) + '%';
+}
+
+function fmt(part, whole) {
+  if (!whole) return '0 members';
+  return num(part) + ' of ' + num(whole) + ' members (' + pct(part, whole) + ')';
+}
+
+function avg(sum, count) {
+  if (!count) return null;
+  return (Math.round((sum / count) * 10) / 10).toFixed(1);
+}
+
+function signalOf(count) {
+  if (count >= CONFIG.signal.strongAt) return CONFIG.signal.labels.strong;
+  if (count >= CONFIG.signal.earlyAt) return CONFIG.signal.labels.early;
+  return CONFIG.signal.labels.few;
+}
+
+function fmtExtra(extra) {
+  if (!(extra > 0.05)) return '0';
+  if (extra < 0.5) return 'under 1';
+  return num(Math.round(extra));
+}
+
+function kindLabel(kind) {
+  if (kind === 'A') return 'Survey A';
+  if (kind === 'B') return 'Survey B';
+  if (kind === 'D') return 'Dropout list';
+  return 'Not recognized';
+}
+
+function scrub(text) {
+  return String(text || '')
+    .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/gi, '[email]')
+    .replace(/(?:\+63|63|0)[\s.-]*9\d{2}[\s.-]*\d{3}[\s.-]*\d{4}\b/g, '[phone]')
+    .replace(/\b09\d{9}\b/g, '[phone]')
+    .replace(/\b(?:\d[ -]?){13,19}\b/g, '[number]')
+    .replace(/\b\d{6,}\b/g, '[number]')
+    .replace(/\b[A-Za-z]{1,8}-?\d{4,}\b/g, '[code]');
+}
+
+function setStatus(text) {
+  statusEl.textContent = text || '';
+}
+
+function setRunning(on) {
+  running = on;
+  cancelBtn.hidden = !on;
+  buildBtn.disabled = on || !queue.length;
+  sampleBtn.disabled = on;
+  largeBtn.disabled = on;
+  geminiBtn.disabled = on;
+}
+
+function spawnWorker() {
+  if (worker) worker.terminate();
+  if (!workerUrl) {
+    var blob = new Blob([
+      document.getElementById('papa-src').textContent,
+      '\n',
+      document.getElementById('worker-src').textContent
+    ], { type: 'text/javascript' });
+    workerUrl = URL.createObjectURL(blob);
+  }
+  worker = new Worker(workerUrl);
+  worker.onmessage = onWorkerMessage;
+  worker.onerror = function (event) {
+    setRunning(false);
+    setStatus(event.message || 'The background job stopped.');
+  };
+}
+
+function onWorkerMessage(event) {
+  var msg = event.data || {};
+  if (msg.type === 'progress') {
+    var label = msg.kind ? kindLabel(msg.kind) : 'Files';
+    var where = msg.name ? label + ' · ' + msg.name : 'Matching members to the dropout list';
+    var count = msg.phase === 'join' ? '' : ' · ' + num(msg.rows) + ' rows';
+    setStatus('Working in the background so this page stays responsive. File ' + msg.fileIndex + ' of ' + msg.fileCount + ' · ' + where + count);
+    return;
+  }
+  if (msg.type === 'probe') {
+    if (probeWait) probeWait(msg.out);
+    probeWait = null;
+    return;
+  }
+  if (msg.type === 'cancelled') {
+    setRunning(false);
+    setStatus('Cancelled. No brief was built.');
+    return;
+  }
+  if (msg.type === 'error') {
+    setRunning(false);
+    setStatus(msg.message || 'The file could not be read.');
+    return;
+  }
+  if (msg.type === 'done') {
+    state = msg;
+    state.meta.mode = 'rules';
+    populateFilters();
+    setRunning(false);
+    var seconds = (state.meta.elapsedMs || 0) / 1000;
+    setStatus('Brief ready in ' + (seconds < 0.1 ? 'under 0.1' : seconds.toFixed(1)) + ' seconds.');
+    renderCurrent(true);
+    var geminiLeft = (state.geminiQueue || []).filter(function (item) { return !item.applied; }).length;
+    geminiNote.textContent = geminiLeft
+      ? geminiLeft + ' distinct comments still labeled other can be sent to Gemini, capped at ' + num(CONFIG.gemini.cap) + '. The key stays in this page’s memory and is not saved.'
+      : 'No comments are left as other. The key stays in this page’s memory and is not saved.';
+  }
+}
+
+function startJob(message) {
+  spawnWorker();
+  setRunning(true);
+  setStatus('Starting…');
+  briefEl.innerHTML = '';
+  briefEl.appendChild(el('p', 'hint', 'Reading the files. The page will fill in when the counts are ready.'));
+  worker.postMessage(message);
+}
+
+function populateFilters() {
+  function fill(select, labels, counts, blank) {
+    var current = select.value || 'all';
+    select.innerHTML = '';
+    var all = el('option');
+    all.value = 'all';
+    all.textContent = 'All';
+    select.appendChild(all);
+    labels.map(function (label, index) { return { index: index, label: label, n: counts[index] || 0 }; })
+      .filter(function (item) { return item.n > 0; })
+      .sort(function (a, b) { return b.n - a.n || a.index - b.index; })
+      .slice(0, 200)
+      .forEach(function (item) {
+        var opt = el('option');
+        opt.value = String(item.index);
+        opt.dataset.label = item.index ? item.label : blank;
+        opt.textContent = (item.index ? item.label : blank) + ' (' + num(item.n) + ')';
+        select.appendChild(opt);
+      });
+    select.value = current;
+    if (select.value !== current) select.value = 'all';
+  }
+  surveySelect.value = 'all';
+  fill(typeSelect, state.types, state.typeCounts, 'Not specified');
+  fill(verticalSelect, state.verticals, state.verticalCounts, 'No vertical listed');
+}
+
+function currentFilter() {
+  return {
+    survey: surveySelect.value,
+    type: typeSelect.value,
+    vertical: verticalSelect.value
+  };
+}
+
+function passes(index, filter) {
+  if (filter.survey === 'A' && state.survey[index] !== 0) return false;
+  if (filter.survey === 'B' && state.survey[index] !== 1) return false;
+  if (filter.type !== 'all' && state.memberType[index] !== Number(filter.type)) return false;
+  if (filter.vertical !== 'all' && state.vertical[index] !== Number(filter.vertical)) return false;
+  return true;
+}
+
+function emptyGroup(size) {
+  return {
+    all: 0, d: 0, a: 0,
+    raised: new Uint32Array(size),
+    known: new Uint32Array(size),
+    dropped: new Uint32Array(size)
+  };
+}
+
+function analyze(filter) {
+  var size = CONFIG.issues.length;
+  var raised = new Uint32Array(size);
+  var knownI = new Uint32Array(size);
+  var droppedI = new Uint32Array(size);
+  var strengthN = new Uint32Array(size);
+  var strengthKnown = new Uint32Array(size);
+  var strengthActive = new Uint32Array(size);
+  var all = 0, dropped = 0, active = 0, unknown = 0;
+  var availR = 0, availK = 0, availD = 0, adhR = 0, adhK = 0, adhD = 0;
+  var ordersKnown = 0, before = 0, after = 0;
+  var sumReqD = 0, nReqD = 0, sumReqA = 0, nReqA = 0, maxReq = 0;
+  var sumLtrD = 0, nLtrD = 0, sumLtrA = 0, nLtrA = 0, maxLtr = 0;
+  var sumEffD = 0, nEffD = 0, sumEffA = 0, nEffA = 0, maxEff = 0;
+  var mrAnyD = 0, mrPainD = 0, mrAnyA = 0, mrPainA = 0;
+  var rfAnyD = 0, rfPainD = 0, rfAnyA = 0, rfPainA = 0;
+  var staffR = 0, staffK = 0, staffD = 0;
+  var groupsT = new Map();
+  var groupsV = new Map();
+  function group(map, key) {
+    var found = map.get(key);
+    if (!found) { found = emptyGroup(size); map.set(key, found); }
+    return found;
+  }
+  var n = state.survey.length;
+  for (var i = 0; i < n; i++) {
+    if (!passes(i, filter)) continue;
+    all += 1;
+    var st = state.status[i];
+    var isD = st === 2;
+    var isA = st === 1;
+    var isK = isD || isA;
+    if (isD) dropped += 1;
+    else if (isA) active += 1;
+    else unknown += 1;
+    if (isD && state.orders[i] >= 0) {
+      ordersKnown += 1;
+      if (state.orders[i] === 0) before += 1;
+      else after += 1;
+    }
+    if (isD && isFinite(state.req[i])) { sumReqD += state.req[i]; nReqD += 1; if (state.req[i] > maxReq) maxReq = state.req[i]; }
+    if (isA && isFinite(state.req[i])) { sumReqA += state.req[i]; nReqA += 1; if (state.req[i] > maxReq) maxReq = state.req[i]; }
+    if (isD && isFinite(state.ltr[i])) { sumLtrD += state.ltr[i]; nLtrD += 1; if (state.ltr[i] > maxLtr) maxLtr = state.ltr[i]; }
+    if (isA && isFinite(state.ltr[i])) { sumLtrA += state.ltr[i]; nLtrA += 1; if (state.ltr[i] > maxLtr) maxLtr = state.ltr[i]; }
+    if (isD && isFinite(state.eff[i])) { sumEffD += state.eff[i]; nEffD += 1; if (state.eff[i] > maxEff) maxEff = state.eff[i]; }
+    if (isA && isFinite(state.eff[i])) { sumEffA += state.eff[i]; nEffA += 1; if (state.eff[i] > maxEff) maxEff = state.eff[i]; }
+    var flags = state.flags[i];
+    if (isD && (flags & 1)) { mrAnyD += 1; if (flags & 2) mrPainD += 1; }
+    if (isA && (flags & 1)) { mrAnyA += 1; if (flags & 2) mrPainA += 1; }
+    if (isD && (flags & 4)) { rfAnyD += 1; if (flags & 8) rfPainD += 1; }
+    if (isA && (flags & 4)) { rfAnyA += 1; if (flags & 8) rfPainA += 1; }
+    var pain = state.pain[i];
+    var strength = state.strength[i];
+    var anyAvail = false;
+    var anyAdh = false;
+    var anyStaff = false;
+    var gt = group(groupsT, state.memberType[i]);
+    var gv = group(groupsV, state.vertical[i]);
+    gt.all += 1;
+    gv.all += 1;
+    if (isD) { gt.d += 1; gv.d += 1; }
+    else if (isA) { gt.a += 1; gv.a += 1; }
+    for (var k = 0; k < size; k++) {
+      var bit = 1 << k;
+      if (pain & bit) {
+        raised[k] += 1;
+        if (isK) { knownI[k] += 1; gt.known[k] += 1; gv.known[k] += 1; }
+        if (isD) { droppedI[k] += 1; gt.dropped[k] += 1; gv.dropped[k] += 1; }
+        gt.raised[k] += 1;
+        gv.raised[k] += 1;
+        var stage = CONFIG.issues[k].stage;
+        if (stage === 'availment') anyAvail = true;
+        else if (stage === 'adherence') anyAdh = true;
+        else if (CONFIG.issues[k].id === 'staff') anyStaff = true;
+      }
+      if ((strength & bit) && !(pain & bit)) {
+        strengthN[k] += 1;
+        if (isK) strengthKnown[k] += 1;
+        if (isA) strengthActive[k] += 1;
+      }
+    }
+    if (anyAvail) { availR += 1; if (isK) availK += 1; if (isD) availD += 1; }
+    if (anyAdh) { adhR += 1; if (isK) adhK += 1; if (isD) adhD += 1; }
+    if (anyStaff) { staffR += 1; if (isK) staffK += 1; if (isD) staffD += 1; }
+  }
+  return {
+    all: all, d: dropped, a: active, u: unknown, known: dropped + active,
+    raised: raised, knownI: knownI, droppedI: droppedI,
+    strengthN: strengthN, strengthKnown: strengthKnown, strengthActive: strengthActive,
+    availR: availR, availK: availK, availD: availD, adhR: adhR, adhK: adhK, adhD: adhD,
+    ordersKnown: ordersKnown, before: before, after: after,
+    sumReqD: sumReqD, nReqD: nReqD, sumReqA: sumReqA, nReqA: nReqA, maxReq: maxReq,
+    sumLtrD: sumLtrD, nLtrD: nLtrD, sumLtrA: sumLtrA, nLtrA: nLtrA, maxLtr: maxLtr,
+    sumEffD: sumEffD, nEffD: nEffD, sumEffA: sumEffA, nEffA: nEffA, maxEff: maxEff,
+    mrAnyD: mrAnyD, mrPainD: mrPainD, mrAnyA: mrAnyA, mrPainA: mrPainA,
+    rfAnyD: rfAnyD, rfPainD: rfPainD, rfAnyA: rfAnyA, rfPainA: rfPainA,
+    staffR: staffR, staffK: staffK, staffD: staffD,
+    groupsT: groupsT, groupsV: groupsV
+  };
+}
+
+function stageIssues(stage) {
+  return CONFIG.issues.map(function (issue, index) { return { issue: issue, index: index }; }).filter(function (item) {
+    return item.issue.stage === stage;
+  });
+}
+
+function packStage(stats, stage, canDrop) {
+  var pop = canDrop ? stats.known : stats.all;
+  var rate = stats.known ? stats.d / stats.known : 0;
+  var rows = [];
+  var watch = [];
+  var quiet = [];
+  stageIssues(stage).forEach(function (item) {
+    var members = canDrop ? stats.knownI[item.index] : stats.raised[item.index];
+    if (!members) return;
+    var dropped = stats.droppedI[item.index];
+    var extra = canDrop ? dropped - members * rate : 0;
+    var packed = {
+      index: item.index,
+      label: item.issue.label,
+      explain: item.issue.explain,
+      value: item.issue.value,
+      members: members,
+      dropped: dropped,
+      extra: extra
+    };
+    if (members < CONFIG.signal.earlyAt) watch.push(packed);
+    else if (!canDrop || extra > 0.05) rows.push(packed);
+    else quiet.push(packed);
+  });
+  rows.sort(function (a, b) { return (canDrop ? b.extra - a.extra : b.members - a.members) || b.members - a.members; });
+  quiet.sort(function (a, b) { return b.members - a.members; });
+  watch.sort(function (a, b) { return b.members - a.members; });
+  var strengths = stageIssues(stage).map(function (item) {
+    var members = canDrop ? stats.strengthKnown[item.index] : stats.strengthN[item.index];
+    return {
+      label: item.issue.label,
+      value: item.issue.value,
+      members: members,
+      known: stats.strengthKnown[item.index],
+      active: stats.strengthActive[item.index]
+    };
+  }).filter(function (item) { return item.members > 0; })
+    .sort(function (a, b) { return b.members - a.members; })
+    .slice(0, 3);
+  return { pop: pop, rows: rows, quiet: quiet, watch: watch, strengths: strengths };
+}
+
+function quotesFor(index, filter) {
+  if (!state.quotes) return [];
+  return state.quotes.filter(function (quote) {
+    if (quote.issue !== index) return false;
+    if (filter.survey === 'A' && quote.survey !== 0) return false;
+    if (filter.survey === 'B' && quote.survey !== 1) return false;
+    if (filter.type !== 'all' && quote.type !== Number(filter.type)) return false;
+    if (filter.vertical !== 'all' && quote.vertical !== Number(filter.vertical)) return false;
+    return true;
+  }).slice(0, 2).map(function (quote) { return scrub(quote.text); });
+}
+
+function scaleNote(max) {
+  if (!max) return '';
+  if (max <= 5) return 'on a 1 to 5 scale';
+  return 'on a 0 to 10 scale';
+}
+
+function ratingSentence(label, sumD, nD, sumA, nA, dropped, active, scale) {
+  if (!nD && !nA) return 'No ' + label + ' was loaded for this filter.';
+  var parts = [];
+  parts.push(nD ? 'dropped members average ' + avg(sumD, nD) + ', based on ' + fmt(nD, dropped) : 'no dropped member has this rating');
+  parts.push(nA ? 'active members average ' + avg(sumA, nA) + ', based on ' + fmt(nA, active) : 'no active member has this rating');
+  return 'Average ' + label + (scale ? ' (' + scale + ')' : '') + ': ' + parts.join('; ') + '.';
+}
+
+function commentSplit(pain, any, who, topic) {
+  if (!any) return '';
+  return 'Among ' + who + ' who commented on ' + topic + ', ' + fmt(pain, any) + ' raised a problem.';
+}
+
+function filterLine() {
+  var survey = surveySelect.value === 'A' ? 'Survey A' : surveySelect.value === 'B' ? 'Survey B' : 'all surveys';
+  var typeOpt = typeSelect.selectedOptions && typeSelect.selectedOptions[0];
+  var verticalOpt = verticalSelect.selectedOptions && verticalSelect.selectedOptions[0];
+  var type = typeSelect.value === 'all' ? 'all member types' : ((typeOpt && typeOpt.dataset.label) || 'the selected member type');
+  var vertical = verticalSelect.value === 'all' ? 'all verticals' : ((verticalOpt && verticalOpt.dataset.label) || 'the selected vertical');
+  return 'Showing ' + survey + ', ' + type + ', ' + vertical + '.';
+}
+
+function gapSentence(name, pack, stats) {
+  var top = pack.rows[0];
+  if (top) {
+    return 'The biggest ' + name + ' gap is ' + top.label + ': ' + fmt(top.dropped, top.members) + ' who raised it dropped, compared with ' + fmt(stats.d, stats.known) + ' overall.';
+  }
+  if (pack.quiet[0]) {
+    var item = pack.quiet[0];
+    return 'No ' + name + ' issue was raised by ' + CONFIG.signal.earlyAt + ' or more members at a higher dropout rate than overall. The most mentioned is ' + item.label + ': ' + fmt(item.members, pack.pop) + ' raised it, and ' + fmt(item.dropped, item.members) + ' dropped.';
+  }
+  return 'No ' + name + ' problem was raised often enough to call a gap.';
+}
+
+function explainLine(item, stats, canDrop, pop) {
+  if (!canDrop) return 'Explain ' + item.explain + '. Why: ' + fmt(item.members, pop) + ' raised this.';
+  return 'Explain ' + item.explain + '. Why: ' + fmt(item.dropped, item.members) + ' who raised this dropped, compared with ' + fmt(stats.d, stats.known) + ' overall.';
+}
+
+function strengthLine(item, canDrop, pop) {
+  var line = item.label + ': ' + fmt(item.members, pop) + ' mentioned this.';
+  if (canDrop && item.known) line += ' ' + fmt(item.active, item.known) + ' who mentioned it are still active.';
+  if (item.members < CONFIG.signal.earlyAt) line += ' Too few to tell.';
+  line += ' What members value: ' + item.value + '.';
+  return line;
+}
+
+function topIssue(stats, group, stage, canDrop) {
+  var best = null;
+  var fallback = null;
+  var known = group.d + group.a;
+  var rate = known ? group.d / known : 0;
+  stageIssues(stage).forEach(function (item) {
+    var members = canDrop ? group.known[item.index] : group.raised[item.index];
+    if (!members) return;
+    var dropped = group.dropped[item.index];
+    var extra = canDrop ? dropped - members * rate : members;
+    var packed = { label: item.issue.label, members: members, dropped: dropped, extra: extra };
+    if (!fallback || members > fallback.members) fallback = packed;
+    if (canDrop && extra > 0.05 && (!best || extra > best.extra)) best = packed;
+    if (!canDrop && (!best || members > best.members)) best = packed;
+  });
+  return best || fallback;
+}
+
+function buildModel(filter) {
+  var stats = analyze(filter);
+  var canDrop = !!(state.meta.hasDropout && stats.known);
+  var avail = packStage(stats, 'availment', canDrop);
+  var adh = packStage(stats, 'adherence', canDrop);
+  var lines = [];
+  if (!stats.all) {
+    lines.push('This filter matches 0 members.');
+  } else if (!canDrop) {
+    lines.push('Based on ' + num(stats.all) + ' members. No dropout list is matched, so this page ranks problems by how many members raised them. Dropout numbers need the dropout list. ' + CONFIG.wording.kicker);
+    lines.push(fmt(stats.availR, stats.all) + ' raised an availment problem, and ' + fmt(stats.adhR, stats.all) + ' raised an adherence problem.');
+    lines.push(avail.rows[0] ? 'The most mentioned availment problem is ' + avail.rows[0].label + ': ' + fmt(avail.rows[0].members, stats.all) + ' raised it.' : 'No availment problem was raised by ' + CONFIG.signal.earlyAt + ' or more members.');
+    lines.push(adh.rows[0] ? 'The most mentioned adherence problem is ' + adh.rows[0].label + ': ' + fmt(adh.rows[0].members, stats.all) + ' raised it.' : 'No adherence problem was raised by ' + CONFIG.signal.earlyAt + ' or more members.');
+  } else {
+    lines.push('Based on ' + num(stats.known) + ' members (' + num(stats.d) + ' dropped, ' + num(stats.a) + ' active). Overall dropout rate: ' + fmt(stats.d, stats.known) + '. ' + CONFIG.wording.kicker);
+    if (stats.u) lines.push(fmt(stats.u, stats.all) + ' are not on the dropout list, so they are left out of the dropout rate.');
+    lines.push('Of the ' + people(stats.d) + ' who dropped, ' + fmt(stats.availD, stats.d) + ' raised an availment problem and ' + fmt(stats.adhD, stats.d) + ' raised an adherence problem.');
+    lines.push(gapSentence('availment', avail, stats));
+    lines.push(gapSentence('adherence', adh, stats));
+  }
+
+  function sectionBlocks(title, pack, stageKey) {
+    var blocks = [];
+    var numbers = [];
+    var pop = canDrop ? stats.known : stats.all;
+    var raised = stageKey === 'availment' ? (canDrop ? stats.availK : stats.availR) : (canDrop ? stats.adhK : stats.adhR);
+    var raisedD = stageKey === 'availment' ? stats.availD : stats.adhD;
+    numbers.push(fmt(raised, pop) + ' raised ' + (stageKey === 'availment' ? 'an availment' : 'an adherence') + ' problem.');
+    if (canDrop) {
+      var otherKnown = stats.known - (stageKey === 'availment' ? stats.availK : stats.adhK);
+      var otherDropped = stats.d - raisedD;
+      numbers.push(raised ? fmt(raisedD, raised) + ' who raised ' + (stageKey === 'availment' ? 'an availment' : 'an adherence') + ' problem dropped.' : 'No matched member raised ' + (stageKey === 'availment' ? 'an availment' : 'an adherence') + ' problem.');
+      numbers.push(otherKnown ? fmt(otherDropped, otherKnown) + ' who did not raise ' + (stageKey === 'availment' ? 'an availment' : 'an adherence') + ' problem dropped.' : 'Every matched member raised ' + (stageKey === 'availment' ? 'an availment' : 'an adherence') + ' problem.');
+    }
+    if (stageKey === 'availment') {
+      numbers.push(ratingSentence('program requirements rating', stats.sumReqD, stats.nReqD, stats.sumReqA, stats.nReqA, stats.d, stats.a, scaleNote(stats.maxReq)));
+      var mrD = commentSplit(stats.mrPainD, stats.mrAnyD, 'dropped members', 'requirements');
+      var mrA = commentSplit(stats.mrPainA, stats.mrAnyA, 'active members', 'requirements');
+      if (mrD) numbers.push(mrD);
+      if (mrA) numbers.push(mrA);
+      if (stats.ordersKnown) numbers.push('Among dropped members with an order count, ' + fmt(stats.before, stats.ordersKnown) + ' dropped before the first order.');
+    } else {
+      numbers.push(ratingSentence('likelihood to recommend', stats.sumLtrD, stats.nLtrD, stats.sumLtrA, stats.nLtrA, stats.d, stats.a, scaleNote(stats.maxLtr)));
+      numbers.push(ratingSentence('program effectiveness', stats.sumEffD, stats.nEffD, stats.sumEffA, stats.nEffA, stats.d, stats.a, scaleNote(stats.maxEff) || 'on a 1 to 5 scale'));
+      var rfD = commentSplit(stats.rfPainD, stats.rfAnyD, 'dropped members', 'refills');
+      var rfA = commentSplit(stats.rfPainA, stats.rfAnyA, 'active members', 'refills');
+      if (rfD) numbers.push(rfD);
+      if (rfA) numbers.push(rfA);
+      if (stats.ordersKnown) numbers.push('Among dropped members with an order count, ' + fmt(stats.after, stats.ordersKnown) + ' dropped after at least one refill.');
+    }
+    blocks.push({ type: 'h3', text: 'Key numbers' });
+    numbers.forEach(function (line) { blocks.push({ type: 'p', text: line }); });
+    blocks.push({ type: 'h3', text: 'What goes wrong' });
+    if (!canDrop) blocks.push({ type: 'note', text: CONFIG.wording.needList });
+    if (!pack.rows.length) {
+      blocks.push({ type: 'p', text: canDrop ? 'No ' + title.toLowerCase() + ' issue is above the overall dropout rate with 10 or more members.' : 'No ' + title.toLowerCase() + ' issue was raised by 10 or more members.' });
+    } else {
+      var headers = canDrop
+        ? ['Issue', 'Members who raised it', 'Dropped', 'Dropout rate', 'Overall rate', 'Estimated extra dropouts', 'Signal']
+        : ['Issue', 'Members who raised it', 'Signal'];
+      blocks.push({
+        type: 'issues',
+        headers: headers,
+        rows: pack.rows.map(function (item) {
+          var cells = canDrop
+            ? [item.label, fmt(item.members, pop), num(item.dropped), fmt(item.dropped, item.members), fmt(stats.d, stats.known), fmtExtra(item.extra), signalOf(item.members)]
+            : [item.label, fmt(item.members, pop), signalOf(item.members)];
+          return { cells: cells, quotes: quotesFor(item.index, filter) };
+        })
+      });
+      if (canDrop) blocks.push({ type: 'note', text: CONFIG.wording.extraNote });
+    }
+    if (pack.quiet.length && canDrop) {
+      blocks.push({ type: 'p', text: 'Also raised, but not above the overall dropout rate: ' + pack.quiet.map(function (item) {
+        return item.label + ' (' + fmt(item.dropped, item.members) + ' dropped)';
+      }).join('; ') + '.' });
+    }
+    blocks.push({ type: 'h3', text: CONFIG.signal.watchTitle });
+    if (!pack.watch.length) blocks.push({ type: 'p', text: 'No ' + title.toLowerCase() + ' issue is under 10 members.' });
+    else pack.watch.forEach(function (item) {
+      blocks.push({ type: 'p', text: item.label + ': ' + fmt(item.members, pop) + ' raised it' + (canDrop ? ', and ' + fmt(item.dropped, item.members) + ' dropped' : '') + '. Too few to tell.' });
+      quotesFor(item.index, filter).forEach(function (quote) {
+        blocks.push({ type: 'quote', text: quote, caption: 'Member comment' });
+      });
+    });
+    blocks.push({ type: 'h3', text: 'What helps members stay' });
+    if (!pack.strengths.length) blocks.push({ type: 'p', text: 'No ' + title.toLowerCase() + ' strength was mentioned in this filter.' });
+    else pack.strengths.forEach(function (item) { blocks.push({ type: 'p', text: strengthLine(item, canDrop, pop) }); });
+    blocks.push({ type: 'h3', text: 'Explain in the infographic' });
+    var explainItems = pack.rows.slice(0, 3);
+    pack.quiet.forEach(function (item) { if (explainItems.length < 3) explainItems.push(item); });
+    if (!explainItems.length) blocks.push({ type: 'p', text: 'There is no ' + title.toLowerCase() + ' issue to explain in this filter.' });
+    else explainItems.forEach(function (item) { blocks.push({ type: 'p', text: explainLine(item, stats, canDrop, pop) }); });
+    return blocks;
+  }
+
+  var sections = [];
+  sections.push({ heading: '1. Availment (getting started)', blocks: sectionBlocks('Availment', avail, 'availment') });
+  sections.push({ heading: '2. Adherence (staying on)', blocks: sectionBlocks('Adherence', adh, 'adherence') });
+
+  var sideBlocks = [];
+  sideBlocks.push({ type: 'h3', text: 'Availment and adherence' });
+  var sideHeaders = ['Stage', 'Members with a problem', 'Dropout rate among them', 'Overall rate', 'Biggest issue', 'Biggest strength'];
+  function sideRow(label, raised, raisedD, pack) {
+    var top = pack.rows[0] || pack.quiet[0] || null;
+    var strength = pack.strengths[0];
+    var pop = canDrop ? stats.known : stats.all;
+    return [
+      label,
+      fmt(raised, pop),
+      canDrop ? (raised ? fmt(raisedD, raised) : '0 members') : 'Needs the dropout list',
+      canDrop ? fmt(stats.d, stats.known) : 'Needs the dropout list',
+      top ? top.label + ' — ' + (canDrop ? fmt(top.dropped, top.members) + ' dropped' : fmt(top.members, pop) + ' raised it') : 'None stood out',
+      strength ? strength.label + ' — ' + (canDrop && strength.known ? fmt(strength.active, strength.known) + ' still active' : fmt(strength.members, pop) + ' mentioned it') : 'None stood out'
+    ];
+  }
+  sideBlocks.push({
+    type: 'table',
+    headers: sideHeaders,
+    rows: [
+      sideRow('Availment', canDrop ? stats.availK : stats.availR, stats.availD, avail),
+      sideRow('Adherence', canDrop ? stats.adhK : stats.adhR, stats.adhD, adh)
+    ]
+  });
+  sideBlocks.push({ type: 'p', text: verdict(stats, avail, adh, canDrop) });
+  sections.push({ heading: '3. Side by side', blocks: sideBlocks });
+
+  sections.push({
+    heading: '4. Infographic plan',
+    blocks: [
+      infographic('Infographic 1 (Availment)', 'availment', avail, stats, canDrop, filter),
+      infographic('Infographic 2 (Adherence)', 'adherence', adh, stats, canDrop, filter)
+    ].flat()
+  });
+
+  sections.push({ heading: '5. Where it’s worst', blocks: worstBlocks(stats, canDrop) });
+  sections.push({ heading: '6. Data notes', collapsed: true, blocks: noteBlocks(stats, canDrop) });
+
+  return {
+    kicker: CONFIG.wording.kicker,
+    title: 'Best Life Retention Brief',
+    filter: filterLine(),
+    lines: lines,
+    sections: sections
+  };
+}
+
+function verdict(stats, avail, adh, canDrop) {
+  if (!canDrop) {
+    return 'A matched dropout list is needed before this page can say which stage is linked to more dropouts. ' + fmt(stats.availR, stats.all) + ' raised an availment problem, and ' + fmt(stats.adhR, stats.all) + ' raised an adherence problem.';
+  }
+  var extraA = avail.rows.reduce(function (sum, item) { return sum + Math.max(0, item.extra); }, 0);
+  var extraB = adh.rows.reduce(function (sum, item) { return sum + Math.max(0, item.extra); }, 0);
+  var availClause = stats.availK ? fmt(stats.availD, stats.availK) + ' who raised an availment problem dropped' : 'No member raised an availment problem';
+  var adhClause = stats.adhK ? fmt(stats.adhD, stats.adhK) + ' who raised an adherence problem' : 'no member raised an adherence problem';
+  var lead;
+  if (extraA > extraB + 0.5) lead = 'Availment is linked to more dropouts.';
+  else if (extraB > extraA + 0.5) lead = 'Adherence is linked to more dropouts.';
+  else lead = 'Availment and adherence are close on estimated extra dropouts.';
+  return lead + ' Estimated extra dropouts are ' + fmtExtra(extraA) + ' for availment and ' + fmtExtra(extraB) + ' for adherence. ' + sentence(availClause) + ', compared with ' + adhClause + '.';
+}
+
+function infographic(heading, stageName, pack, stats, canDrop, filter) {
+  var blocks = [{ type: 'h3', text: heading }];
+  var featured = pack.rows[0] || pack.quiet[0] || pack.watch[0] || null;
+  var pop = canDrop ? stats.known : stats.all;
+  if (!featured) {
+    blocks.push({ type: 'p', text: 'No ' + stageName + ' headline is available for this filter.' });
+  } else if (!canDrop) {
+    blocks.push({ type: 'p', text: 'Headline: ' + featured.label + ' is the most mentioned ' + stageName + ' problem. ' + fmt(featured.members, pop) + ' raised it.' });
+  } else if (pack.rows[0]) {
+    blocks.push({ type: 'p', text: 'Headline: ' + featured.label + ' is the biggest ' + stageName + ' gap. ' + fmt(featured.dropped, featured.members) + ' who raised it dropped, compared with ' + fmt(stats.d, stats.known) + ' overall.' });
+  } else {
+    blocks.push({ type: 'p', text: 'Headline: ' + featured.label + ' is the most mentioned ' + stageName + ' problem. ' + fmt(featured.dropped, featured.members) + ' who raised it dropped, compared with ' + fmt(stats.d, stats.known) + ' overall.' });
+  }
+  var steps = [];
+  pack.rows.slice(0, 3).forEach(function (item) { steps.push(explainLine(item, stats, canDrop, pop)); });
+  pack.quiet.forEach(function (item) { if (steps.length < 3) steps.push(explainLine(item, stats, canDrop, pop)); });
+  pack.watch.forEach(function (item) { if (steps.length < 3) steps.push(explainLine(item, stats, canDrop, pop)); });
+  if (stageName === 'availment' && stats.ordersKnown) steps.push('Show this count: ' + fmt(stats.before, stats.ordersKnown) + ' left before the first order.');
+  if (stageName === 'adherence' && stats.ordersKnown) steps.push('Show this count: ' + fmt(stats.after, stats.ordersKnown) + ' left after at least one refill.');
+  if (pack.strengths[0]) steps.push('Also show what members value: ' + pack.strengths[0].value + '. ' + strengthLine(pack.strengths[0], canDrop, pop));
+  if (steps.length > 5) steps = steps.slice(0, 5);
+  blocks.push({ type: 'p', text: steps.length ? 'Messages to show:' : 'No message to show for this filter.' });
+  if (steps.length) blocks.push({ type: 'ul', items: steps });
+  var quote = featured ? quotesFor(featured.index, filter)[0] : '';
+  if (!quote && pack.rows[1]) quote = quotesFor(pack.rows[1].index, filter)[0];
+  if (!quote && pack.watch[0] && pack.watch[0] !== featured) quote = quotesFor(pack.watch[0].index, filter)[0];
+  blocks.push({ type: 'quote', text: quote || 'No member comment is available for this filter.', caption: quote ? 'Member comment' : '' });
+  return blocks;
+}
+
+function worstBlocks(stats, canDrop) {
+  var blocks = [];
+  function tableFor(map, labels, blank, title) {
+    var rows = [];
+    map.forEach(function (group, key) {
+      var known = group.d + group.a;
+      if (group.all < 10) return;
+      if (canDrop && known < 10) return;
+      var avail = topIssue(stats, group, 'availment', canDrop);
+      var adh = topIssue(stats, group, 'adherence', canDrop);
+      rows.push({
+        rate: known ? group.d / known : -1,
+        all: group.all,
+        cells: [
+          key ? (labels[key] || blank) : blank,
+          fmt(group.all, stats.all),
+          canDrop ? fmt(group.d, known) : 'Needs the dropout list',
+          avail ? (canDrop ? avail.label + ' — ' + fmt(avail.dropped, avail.members) + ' dropped' : avail.label + ' — ' + fmt(avail.members, group.all) + ' raised it') : 'None stood out',
+          adh ? (canDrop ? adh.label + ' — ' + fmt(adh.dropped, adh.members) + ' dropped' : adh.label + ' — ' + fmt(adh.members, group.all) + ' raised it') : 'None stood out'
+        ]
+      });
+    });
+    rows.sort(function (a, b) { return b.rate - a.rate || b.all - a.all; });
+    blocks.push({ type: 'h3', text: title });
+    if (!rows.length) blocks.push({ type: 'p', text: 'No group has 10 or more members in this filter.' });
+    else blocks.push({
+      type: 'table',
+      headers: ['Group', 'Members', 'Dropout rate', '#1 availment issue', '#1 adherence issue'],
+      rows: rows.map(function (row) { return row.cells; })
+    });
+  }
+  tableFor(stats.groupsT, state.types, 'Not specified', 'By medicine benefit member type');
+  tableFor(stats.groupsV, state.verticals, 'No vertical listed', 'By vertical');
+  return blocks;
+}
+
+function noteBlocks(stats, canDrop) {
+  var meta = state.meta;
+  var blocks = [];
+  var files = (meta.files || []).map(function (file) {
+    var base = file.name + ' · ' + kindLabel(file.kind) + ' · ' + num(file.rows) + ' rows read';
+    if (file.used != null && file.kind !== 'D') base += ', ' + num(file.used) + ' rows with a member code';
+    if (file.error) base += '. ' + file.error;
+    return base;
+  });
+  blocks.push({ type: 'ul', items: files.length ? files : ['No file report was returned.'] });
+  if (meta.members) {
+    blocks.push({ type: 'p', text: canDrop || meta.hasDropout ? fmt(meta.matched, meta.members) + ' matched the dropout list. ' + fmt(meta.unknown, meta.members) + ' are unknown and are left out of the dropout rate.' : 'No dropout list was matched. ' + fmt(meta.members, meta.members) + ' stay in the issue counts, and dropout numbers need the list.' });
+  }
+  var other = Math.max(0, (meta.commentsOther || 0) - (meta.geminiRelabeled || 0));
+  blocks.push({ type: 'p', text: num(meta.commentsAnalyzed || 0) + ' comments were analyzed (' + num(meta.distinctComments || 0) + ' distinct wordings). ' + (meta.commentsAnalyzed ? fmtComments(other, meta.commentsAnalyzed) + ' are still left as other.' : 'No comments were analyzed.') });
+  blocks.push({ type: 'p', text: 'File counts cover the full load. A member is counted once for each issue, even if they wrote it more than once. Filler comments skipped: ' + num(meta.fillerSkipped || 0) + '. Combined comments skipped because they repeated another field: ' + num(meta.repeatsSkipped || 0) + '.' });
+  var mode = 'Analysis mode: rules.';
+  if (meta.geminiRelabeled) mode = 'Analysis mode: rules, then Gemini relabeled ' + fmtComments(meta.geminiRelabeled, meta.geminiReviewed || meta.geminiRelabeled) + '.';
+  var seconds = (meta.elapsedMs || 0) / 1000;
+  blocks.push({ type: 'p', text: mode + ' Rules finished in ' + (seconds < 0.1 ? 'under 0.1' : seconds.toFixed(1)) + ' seconds.' });
+  if (meta.hasOrders) blocks.push({ type: 'p', text: 'Order counts were used to separate members who dropped before the first order from members who dropped after a refill.' + (meta.hasEnrollment ? ' An enrollment date column was found and was not shown as member text.' : '') });
+  else blocks.push({ type: 'p', text: 'No order-count column was found, so the brief cannot say who dropped before the first order.' });
+  if (stats.staffR) {
+    var staffPop = canDrop ? stats.known : stats.all;
+    var staffN = canDrop ? stats.staffK : stats.staffR;
+    blocks.push({ type: 'p', text: 'Staff attitude, which sits across both stages, was raised by ' + fmt(staffN, staffPop) + (canDrop && stats.staffK ? '. ' + fmt(stats.staffD, stats.staffK) + ' of those matched members dropped.' : '.') });
+  }
+  if (meta.otherWords && meta.otherWords.length) {
+    blocks.push({ type: 'p', text: 'Most frequent words in comments left as other: ' + meta.otherWords.map(function (item) { return item.word + ' (' + num(item.n) + ')'; }).join(', ') + '.' });
+  } else blocks.push({ type: 'p', text: 'No comments were left as other, so there is no word list to tune.' });
+  return blocks;
+}
+
+function fmtComments(part, whole) {
+  if (!whole) return '0 comments';
+  return num(part) + ' of ' + num(whole) + ' comments (' + pct(part, whole) + ')';
+}
+
+function renderCurrent(scroll) {
+  if (!state) return;
+  var open = !!(briefEl.querySelector('details') && briefEl.querySelector('details').open);
+  lastModel = buildModel(currentFilter());
+  briefEl.innerHTML = '';
+  renderModel(lastModel, briefEl);
+  var details = briefEl.querySelector('details');
+  if (details && open) details.open = true;
+  if (scroll) briefEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderModel(model, root) {
+  root.appendChild(el('p', 'kicker', model.kicker));
+  root.appendChild(el('p', 'filter-line', model.filter));
+  model.lines.forEach(function (line, index) {
+    root.appendChild(el(index === 0 ? 'h2' : 'p', index === 0 ? 'headline' : 'lead', line));
+  });
+  model.sections.forEach(function (section) {
+    var wrap = section.collapsed ? document.createElement('details') : el('section', 'block');
+    if (section.collapsed) wrap.className = 'block notes';
+    var heading = section.collapsed ? document.createElement('summary') : el('h2');
+    heading.textContent = section.heading;
+    wrap.appendChild(heading);
+    section.blocks.forEach(function (block) { wrap.appendChild(renderBlock(block)); });
+    root.appendChild(wrap);
+  });
+}
+
+function renderBlock(block) {
+  if (block.type === 'h3') return el('h3', '', block.text);
+  if (block.type === 'p') return el('p', '', block.text);
+  if (block.type === 'note') return el('p', 'note', block.text);
+  if (block.type === 'ul') {
+    var list = el('ul');
+    (block.items || []).forEach(function (item) { list.appendChild(el('li', '', item)); });
+    return list;
+  }
+  if (block.type === 'quote') {
+    var fig = el('figure', 'quote');
+    if (block.caption) fig.appendChild(el('figcaption', '', block.caption));
+    fig.appendChild(el('blockquote', '', block.text));
+    return fig;
+  }
+  if (block.type === 'table') return renderTable(block.headers, block.rows);
+  if (block.type === 'issues') return renderIssues(block);
+  return el('p', '', '');
+}
+
+function renderTable(headers, rows) {
+  var wrap = el('div', 'table-wrap');
+  var table = el('table');
+  var thead = document.createElement('thead');
+  var head = document.createElement('tr');
+  headers.forEach(function (header) { head.appendChild(el('th', '', header)); });
+  thead.appendChild(head);
+  table.appendChild(thead);
+  var body = document.createElement('tbody');
+  rows.forEach(function (cells) {
+    var row = document.createElement('tr');
+    cells.forEach(function (cell) { row.appendChild(el('td', '', cell)); });
+    body.appendChild(row);
+  });
+  table.appendChild(body);
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function renderIssues(block) {
+  var wrap = el('div', 'table-wrap');
+  var table = el('table');
+  var thead = document.createElement('thead');
+  var head = document.createElement('tr');
+  block.headers.forEach(function (header) { head.appendChild(el('th', '', header)); });
+  thead.appendChild(head);
+  table.appendChild(thead);
+  var body = document.createElement('tbody');
+  block.rows.forEach(function (item) {
+    var row = document.createElement('tr');
+    item.cells.forEach(function (cell) { row.appendChild(el('td', '', cell)); });
+    body.appendChild(row);
+    var quotes = document.createElement('tr');
+    var cell = document.createElement('td');
+    cell.colSpan = block.headers.length;
+    cell.className = 'quotes';
+    if (!item.quotes.length) cell.textContent = 'No member comment is available for this filter.';
+    else item.quotes.forEach(function (quote) {
+      var line = el('blockquote', '', quote);
+      cell.appendChild(line);
+    });
+    quotes.appendChild(cell);
+    body.appendChild(quotes);
+  });
+  table.appendChild(body);
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function toPlain(model) {
+  var out = [model.title, model.kicker, model.filter, ''];
+  model.lines.forEach(function (line) { out.push(line); });
+  model.sections.forEach(function (section) {
+    out.push('', section.heading);
+    section.blocks.forEach(function (block) { writeBlock(out, block, false); });
+  });
+  return out.join('\n');
+}
+
+function toMarkdown(model) {
+  var out = ['# ' + model.title, '', model.kicker, '', model.filter, ''];
+  model.lines.forEach(function (line, index) { out.push(index === 0 ? '## ' + line : line, ''); });
+  model.sections.forEach(function (section) {
+    out.push('## ' + section.heading, '');
+    section.blocks.forEach(function (block) { writeBlock(out, block, true); });
+  });
+  return out.join('\n');
+}
+
+function writeBlock(out, block, markdown) {
+  if (block.type === 'h3') out.push(markdown ? '### ' + block.text : block.text, '');
+  else if (block.type === 'p' || block.type === 'note') out.push(block.text, '');
+  else if (block.type === 'ul') {
+    (block.items || []).forEach(function (item) { out.push((markdown ? '- ' : '• ') + item); });
+    out.push('');
+  } else if (block.type === 'quote') {
+    if (block.caption) out.push(block.caption);
+    out.push('> ' + block.text, '');
+  } else if (block.type === 'table') writeTable(out, block.headers, block.rows, markdown);
+  else if (block.type === 'issues') {
+    writeTable(out, block.headers, block.rows.map(function (row) { return row.cells; }), markdown);
+    block.rows.forEach(function (row) {
+      out.push(row.cells[0]);
+      if (!row.quotes.length) out.push('No member comment is available for this filter.');
+      row.quotes.forEach(function (quote) { out.push('> ' + quote); });
+      out.push('');
+    });
+  }
+}
+
+function writeTable(out, headers, rows, markdown) {
+  var clean = function (value) { return String(value).replace(/\|/g, '/').replace(/\n/g, ' '); };
+  if (markdown) {
+    out.push('| ' + headers.map(clean).join(' | ') + ' |');
+    out.push('| ' + headers.map(function () { return '---'; }).join(' | ') + ' |');
+    rows.forEach(function (row) { out.push('| ' + row.map(clean).join(' | ') + ' |'); });
+  } else {
+    out.push(headers.join(' | '));
+    rows.forEach(function (row) { out.push(row.join(' | ')); });
+  }
+  out.push('');
+}
+
+function safeError(text) {
+  return String(text || 'Gemini could not label these comments.').replace(/key=[^&\s]+/gi, 'key=removed').slice(0, 280);
+}
+
+function parseLabels(text) {
+  var raw = String(text || '').trim().replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '');
+  var start = raw.indexOf('[');
+  var end = raw.lastIndexOf(']');
+  var data = JSON.parse(start >= 0 ? raw.slice(start, end + 1) : raw);
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.labels)) return data.labels;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+async function geminiBatch(items, key, attempt) {
+  var ids = {};
+  CONFIG.issues.forEach(function (issue) { ids[issue.id] = issue.label + ' (' + issue.stage + '). ' + issue.explain; });
+  var prompt = [
+    'Label short comments from members of a Philippine medicine-benefit program. Comments may be English, Tagalog, or Taglish.',
+    'Return only a JSON array. Each item is {"id":"<same id>","issue":"<issue id>","polarity":"pain"|"strength"|"skip"}.',
+    'Use skip for empty or filler comments. Use pain for a problem and strength for something the member is glad about. Use other only when nothing fits.',
+    'Issues:',
+    Object.keys(ids).map(function (id) { return id + ': ' + ids[id]; }).join('\n'),
+    'Comments:',
+    items.map(function (item) { return JSON.stringify({ id: item.id, text: scrub(item.text).slice(0, 500) }); }).join('\n')
+  ].join('\n\n');
+  var generation = { maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: 'low' } };
+  if (useJsonMime) generation.responseMimeType = 'application/json';
+  var response = await fetch(CONFIG.gemini.endpoint + '/' + encodeURIComponent(CONFIG.gemini.model) + ':generateContent?key=' + encodeURIComponent(key), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    referrerPolicy: 'no-referrer',
+    signal: geminiAbort.signal,
+    body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: generation })
+  });
+  if (response.status === 400 && useJsonMime) {
+    useJsonMime = false;
+    return geminiBatch(items, key, attempt || 0);
+  }
+  if (response.status === 429 || response.status >= 500) {
+    if ((attempt || 0) < CONFIG.gemini.retries) {
+      await new Promise(function (resolve) { setTimeout(resolve, 400 * Math.pow(2, attempt || 0)); });
+      return geminiBatch(items, key, (attempt || 0) + 1);
+    }
+  }
+  if (!response.ok) throw new Error(safeError(await response.text()));
+  var json = await response.json();
+  var parts = (((json.candidates || [])[0] || {}).content || {}).parts || [];
+  var answer = parts.filter(function (part) { return part && !part.thought; });
+  if (!answer.length) answer = parts;
+  try {
+    return parseLabels(answer.map(function (part) { return part.text || ''; }).join('\n'));
+  } catch (error) {
+    if ((attempt || 0) < CONFIG.gemini.retries) {
+      await new Promise(function (resolve) { setTimeout(resolve, 400 * Math.pow(2, attempt || 0)); });
+      return geminiBatch(items, key, (attempt || 0) + 1);
+    }
+    throw new Error('Gemini returned text that was not a label list.');
+  }
+}
+
+function applyLabels(labels) {
+  var byId = new Map((state.geminiQueue || []).map(function (item) { return [item.id, item]; }));
+  var index = {};
+  CONFIG.issues.forEach(function (issue, i) { index[issue.id] = i; });
+  var other = index.other;
+  labels.forEach(function (label) {
+    var item = byId.get(label && label.id);
+    if (!item || item.applied) return;
+    var idx = index[label.issue];
+    var polarity = label.polarity === 'strength' ? 'strength' : label.polarity === 'skip' ? 'skip' : label.polarity === 'pain' ? 'pain' : '';
+    if (!polarity || idx == null) return;
+    item.applied = true;
+    var counted = 0;
+    (item.hits || []).forEach(function (hit) {
+      if (polarity === 'pain' && idx !== other) state.pain[hit.i] |= (1 << idx);
+      if (polarity === 'strength' && idx !== other) state.strength[hit.i] |= (1 << idx);
+      if (idx !== other || polarity === 'skip') {
+        var dec = Math.min(hit.n || 1, state.otherOpen[hit.i]);
+        state.otherOpen[hit.i] -= dec;
+        counted += dec;
+        if (state.otherOpen[hit.i] <= 0) {
+          state.pain[hit.i] &= ~(1 << other);
+          state.strength[hit.i] &= ~(1 << other);
+        }
+      }
+    });
+    if (idx !== other && polarity === 'pain') {
+      var already = (state.quotes || []).filter(function (quote) { return quote.issue === idx; }).length;
+      if (already < 2 && item.hits && item.hits[0]) {
+        var i = item.hits[0].i;
+        state.quotes.push({ issue: idx, text: scrub(item.text), survey: state.survey[i], type: state.memberType[i], vertical: state.vertical[i] });
+      }
+    }
+    state.meta.geminiRelabeled = (state.meta.geminiRelabeled || 0) + counted;
+  });
+}
+
+async function improveWithGemini() {
+  if (!state) { setStatus('Build a brief before using Gemini.'); return; }
+  var key = geminiKey.value.trim();
+  if (!key) { setStatus('Paste a Gemini key first. It stays in this page’s memory and is not saved.'); return; }
+  var pending = (state.geminiQueue || []).filter(function (item) { return !item.applied; }).slice(0, CONFIG.gemini.cap);
+  if (!pending.length) { setStatus('No comments are left as other.'); return; }
+  geminiAbort = new AbortController();
+  setRunning(true);
+  useJsonMime = true;
+  state.meta.geminiReviewed = (state.meta.geminiReviewed || 0) + pending.reduce(function (sum, item) {
+    return sum + (item.hits || []).reduce(function (inner, hit) { return inner + (hit.n || 1); }, 0);
+  }, 0);
+  var batches = [];
+  for (var i = 0; i < pending.length; i += CONFIG.gemini.batchSize) batches.push(pending.slice(i, i + CONFIG.gemini.batchSize));
+  var cursor = 0;
+  var done = 0;
+  var failed = 0;
+  var lastError = '';
+  async function pump() {
+    while (cursor < batches.length) {
+      var batch = batches[cursor++];
+      try {
+        var labels = await geminiBatch(batch, key, 0);
+        applyLabels(labels);
+        done += batch.length;
+        setStatus('Gemini labeled ' + num(done) + ' of ' + num(pending.length) + ' comments still labeled other.');
+        renderCurrent(false);
+      } catch (error) {
+        if (error && error.name === 'AbortError') throw error;
+        failed += batch.length;
+        lastError = safeError(error.message);
+        setStatus(lastError);
+      }
+    }
+  }
+  try {
+    var pumps = [];
+    for (var p = 0; p < CONFIG.gemini.parallel; p++) pumps.push(pump());
+    await Promise.all(pumps);
+    state.meta.mode = 'rules+gemini';
+    setRunning(false);
+    setStatus(failed ? 'Gemini finished with ' + num(failed) + ' comments still unlabeled. ' + (lastError || safeError('')) : 'Gemini relabeled comments that were labeled other. The key was not saved.');
+    renderCurrent(false);
+  } catch (error) {
+    setRunning(false);
+    if (error && error.name === 'AbortError') setStatus('Gemini was cancelled. Labels already returned were kept.');
+    else setStatus(safeError(error.message));
+    renderCurrent(false);
+  }
+}
+
+function addFiles(fileList, slot) {
+  Array.prototype.forEach.call(fileList || [], function (file) {
+    var name = file.name || 'upload.csv';
+    if (!/\.csv$/i.test(name) && file.type && file.type.indexOf('csv') === -1 && !/\.txt$/i.test(name)) {
+      setStatus(name + ' was skipped. Export the Airtable view as CSV.');
+      return;
+    }
+    queue.push({ file: file, slot: slot, name: name });
+  });
+  renderQueue();
+}
+
+function renderQueue() {
+  queueEl.innerHTML = '';
+  if (!queue.length) {
+    queueEl.appendChild(el('li', 'empty', 'No files yet.'));
+  }
+  queue.forEach(function (item, index) {
+    var li = el('li');
+    li.appendChild(el('span', '', item.name + ' · dropped on ' + (item.slot === 'D' ? 'dropout' : 'Survey ' + item.slot)));
+    var button = el('button', 'text-btn', 'Remove');
+    button.type = 'button';
+    button.addEventListener('click', function () {
+      queue.splice(index, 1);
+      renderQueue();
+    });
+    li.appendChild(button);
+    queueEl.appendChild(li);
+  });
+  buildBtn.disabled = running || !queue.length;
+}
+
+function wireDrop(zone, slot) {
+  var input = zone.querySelector('input');
+  input.addEventListener('change', function () {
+    addFiles(input.files, slot);
+    input.value = '';
+  });
+  ['dragenter', 'dragover'].forEach(function (name) {
+    zone.addEventListener(name, function (event) {
+      event.preventDefault();
+      zone.classList.add('hot');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (name) {
+    zone.addEventListener(name, function (event) {
+      event.preventDefault();
+      zone.classList.remove('hot');
+    });
+  });
+  zone.addEventListener('drop', function (event) {
+    addFiles(event.dataTransfer.files, slot);
+  });
+}
+
+wireDrop(document.getElementById('zoneA'), 'A');
+wireDrop(document.getElementById('zoneB'), 'B');
+wireDrop(document.getElementById('zoneD'), 'D');
+
+buildBtn.addEventListener('click', function () {
+  if (!queue.length) return;
+  startJob({
+    type: 'parse',
+    config: CONFIG,
+    files: queue.map(function (item) { return { file: item.file, name: item.name, slot: item.slot }; })
+  });
+});
+function loadSample(size) {
+  queue.length = 0;
+  renderQueue();
+  startJob({ type: 'sample', size: size, config: CONFIG });
+}
+sampleBtn.addEventListener('click', function () { loadSample('small'); });
+largeBtn.addEventListener('click', function () { loadSample('large'); });
+cancelBtn.addEventListener('click', function () {
+  if (geminiAbort) geminiAbort.abort();
+  if (worker) worker.terminate();
+  worker = null;
+  setRunning(false);
+  setStatus('Cancelled.');
+});
+surveySelect.addEventListener('change', function () { if (state) renderCurrent(false); });
+typeSelect.addEventListener('change', function () { if (state) renderCurrent(false); });
+verticalSelect.addEventListener('change', function () { if (state) renderCurrent(false); });
+copyBtn.addEventListener('click', async function () {
+  if (!lastModel) return;
+  var text = toPlain(lastModel);
+  try {
+    await navigator.clipboard.writeText(text);
+    setStatus('Copied the brief as text.');
+  } catch (error) {
+    var area = document.createElement('textarea');
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand('copy');
+    area.remove();
+    setStatus('Copied the brief as text.');
+  }
+});
+downloadBtn.addEventListener('click', function () {
+  if (!lastModel) return;
+  var blob = new Blob([toMarkdown(lastModel)], { type: 'text/markdown' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'best-life-retention-brief.md';
+  link.click();
+  setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+});
+printBtn.addEventListener('click', function () { window.print(); });
+geminiBtn.addEventListener('click', improveWithGemini);
+window.addEventListener('beforeprint', function () {
+  var details = document.querySelector('#brief details');
+  if (details) { details.dataset.wasOpen = details.open ? '1' : '0'; details.open = true; }
+});
+window.addEventListener('afterprint', function () {
+  var details = document.querySelector('#brief details');
+  if (details && details.dataset.wasOpen === '0') details.open = false;
+});
+
+window.__brief = {
+  model: function () { return lastModel; },
+  text: function () { return lastModel ? toPlain(lastModel) : ''; },
+  state: function () { return state; },
+  probe: function (items) {
+    return new Promise(function (resolve) {
+      if (!worker) spawnWorker();
+      probeWait = resolve;
+      worker.postMessage({ type: 'probe', config: CONFIG, items: items });
+    });
+  }
+};
+
+renderQueue();
+geminiNote.textContent = 'Optional. The key stays in this page’s memory and is not saved. Gemini only sees comments still labeled other, with names, emails, phones, and long numbers removed. Cap: ' + num(CONFIG.gemini.cap) + ' comments, ' + CONFIG.gemini.batchSize + ' at a time.';
+
+  </script>
+</body>
+</html>
